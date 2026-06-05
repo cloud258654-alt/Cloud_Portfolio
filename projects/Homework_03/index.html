@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cosmos3 Super Text2Image</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons for premium visual icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts for futuristic feel -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #030712;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-futuristic {
+      font-family: 'Orbitron', sans-serif;
+    }
+    /* Pulsing stellar glow effect */
+    .glow-purple {
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+    }
+    .glow-blue {
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+    }
+    /* Smooth custom scrollbar for mobile prompt history */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* Animated starry background */
+    .star-bg {
+      background-image: 
+        radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+        radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+        radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px);
+      background-size: 550px 550px, 350px 350px, 250px 250px;
+      background-position: 0 0, 40px 60px, 130px 270px;
+      animation: starMove 100s linear infinite;
+    }
+    @keyframes starMove {
+      from { background-position: 0 0, 40px 60px, 130px 270px; }
+      to { background-position: 550px 550px, 390px 410px, 380px 820px; }
+    }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden star-bg">
+
+  <!-- Header Banner -->
+  <header class="border-b border-purple-900/40 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-blue-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
+          <i data-lucide="orbit" class="w-5 h-5 text-white animate-spin-slow"></i>
+        </div>
+        <div>
+          <h1 class="text-md font-bold font-futuristic tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-indigo-200 to-blue-400">COSMOS III</h1>
+          <p class="text-[9px] text-slate-400 uppercase tracking-widest font-semibold">Super-Text2Image App</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2">
+        <span id="engine-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/30 flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping"></span>
+          Gemini 引擎
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Scroll Area -->
+  <main class="flex-grow max-w-md w-full mx-auto px-4 py-4 space-y-5 pb-24">
+    
+    <!-- Tab Controls (Direct Gemini vs Hugging Face) -->
+    <div class="grid grid-cols-2 gap-1 p-1 bg-slate-900/90 rounded-2xl border border-slate-800">
+      <button id="tab-gemini" onclick="switchEngine('gemini')" class="py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-white bg-gradient-to-r from-purple-900/60 to-indigo-900/60 border border-purple-500/20">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+        Gemini Imagen-4
+      </button>
+      <button id="tab-hf" onclick="switchEngine('hf')" class="py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-slate-400 hover:text-slate-200">
+        <i data-lucide="database" class="w-3.5 h-3.5"></i>
+        Hugging Face
+      </button>
+    </div>
+
+    <!-- Engine Config panel (Collapsible / Dynamic) -->
+    <div id="hf-config-panel" class="hidden bg-slate-900/80 border border-indigo-500/20 rounded-2xl p-4 space-y-3 shadow-xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xs font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
+          <i data-lucide="sliders" class="w-3.5 h-3.5"></i> Hugging Face 整合設定
+        </h3>
+        <span class="text-[10px] text-slate-400 font-medium">作業 HW3 認證專用</span>
+      </div>
+      <div class="space-y-2">
+        <label class="block text-[11px] text-slate-400 font-semibold">Hugging Face API Token</label>
+        <div class="relative">
+          <input type="password" id="hf-token" placeholder="hf_xxxxxxxxxxxxxxxxxxxx (Write/Read Token)" 
+            class="w-full bg-slate-950/90 border border-slate-800 rounded-xl px-3 py-2 text-xs text-indigo-200 focus:outline-none focus:border-indigo-500 placeholder-slate-600">
+          <button onclick="toggleTokenVisibility()" class="absolute right-3 top-2 text-slate-500 hover:text-slate-300">
+            <i data-lucide="eye" id="token-eye-icon" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+      <div class="space-y-2">
+        <label class="block text-[11px] text-slate-400 font-semibold">選擇文字生圖模型</label>
+        <select id="hf-model" class="w-full bg-slate-950/90 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+          <option value="black-forest-labs/FLUX.1-schnell">black-forest-labs/FLUX.1-schnell (推薦：極速精緻)</option>
+          <option value="stabilityai/stable-diffusion-3.5-large">stabilityai/stable-diffusion-3.5-large (高語意精準)</option>
+          <option value="stabilityai/stable-diffusion-xl-base-1.0">stabilityai/stable-diffusion-xl-base-1.0 (經典款)</option>
+          <option value="custom">-- 自訂 Hugging Face 模型名稱 --</option>
+        </select>
+        <input type="text" id="hf-custom-model" placeholder="請輸入例如: stabilityai/stable-diffusion-3" 
+          class="hidden w-full bg-slate-950/90 border border-slate-800 rounded-xl px-3 py-2 text-xs text-indigo-200 focus:outline-none focus:border-indigo-500 placeholder-slate-600 mt-2">
+      </div>
+    </div>
+
+    <!-- Core Prompt Input Section -->
+    <div class="bg-slate-900/50 backdrop-blur-md rounded-2xl p-4 border border-slate-800/80 space-y-4">
+      <div class="flex items-center justify-between">
+        <label class="text-xs font-bold text-purple-300 uppercase tracking-widest flex items-center gap-1.5">
+          <i data-lucide="pen-tool" class="w-3.5 h-3.5"></i> 輸入您的創意構想
+        </label>
+        <button onclick="optimizePrompt()" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 transition-all text-[11px] font-bold">
+          <i data-lucide="wand-2" class="w-3 h-3 animate-pulse"></i> AI 智能優化 (Best Prompt)
+        </button>
+      </div>
+
+      <!-- Textarea input -->
+      <div class="relative">
+        <textarea id="prompt-input" rows="3" placeholder="例如：一隻身穿太空服的橘貓，正在火星漫步，背後有巨大的地球與星雲..." 
+          class="w-full bg-slate-950/90 text-slate-100 border border-slate-800 rounded-xl p-3 text-xs placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500/50 focus:border-purple-500 resize-none leading-relaxed"></textarea>
+      </div>
+
+      <!-- Quick Style Tags -->
+      <div class="space-y-1.5">
+        <span class="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
+          <i data-lucide="tags" class="w-3 h-3"></i> 快速套用風格濾鏡：
+        </span>
+        <div class="flex gap-1.5 overflow-x-auto no-scrollbar py-1">
+          <button onclick="applyStyle('cosmic-nebula')" class="whitespace-nowrap px-3 py-1 rounded-full bg-slate-800 hover:bg-purple-900/40 text-slate-300 border border-slate-700/50 hover:border-purple-500/30 text-[10px] font-medium transition-all">🌌 宇宙星雲</button>
+          <button onclick="applyStyle('cyberpunk')" class="whitespace-nowrap px-3 py-1 rounded-full bg-slate-800 hover:bg-purple-900/40 text-slate-300 border border-slate-700/50 hover:border-purple-500/30 text-[10px] font-medium transition-all">⚡ 賽博朋克</button>
+          <button onclick="applyStyle('anime-magical')" class="whitespace-nowrap px-3 py-1 rounded-full bg-slate-800 hover:bg-purple-900/40 text-slate-300 border border-slate-700/50 hover:border-purple-500/30 text-[10px] font-medium transition-all">✨ 奇幻動漫</button>
+          <button onclick="applyStyle('photorealistic')" class="whitespace-nowrap px-3 py-1 rounded-full bg-slate-800 hover:bg-purple-900/40 text-slate-300 border border-slate-700/50 hover:border-purple-500/30 text-[10px] font-medium transition-all">📷 寫實攝影</button>
+          <button onclick="applyStyle('3d-pixar')" class="whitespace-nowrap px-3 py-1 rounded-full bg-slate-800 hover:bg-purple-900/40 text-slate-300 border border-slate-700/50 hover:border-purple-500/30 text-[10px] font-medium transition-all">🧸 3D 卡通</button>
+        </div>
+      </div>
+
+      <!-- Advanced settings (Accordion for clean mobile layout) -->
+      <div class="border-t border-slate-800/80 pt-3">
+        <button onclick="toggleAdvancedSettings()" class="w-full flex items-center justify-between text-slate-400 hover:text-slate-200 py-1">
+          <span class="text-xs font-semibold flex items-center gap-1.5">
+            <i data-lucide="settings-2" class="w-3.5 h-3.5"></i> 進階版型設定
+          </span>
+          <i data-lucide="chevron-down" id="adv-chevron" class="w-4 h-4 transition-transform duration-300"></i>
+        </button>
+        
+        <div id="advanced-settings-block" class="hidden mt-3 space-y-3 pt-1">
+          <!-- Ratio Select -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <label class="text-[10px] text-slate-400 font-semibold">圖片比例 (Aspect Ratio)</label>
+              <select id="aspect-ratio" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none">
+                <option value="1:1">1:1 正方形</option>
+                <option value="9:16">9:16 直幅 (手機版最佳)</option>
+                <option value="16:9">16:9 橫幅 (寬螢幕)</option>
+                <option value="4:3">4:3 復古經典</option>
+              </select>
+            </div>
+            <!-- Output Format (Gemini specific) -->
+            <div class="space-y-1.5">
+              <label class="text-[10px] text-slate-400 font-semibold">負面提示詞 (不想要出現的)</label>
+              <input type="text" id="negative-prompt" placeholder="模糊, 扭曲, 低品質" 
+                class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none placeholder-slate-700">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dynamic Canvas / Generator View Area -->
+    <div class="bg-slate-900/60 backdrop-blur-md rounded-2xl border border-slate-800 p-4 space-y-4">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-blue-300 uppercase tracking-widest flex items-center gap-1.5">
+          <i data-lucide="image" class="w-3.5 h-3.5"></i> 宇宙生成畫布
+        </span>
+        <span id="resolution-indicator" class="text-[9px] font-mono text-slate-500">1024 x 1024 px</span>
+      </div>
+
+      <!-- Preview Box -->
+      <div class="relative w-full aspect-square bg-slate-950 rounded-xl overflow-hidden border border-slate-800 flex flex-col items-center justify-center group shadow-inner">
+        <!-- Default State -->
+        <div id="canvas-placeholder" class="text-center p-6 space-y-3 z-10 transition-all duration-300">
+          <div class="inline-flex h-12 w-12 rounded-full bg-slate-900 border border-slate-800 items-center justify-center text-slate-500 shadow-md">
+            <i data-lucide="compass" class="w-6 h-6 text-purple-400 animate-pulse"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-bold text-slate-300">啟動您的宇宙想像力</h4>
+            <p class="text-[10px] text-slate-500 mt-1 max-w-[200px] mx-auto">輸入提示詞並點擊下方「創世紀元」按鈕，立即孕育宏觀影像！</p>
+          </div>
+        </div>
+
+        <!-- Generating / Loading State -->
+        <div id="canvas-loading" class="hidden absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center space-y-4 z-20">
+          <!-- Cyber loading spinner -->
+          <div class="relative">
+            <div class="w-16 h-16 rounded-full border-2 border-purple-500/20 border-t-2 border-t-purple-500 animate-spin"></div>
+            <div class="absolute inset-2 w-12 h-12 rounded-full border-2 border-blue-500/20 border-b-2 border-b-blue-400 animate-spin" style="animation-direction: reverse;"></div>
+          </div>
+          <div class="text-center space-y-1 px-4">
+            <p class="text-xs font-futuristic tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400 font-bold uppercase animate-pulse">Generating Cosmos Artifact...</p>
+            <p id="loading-status" class="text-[10px] text-slate-500">正在連接星系神經網路並繪製粒子...</p>
+          </div>
+        </div>
+
+        <!-- Rendered Image Display State -->
+        <img id="canvas-image" class="hidden w-full h-full object-contain z-10 transition-transform duration-500" alt="Cosmos Gen Image">
+
+        <!-- Watermark / Quick tools when image is ready -->
+        <div id="image-action-overlay" class="hidden absolute bottom-3 right-3 left-3 z-30 flex justify-between items-center bg-slate-900/80 backdrop-blur-md px-3 py-2 rounded-xl border border-slate-700/30">
+          <div class="flex items-center space-x-1">
+            <span class="text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded font-bold font-mono">200 OK</span>
+          </div>
+          <div class="flex space-x-2">
+            <button onclick="copyGeneratedPrompt()" class="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition-all" title="複製此提示詞">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            </button>
+            <a id="download-btn" href="#" download="cosmos3-artifact.png" class="p-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 rounded-lg text-white transition-all flex items-center justify-center" title="下載此圖片">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Generate Button -->
+      <button id="generate-trigger" onclick="generateImage()" class="w-full py-4 rounded-xl font-futuristic text-xs font-black tracking-widest uppercase transition-all duration-300 relative overflow-hidden bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white shadow-lg hover:brightness-110 active:scale-95 flex items-center justify-center gap-2">
+        <i data-lucide="bolt" class="w-4 h-4 animate-bounce"></i>
+        創 世 紀 元 (Generate)
+      </button>
+    </div>
+
+    <!-- Creative History / Gallery Panel -->
+    <div class="bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-800/80 p-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-purple-300 uppercase tracking-widest flex items-center gap-1.5">
+          <i data-lucide="history" class="w-3.5 h-3.5"></i> 歷史靈感庫
+        </span>
+        <button onclick="clearHistory()" class="text-[10px] text-slate-500 hover:text-rose-400 transition-colors">清除全部</button>
+      </div>
+
+      <!-- Grid list -->
+      <div id="history-grid" class="grid grid-cols-3 gap-2">
+        <!-- Dynamic load -->
+      </div>
+      <div id="history-empty" class="text-center py-6 text-slate-600 text-[10px]">
+        目前尚無保存的星系影像。
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Floating Toast Notifications (Safe replacement for Alerts) -->
+  <div id="toast-container" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-xs space-y-2 pointer-events-none"></div>
+
+  <!-- Bottom Nav (Mobile Feel Navigation) -->
+  <footer class="fixed bottom-0 left-0 right-0 border-t border-slate-800/80 bg-slate-950/90 backdrop-blur-lg py-3 z-50">
+    <div class="max-w-md mx-auto px-6 flex justify-around items-center">
+      <button onclick="window.scrollTo({top: 0, behavior: 'smooth'}); showToast('已回到控制台最頂部 ✨')" class="flex flex-col items-center space-y-1 text-purple-400 transition-colors">
+        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+        <span class="text-[9px] font-bold">主控制台</span>
+      </button>
+      <button onclick="openHelpModal()" class="flex flex-col items-center space-y-1 text-slate-500 hover:text-slate-300 transition-colors">
+        <i data-lucide="help-circle" class="w-5 h-5"></i>
+        <span class="text-[9px] font-medium">作業指南</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- Homework Guidelines / Help Modal -->
+  <div id="help-modal" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-xs w-full p-5 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+        <h3 class="text-sm font-bold font-futuristic text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-300 flex items-center gap-1.5">
+          <i data-lucide="graduation-cap" class="w-4 h-4 text-purple-400"></i> 作業 HW3 秘笈
+        </h3>
+        <button onclick="closeHelpModal()" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="space-y-3 text-xs text-slate-300 leading-relaxed">
+        <p class="font-semibold text-purple-200">💡 提示詞加成絕竅 (Best Prompt)</p>
+        <p class="text-[11px] text-slate-400">使用我們的 <strong class="text-slate-200">「AI 智能優化」</strong> 按鈕，能自動召喚 Gemini 大模型將您簡短的中文概念擴寫為極富層次感的「專業繪圖提示詞」，是本次大會評分的最佳利器！</p>
+        
+        <p class="font-semibold text-indigo-200">🔧 Hugging Face 整合測試</p>
+        <p class="text-[11px] text-slate-400">切換至 Hugging Face 頁籤，填入您的 Token 即可呼叫 FLUX 或 SD 模型繪圖。若要直接在本預覽中快速體驗，推薦直接使用內置的 <strong class="text-slate-200">Gemini Imagen 引擎</strong>，免 Token 隨點即畫！</p>
+      </div>
+      <button onclick="closeHelpModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-xl text-xs font-bold transition-all">
+        我了解了，開始創作！
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // System Variables provided by environment
+    const apiKey = ""; // Set dynamically by platform runtime
+    const currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'cosmos3-t2i-app';
+
+    // App State
+    let activeEngine = 'gemini'; // 'gemini' | 'hf'
+    let historyImages = [];
+    let lastGeneratedPrompt = "";
+
+    // Style presets for instant prompt enhancement
+    const STYLE_PRESETS = {
+      'cosmic-nebula': 'majestic galactic nebula background, hyper-detailed cosmic dust, neon stars, glowing astronomical lighting, epic space opera composition, celestial concept art, cinematic 8k',
+      'cyberpunk': 'neon-drenched cyberpunk streets, rain reflection, highly detailed futuristic cybernetic augmentations, volumetric lighting, unreal engine 5 render, cinematic synthwave vibe',
+      'anime-magical': 'gorgeous magical anime girl style, whimsical vibrant colors, shining particles, macro detailed dynamic pose, beautiful starry sky background, studio ghibli and makoto shinkai aesthetic',
+      'photorealistic': 'hyper-realistic cinematic portrait photography, natural golden hour lighting, shot on 85mm lens, f/1.4 aperture, perfect skin texture, highly detailed photorealism, professional color grading',
+      '3d-pixar': 'cute fluffy animated character, high-end 3D claymation style, disney pixar style render, warm volumetric lighting, soft ambient occlusion, macro details, vibrant playful palette'
+    };
+
+    // Initialization on load
+    window.onload = function() {
+      lucide.createIcons();
+      loadInLocalStorage();
+      switchEngine('gemini'); // Default engine setup
+    };
+
+    // Exponential Backoff API Fetcher
+    async function fetchWithRetry(url, options, maxRetries = 5) {
+      let delay = 1000;
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          const response = await fetch(url, options);
+          if (response.ok) return response;
+          if (response.status === 429 || response.status >= 500) {
+             // Retrying on rate limits or server issues
+          } else {
+             const errText = await response.text();
+             throw new Error(`API 發生錯誤: ${response.status} - ${errText}`);
+          }
+        } catch (error) {
+          if (i === maxRetries - 1) throw error;
+        }
+        await new Promise(resolve => setTimeout(resolve, delay));
+        delay *= 2;
+      }
+      throw new Error("連線超時，請重新再試一次");
+    }
+
+    // Switch between Gemini and Hugging Face Tabs
+    function switchEngine(engine) {
+      activeEngine = engine;
+      const tabGemini = document.getElementById('tab-gemini');
+      const tabHF = document.getElementById('tab-hf');
+      const hfPanel = document.getElementById('hf-config-panel');
+      const engineBadge = document.getElementById('engine-badge');
+
+      if (engine === 'gemini') {
+        tabGemini.className = "py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-white bg-gradient-to-r from-purple-900/60 to-indigo-900/60 border border-purple-500/20";
+        tabHF.className = "py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-slate-400 hover:text-slate-200";
+        hfPanel.classList.add('hidden');
+        engineBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping"></span> Gemini 引擎`;
+        engineBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/30 flex items-center gap-1";
+        showToast("切換為 Gemini Imagen-4 原生引擎 ✨");
+      } else {
+        tabHF.className = "py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-white bg-gradient-to-r from-indigo-900/60 to-blue-900/60 border border-indigo-500/20";
+        tabGemini.className = "py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-slate-400 hover:text-slate-200";
+        hfPanel.classList.remove('hidden');
+        engineBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping"></span> HF 引擎`;
+        engineBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 flex items-center gap-1";
+        showToast("切換為 Hugging Face 引擎 🧩");
+      }
+    }
+
+    // Toggle advanced settings foldout
+    function toggleAdvancedSettings() {
+      const block = document.getElementById('advanced-settings-block');
+      const chevron = document.getElementById('adv-chevron');
+      if (block.classList.contains('hidden')) {
+        block.classList.remove('hidden');
+        chevron.style.transform = 'rotate(180deg)';
+      } else {
+        block.classList.add('hidden');
+        chevron.style.transform = 'rotate(0deg)';
+      }
+    }
+
+    // Apply quick style filter
+    function applyStyle(styleKey) {
+      const promptInput = document.getElementById('prompt-input');
+      const presetText = STYLE_PRESETS[styleKey];
+      
+      let currentVal = promptInput.value.trim();
+      if (!currentVal) {
+        promptInput.value = presetText;
+      } else {
+        promptInput.value = `${currentVal}, ${presetText}`;
+      }
+      showToast(`已套用「${styleKey}」星際風格濾鏡！🎨`);
+    }
+
+    // Best Prompt Optimizer using gemini-2.5-flash-preview-09-2025
+    async function optimizePrompt() {
+      const promptInput = document.getElementById('prompt-input');
+      const originalText = promptInput.value.trim();
+      
+      if (!originalText) {
+        showToast("請先輸入一些簡單的創意主題再進行優化哦 🌌");
+        return;
+      }
+
+      showToast("召喚 Gemini 中樞大模型優化提示詞中... 🧠");
+      const systemPrompt = "你是一個專業的 AI 繪圖提示詞優化專家。請將使用者輸入的中文或英文提示詞，轉換與擴寫成適合 AI 繪圖的高品質、極致擬真且充滿細節的英文提示詞。請加入構圖、風格、絕佳光影和微小細節（如合適可增加宇宙、星系、超新星或太空幻想元素）。請直接且僅輸出優化後的純英文提示詞，絕對不要有任何解釋、開頭、引號、備註或結尾。";
+
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+      const payload = {
+        contents: [{ parts: [{ text: originalText }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] }
+      };
+
+      try {
+        const response = await fetchWithRetry(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        const optimizedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+        if (optimizedText) {
+          promptInput.value = optimizedText.trim();
+          showToast("⚡ 提示詞智能擴寫優化完成！");
+        } else {
+          showToast("優化回傳異常，已保留原提示詞");
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("優化過程出錯，請手動加入更多細節 ⚠️");
+      }
+    }
+
+    // Toggle Token visibility
+    function toggleTokenVisibility() {
+      const tokenInput = document.getElementById('hf-token');
+      const eyeIcon = document.getElementById('token-eye-icon');
+      if (tokenInput.type === 'password') {
+        tokenInput.type = 'text';
+        eyeIcon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        tokenInput.type = 'password';
+        eyeIcon.setAttribute('data-lucide', 'eye');
+      }
+      lucide.createIcons();
+    }
+
+    // Show/Hide Custom Model option
+    document.getElementById('hf-model').addEventListener('change', function(e) {
+      const customModelInput = document.getElementById('hf-custom-model');
+      if (e.target.value === 'custom') {
+        customModelInput.classList.remove('hidden');
+      } else {
+        customModelInput.classList.add('hidden');
+      }
+    });
+
+    // Core Image Generation Controller
+    async function generateImage() {
+      const promptInput = document.getElementById('prompt-input');
+      const rawPrompt = promptInput.value.trim();
+      const negativePrompt = document.getElementById('negative-prompt').value.trim();
+      const aspectRatio = document.getElementById('aspect-ratio').value;
+
+      if (!rawPrompt) {
+        showToast("請先輸入您的宇宙影像藍圖 🪐");
+        return;
+      }
+
+      // Prepare UI states
+      const placeholder = document.getElementById('canvas-placeholder');
+      const loadingBlock = document.getElementById('canvas-loading');
+      const imgDisplay = document.getElementById('canvas-image');
+      const overlay = document.getElementById('image-action-overlay');
+      const loadingStatus = document.getElementById('loading-status');
+
+      placeholder.classList.add('hidden');
+      imgDisplay.classList.add('hidden');
+      overlay.classList.add('hidden');
+      loadingBlock.classList.remove('hidden');
+
+      let finalPrompt = rawPrompt;
+      lastGeneratedPrompt = finalPrompt;
+
+      try {
+        if (activeEngine === 'gemini') {
+          loadingStatus.innerText = "正在傳送星際指令至 Gemini Imagen 中樞...";
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
+          
+          const payload = {
+            instances: { prompt: finalPrompt },
+            parameters: { sampleCount: 1 }
+          };
+
+          const response = await fetchWithRetry(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await response.json();
+          const base64Data = data.predictions?.[0]?.bytesBase64Encoded;
+
+          if (base64Data) {
+            const imgUrl = `data:image/png;base64,${base64Data}`;
+            renderFinishedImage(imgUrl);
+          } else {
+            throw new Error("Imagen 4 回傳了空白畫面數據，請嘗試更換提示詞");
+          }
+
+        } else {
+          const hfToken = document.getElementById('hf-token').value.trim();
+          if (!hfToken) {
+            throw new Error("請先在上方整合設定中輸入您的 Hugging Face Token 哦！");
+          }
+
+          let selectedModel = document.getElementById('hf-model').value;
+          if (selectedModel === 'custom') {
+            selectedModel = document.getElementById('hf-custom-model').value.trim();
+            if (!selectedModel) {
+              throw new Error("自訂模型名稱不能為空，例如: stabilityai/stable-diffusion-2");
+            }
+          }
+
+          loadingStatus.innerText = `正在連線 Hugging Face 模型 [${selectedModel.split('/').pop()}] ...`;
+          
+          const response = await fetch(`https://api-inference.huggingface.co/models/${selectedModel}`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${hfToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+              inputs: finalPrompt,
+              parameters: {
+                negative_prompt: negativePrompt || undefined
+              }
+            })
+          });
+
+          if (!response.ok) {
+            const errDetail = await response.text();
+            if (response.status === 503) {
+              loadingStatus.innerText = "Hugging Face 正在加載模型，這可能需要一分鐘，請稍候...";
+              await new Promise(resolve => setTimeout(resolve, 10000));
+              return generateImage(); 
+            }
+            throw new Error(`HF 引擎連線異常: ${response.status} - ${errDetail}`);
+          }
+
+          const blob = await response.blob();
+          const imgUrl = URL.createObjectURL(blob);
+          renderFinishedImage(imgUrl);
+        }
+
+      } catch (err) {
+        console.error(err);
+        loadingBlock.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+        showToast(err.message || "孕育失敗，請檢查設定與網絡 🌠");
+      }
+    }
+
+    // Render Completed image details
+    function renderFinishedImage(imgUrl) {
+      const loadingBlock = document.getElementById('canvas-loading');
+      const imgDisplay = document.getElementById('canvas-image');
+      const overlay = document.getElementById('image-action-overlay');
+      const downloadBtn = document.getElementById('download-btn');
+
+      loadingBlock.classList.add('hidden');
+      imgDisplay.src = imgUrl;
+      imgDisplay.classList.remove('hidden');
+      overlay.classList.remove('hidden');
+      downloadBtn.href = imgUrl;
+
+      addToHistory(imgUrl, lastGeneratedPrompt);
+      showToast("🎉 宇宙景觀孕育成功！已保存在下方靈感庫中");
+    }
+
+    // Add generated asset to history local view
+    function addToHistory(url, promptText) {
+      const newItem = {
+        id: Date.now(),
+        url: url,
+        prompt: promptText,
+        engine: activeEngine
+      };
+      
+      historyImages.unshift(newItem);
+      saveToLocalStorage();
+      updateHistoryUI();
+    }
+
+    // Render the history UI
+    function updateHistoryUI() {
+      const grid = document.getElementById('history-grid');
+      const emptyMsg = document.getElementById('history-empty');
+
+      if (historyImages.length === 0) {
+        grid.innerHTML = "";
+        emptyMsg.classList.remove('hidden');
+        return;
+      }
+
+      emptyMsg.classList.add('hidden');
+      grid.innerHTML = historyImages.map(item => `
+        <div class="relative aspect-square bg-slate-950 rounded-lg overflow-hidden border border-slate-800 group cursor-pointer" onclick="viewHistoryItem(${item.id})">
+          <img src="${item.url}" class="w-full h-full object-cover group-hover:scale-105 transition-all" alt="history preview">
+          <div class="absolute bottom-1 right-1 bg-black/60 px-1 rounded text-[8px] text-slate-300 font-futuristic">
+            ${item.engine === 'gemini' ? 'Gemini' : 'HF'}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Display history item back to main canvas
+    function viewHistoryItem(id) {
+      const item = historyImages.find(i => i.id === id);
+      if (item) {
+        document.getElementById('prompt-input').value = item.prompt;
+        
+        const placeholder = document.getElementById('canvas-placeholder');
+        const imgDisplay = document.getElementById('canvas-image');
+        const overlay = document.getElementById('image-action-overlay');
+        const downloadBtn = document.getElementById('download-btn');
+
+        placeholder.classList.add('hidden');
+        imgDisplay.src = item.url;
+        imgDisplay.classList.remove('hidden');
+        overlay.classList.remove('hidden');
+        downloadBtn.href = item.url;
+
+        lastGeneratedPrompt = item.prompt;
+        window.scrollTo({top: 250, behavior: 'smooth'});
+        showToast("已從歷史記錄中還原畫布內容 💫");
+      }
+    }
+
+    // Clear history logs
+    function clearHistory() {
+      historyImages = [];
+      saveToLocalStorage();
+      updateHistoryUI();
+      showToast("歷史靈感庫已完全清除");
+    }
+
+    // Copy to clipboard fallback logic
+    function copyGeneratedPrompt() {
+      if (!lastGeneratedPrompt) return;
+      
+      const tempInput = document.createElement('textarea');
+      tempInput.value = lastGeneratedPrompt;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+      
+      showToast("提示詞已成功複製至剪貼簿！📋");
+    }
+
+    // Helper: Toast Notifications
+    function showToast(message) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = "bg-slate-900/95 border border-purple-500/30 text-purple-200 text-xs py-2.5 px-4 rounded-xl shadow-2xl flex items-center justify-between pointer-events-auto animate-bounce-short";
+      toast.innerHTML = `
+        <span class="font-medium">${message}</span>
+        <button class="ml-2 text-purple-400 hover:text-white" onclick="this.parentElement.remove()">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+      `;
+      container.appendChild(toast);
+      lucide.createIcons();
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 4500);
+    }
+
+    // LocalStorage helper for mobile continuous state
+    function saveToLocalStorage() {
+      try {
+        localStorage.setItem(`cosmos_hist_${currentAppId}`, JSON.stringify(historyImages));
+      } catch (e) {
+        console.warn("LocalStorage space full, saving state in memory instead.");
+      }
+    }
+
+    function loadInLocalStorage() {
+      try {
+        const stored = localStorage.getItem(`cosmos_hist_${currentAppId}`);
+        if (stored) {
+          historyImages = JSON.parse(stored);
+          updateHistoryUI();
+        }
+      } catch (e) {
+        historyImages = [];
+      }
+    }
+
+    // Help Modal Triggers
+    function openHelpModal() {
+      document.getElementById('help-modal').classList.remove('hidden');
+    }
+    function closeHelpModal() {
+      document.getElementById('help-modal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
