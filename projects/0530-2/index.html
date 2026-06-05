@@ -1,0 +1,1949 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>今天誰來買午餐！我們這一家版 ＋ 台灣美食老虎機</title>
+  <!-- 引入 Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* === 全域變數與重設 === */
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-glow: rgba(99, 102, 241, 0.15);
+      --primary: #6366f1;     /* 靛藍 */
+      --primary-glow: rgba(99, 102, 241, 0.4);
+      --secondary: #ec4899;   /* 粉紅 */
+      --secondary-glow: rgba(236, 72, 153, 0.4);
+      --accent: #14b8a6;      /* 青綠 */
+      --accent-glow: rgba(20, 184, 166, 0.4);
+      --amber: #f59e0b;       /* 琥珀金 */
+      --amber-glow: rgba(245, 158, 11, 0.4);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --error-color: #f43f5e;
+      --success-color: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', 'Noto Sans TC', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* 背景流動霓虹光暈 */
+    body::before, body::after {
+      content: '';
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      filter: blur(120px);
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.5;
+      animation: float-bg 20s infinite alternate;
+    }
+
+    body::before {
+      background: var(--primary);
+      top: 10%;
+      left: 10%;
+    }
+
+    body::after {
+      background: var(--secondary);
+      bottom: 10%;
+      right: 10%;
+      animation-delay: -10s;
+    }
+
+    @keyframes float-bg {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(100px, 50px) scale(1.2); }
+    }
+
+    /* === 主容器 === */
+    #app {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 600px;
+      padding: 20px;
+    }
+
+    /* === 玻片玻璃卡片 === */
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 40px 30px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      text-align: center;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      display: none;
+      opacity: 0;
+      transform: translateY(30px) scale(0.95);
+    }
+
+    .card.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* === 標題樣式 === */
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 900;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #6366f1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 4px 20px rgba(99, 102, 241, 0.2);
+      letter-spacing: 1px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      margin-bottom: 30px;
+    }
+
+    /* === 表單輸入與按鈕 === */
+    .input-group {
+      margin-bottom: 25px;
+      position: relative;
+    }
+
+    .input-label {
+      display: block;
+      text-align: left;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      font-weight: 500;
+      padding-left: 5px;
+    }
+
+    .input-field {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 15px 20px;
+      color: var(--text-main);
+      font-size: 1.2rem;
+      font-weight: 600;
+      outline: none;
+      transition: all 0.3s;
+      text-align: center;
+    }
+
+    .input-field:focus {
+      border-color: var(--primary);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 15px var(--primary-glow);
+    }
+
+    /* 按鈕樣式 */
+    .btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+      border: none;
+      border-radius: 16px;
+      padding: 16px 24px;
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+      z-index: 5;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: all 0.6s;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 25px rgba(99, 102, 241, 0.5);
+    }
+
+    .btn:active {
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 2px solid var(--glass-border);
+      color: var(--text-main);
+      box-shadow: none;
+      margin-top: 15px;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--text-muted);
+      box-shadow: none;
+    }
+
+    .btn-accent {
+      background: linear-gradient(135deg, var(--amber) 0%, #f59e0b 100%);
+      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+    }
+
+    .btn-accent:hover {
+      box-shadow: 0 12px 25px rgba(245, 158, 11, 0.5);
+    }
+
+    /* === 錯誤晃動動畫與警告 === */
+    .error-shake {
+      animation: shake 0.5s ease-in-out;
+      border-color: var(--error-color) !important;
+      box-shadow: 0 0 15px rgba(244, 63, 94, 0.3) !important;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+      20%, 40%, 60%, 80% { transform: translateX(10px); }
+    }
+
+    .error-message {
+      color: var(--error-color);
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-top: 10px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* === 名單與食品編輯區 === */
+    .inputs-container {
+      max-height: 340px;
+      overflow-y: auto;
+      margin-bottom: 25px;
+      padding-right: 8px;
+      border-radius: 12px;
+    }
+
+    .inputs-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    .inputs-container::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 3px;
+    }
+    .inputs-container::-webkit-scrollbar-thumb {
+      background: var(--glass-border);
+      border-radius: 3px;
+    }
+    .inputs-container::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 15px;
+      background: rgba(255, 255, 255, 0.02);
+      padding: 10px 15px;
+      border-radius: 16px;
+      border: 1px solid var(--glass-border);
+      animation: slideIn 0.3s ease-out forwards;
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+
+    @keyframes slideIn {
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .row-number {
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: var(--accent);
+      min-width: 25px;
+      text-align: right;
+    }
+
+    .row-number.food {
+      color: var(--amber);
+    }
+
+    /* 頭像選擇器圓框 */
+    .avatar-picker-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.07);
+      border: 2px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .avatar-picker-btn:hover {
+      transform: scale(1.1) rotate(5deg);
+      border-color: var(--accent);
+      background: rgba(20, 184, 166, 0.1);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .avatar-picker-btn:active {
+      transform: scale(0.95);
+    }
+
+    .avatar-picker-btn svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* 食物插圖選擇器圓框 */
+    .food-picker-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 2px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      flex-shrink: 0;
+    }
+
+    .food-picker-btn:hover {
+      transform: scale(1.1) translateY(-2px);
+      border-color: var(--amber);
+      background: rgba(245, 158, 11, 0.15);
+      box-shadow: 0 0 10px var(--amber-glow);
+    }
+
+    .food-picker-btn svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* === 轉盤遊戲與參賽面板 === */
+    .game-outer-wrapper {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      margin: 0 auto 20px auto;
+    }
+
+    .wheel-pointer {
+      position: absolute;
+      top: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 36px;
+      height: 46px;
+      z-index: 10;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+      cursor: pointer;
+      transform-origin: 50% 20%;
+      transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    #wheel-canvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 8px rgba(255, 255, 255, 0.05);
+    }
+
+    /* 轉盤下方的參賽角色看板 */
+    .contestant-board {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 25px;
+      max-height: 120px;
+      overflow-y: auto;
+      padding: 5px;
+    }
+
+    .contestant-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--glass-border);
+      padding: 6px 12px;
+      border-radius: 50px;
+      font-size: 0.85rem;
+      transition: all 0.3s;
+    }
+
+    .contestant-badge.active-spin {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: var(--primary);
+      box-shadow: 0 0 8px var(--primary-glow);
+      transform: scale(1.05);
+    }
+
+    .contestant-avatar-box {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .contestant-avatar-box svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* === 老虎機滾動視窗 === */
+    .slot-machine-frame {
+      width: 100%;
+      height: 180px; /* 加高以顯示精緻 SVG 圖 */
+      background: rgba(15, 23, 42, 0.6);
+      border: 3px solid var(--amber);
+      border-radius: 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 25px var(--amber-glow), inset 0 4px 15px rgba(0, 0, 0, 0.8);
+      margin: 30px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slot-machine-frame::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 45px;
+      z-index: 3;
+      pointer-events: none;
+      background: linear-gradient(to bottom, rgba(15, 23, 42, 0.95) 0%, transparent 100%);
+    }
+
+    .slot-machine-frame::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 45px;
+      z-index: 3;
+      pointer-events: none;
+      background: linear-gradient(to top, rgba(15, 23, 42, 0.95) 0%, transparent 100%);
+    }
+
+    .slot-indicator {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: #ef4444;
+      box-shadow: 0 0 8px #ef4444;
+      z-index: 4;
+      pointer-events: none;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0.7;
+    }
+
+    .slot-window {
+      width: 100%;
+      height: 120px; /* 單張高度 */
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slot-track {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .slot-item {
+      height: 120px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .slot-food-img {
+      width: 70px;
+      height: 70px;
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.4));
+    }
+
+    .slot-food-name {
+      font-size: 1.3rem;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+      letter-spacing: 1px;
+    }
+
+    /* === 向量圖動態效果 (SVGs CSS Animations) === */
+    @keyframes steam {
+      0% { transform: translateY(0) scaleX(1); opacity: 0; }
+      20% { opacity: 0.8; }
+      60% { opacity: 0.4; }
+      100% { transform: translateY(-8px) scaleX(1.3); opacity: 0; }
+    }
+
+    .steam-line-1 {
+      animation: steam 2s infinite linear;
+      transform-origin: center bottom;
+    }
+
+    .steam-line-2 {
+      animation: steam 2.4s infinite linear 0.4s;
+      transform-origin: center bottom;
+    }
+
+    .steam-line-3 {
+      animation: steam 1.8s infinite linear 0.8s;
+      transform-origin: center bottom;
+    }
+
+    @keyframes egg-wiggle {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(1px, -0.5px) scale(1.02); }
+    }
+
+    .egg-yolk {
+      animation: egg-wiggle 1.2s infinite ease-in-out;
+      transform-origin: center;
+    }
+
+    /* 獲勝者跳舞動畫 */
+    @keyframes dance {
+      0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+      25% { transform: translateY(-15px) scaleY(1.08) rotate(5deg); }
+      50% { transform: translateY(0) scaleX(1.05) rotate(-5deg); }
+      75% { transform: translateY(-10px) scaleY(0.95) rotate(3deg); }
+    }
+
+    .winner-dance {
+      animation: dance 1.2s infinite ease-in-out;
+      transform-origin: bottom center;
+      width: 140px;
+      height: 140px;
+      filter: drop-shadow(0 8px 15px rgba(0,0,0,0.5));
+      margin: 0 auto 15px auto;
+    }
+
+    .victory-box-flex {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      margin: 25px 0;
+    }
+
+    .victory-art {
+      width: 130px;
+      height: 130px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+
+    .victory-art svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* === 結果彈出視窗 (Modal) === */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 28px;
+      padding: 35px 25px;
+      width: 92%;
+      max-width: 480px;
+      text-align: center;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.2);
+      transform: scale(0.8) translateY(20px);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: scale(1) translateY(0);
+    }
+
+    .winner-badge {
+      font-size: 0.9rem;
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--amber);
+      padding: 6px 18px;
+      border-radius: 50px;
+      display: inline-block;
+      margin-bottom: 15px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .winner-badge.buyer-badge {
+      background: rgba(20, 184, 166, 0.15);
+      color: var(--accent);
+      border-color: rgba(20, 184, 166, 0.3);
+    }
+
+    .winner-name {
+      font-size: 2.1rem;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    }
+
+    .ultimate-verdict {
+      background: linear-gradient(to right, #f59e0b, #ec4899, #6366f1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 1.85rem;
+      font-weight: 900;
+      line-height: 1.45;
+      text-shadow: 0 4px 20px rgba(245, 158, 11, 0.25);
+    }
+
+    .funny-quote {
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 25px;
+      line-height: 1.6;
+    }
+
+    #confetti-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    .footer-credits {
+      margin-top: 30px;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.2);
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 25px 15px;
+      }
+      h1 {
+        font-size: 1.7rem;
+      }
+      .game-outer-wrapper {
+        width: 270px;
+        height: 270px;
+      }
+      .victory-box-flex {
+        gap: 10px;
+      }
+      .victory-art {
+        width: 105px;
+        height: 105px;
+      }
+      .winner-dance {
+        width: 110px;
+        height: 110px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app">
+    <!-- ================= 階段一：人數輸入卡片 ================= -->
+    <div id="card-step1" class="card active">
+      <h1>今天誰來買午餐？</h1>
+      <div class="subtitle">我們這一家聯名大轉盤！決定跑腿小天使 ✨</div>
+      
+      <div class="input-group">
+        <label for="player-count-input" class="input-label">請輸入今天一起用餐的人數 (2 - 10 人)</label>
+        <input 
+          type="number" 
+          id="player-count-input" 
+          class="input-field" 
+          placeholder="例如：5" 
+          min="2" 
+          max="10" 
+          autocomplete="off"
+        >
+        <div id="error-message-1" class="error-message">
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+          </svg>
+          <span id="error-text-1">請重新輸入</span>
+        </div>
+      </div>
+      
+      <button id="btn-next-step1" class="btn">
+        <span>下一步，設定成員角色</span>
+        <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- ================= 階段二：名單編輯與頭像選擇卡片 ================= -->
+    <div id="card-step2" class="card">
+      <h1>誰是我們這一家的誰？</h1>
+      <div class="subtitle">輸入名字，點擊左側頭像可自由切換卡通角色！</div>
+      
+      <div id="name-inputs-container" class="inputs-container">
+        <!-- 藉由 JS 動態生成 row -->
+      </div>
+      
+      <button id="btn-next-step2" class="btn">
+        <span>進入大轉盤</span>
+        <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/>
+          <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/>
+        </svg>
+      </button>
+      
+      <button id="btn-back-step2" class="btn btn-secondary">返回上一步</button>
+    </div>
+
+    <!-- ================= 階段三：轉盤抽籤卡片 ================= -->
+    <div id="card-step3" class="card">
+      <h1>命運午餐轉盤</h1>
+      <div class="subtitle">屏氣凝神，指針對準的那個人就是今天的主角！</div>
+      
+      <div class="game-outer-wrapper">
+        <svg class="wheel-pointer" id="wheel-pointer" viewBox="0 0 36 46">
+          <path d="M18 0 C30 0, 36 12, 36 24 C36 34, 26 46, 18 46 C10 46, 0 34, 0 24 C0 12, 6 0, 18 0 Z" fill="#ef4444" />
+          <path d="M18 4 C26 4, 31 13, 31 22 C31 30, 24 38, 18 38 C12 38, 5 30, 5 22 C5 13, 10 4, 18 4 Z" fill="#f87171" />
+          <circle cx="18" cy="18" r="6" fill="#fff" />
+          <circle cx="18" cy="18" r="3" fill="#ef4444" />
+        </svg>
+        <canvas id="wheel-canvas" width="600" height="600"></canvas>
+      </div>
+
+      <!-- 參賽名單橫板看板 -->
+      <div class="contestant-board" id="contestant-board"></div>
+      
+      <button id="btn-spin" class="btn">
+        <span>開始旋轉！</span>
+      </button>
+      
+      <button id="btn-back-step3" class="btn btn-secondary">修改成員名單</button>
+    </div>
+
+    <!-- ================= 階段四：食品數量輸入卡片 ================= -->
+    <div id="card-step4" class="card">
+      <h1>跑腿確定！那要吃什麼？</h1>
+      <div class="subtitle">台灣在地美食大車拼！請輸入預備抽籤的品項數！</div>
+      
+      <div class="input-group">
+        <label for="food-count-input" class="input-label">請輸入午餐選項種類 (1 - 5 種)</label>
+        <input 
+          type="number" 
+          id="food-count-input" 
+          class="input-field" 
+          placeholder="例如：3" 
+          min="1" 
+          max="5" 
+          autocomplete="off"
+        >
+        <div id="error-message-2" class="error-message">
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+          </svg>
+          <span id="error-text-2">請重新輸入</span>
+        </div>
+      </div>
+      
+      <button id="btn-next-step4" class="btn btn-accent">
+        <span>下一步，填寫午餐品項</span>
+        <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- ================= 階段五：食品品項編輯卡片 ================= -->
+    <div id="card-step5" class="card">
+      <h1>午餐有哪些好料？</h1>
+      <div class="subtitle">點擊右側圖標，可更換台灣在地美味手繪卡通插圖！</div>
+      
+      <div id="food-inputs-container" class="inputs-container">
+        <!-- 由 JS 動態生成食品編輯 row -->
+      </div>
+      
+      <button id="btn-next-step5" class="btn btn-accent">
+        <span>進入美食老虎機</span>
+        <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H2zm12 1v12H2V2h12z"/>
+          <path d="M6 4v8h1V4H6zm3 0v8h1V4H9z"/>
+        </svg>
+      </button>
+      
+      <button id="btn-back-step5" class="btn btn-secondary">返回上一步</button>
+    </div>
+
+    <!-- ================= 階段六：老虎機抽籤卡片 ================= -->
+    <div id="card-step6" class="card">
+      <h1>美食命運老虎機</h1>
+      <div class="subtitle">拉下美味拉桿，電腦隨機挑選完美的一餐！🍜</div>
+      
+      <!-- 老虎機外框與滾動窗 -->
+      <div class="slot-machine-frame">
+        <div class="slot-indicator"></div>
+        <div class="slot-window">
+          <div class="slot-track" id="slot-track">
+            <!-- 由 JS 動態填入無限滾動品項卡片 -->
+          </div>
+        </div>
+      </div>
+      
+      <button id="btn-slot-spin" class="btn btn-accent">
+        <span>電腦隨機選！🎲</span>
+      </button>
+    </div>
+
+    <!-- 頁尾宣告 -->
+    <div class="footer-credits">
+      Designed with ❤️ for a better Lunch Decision
+    </div>
+  </div>
+
+  <!-- ================= 買單擔當中間彈窗 ================= -->
+  <div class="modal-overlay" id="buyer-modal">
+    <div class="modal-card">
+      <div class="winner-badge buyer-badge">買單 / 跑腿擔當</div>
+      
+      <!-- 卡通頭像大特寫 (包含 dance 舞蹈動畫) -->
+      <div id="buyer-avatar-big" class="winner-dance"></div>
+      
+      <div class="winner-name" id="buyer-name-display">？？？</div>
+      <div class="funny-quote" id="buyer-quote-display">今天的買單擔當就是你了！</div>
+      
+      <button id="btn-buyer-next" class="btn">
+        <span>下一步：決定吃什麼！🍕</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= 最終世紀大結局彈出視窗 ================= -->
+  <div class="modal-overlay" id="final-modal">
+    <div class="modal-card">
+      <div class="winner-badge">最終世紀大宣布</div>
+      
+      <!-- 世紀大合體視覺：左頭像，右美食 -->
+      <div class="victory-box-flex">
+        <div class="victory-art winner-dance" id="final-winner-avatar-box"></div>
+        <div style="font-size: 2rem; font-weight:900; color:var(--amber);">⚡</div>
+        <div class="victory-art" id="final-food-img-box" style="animation: dance 1.5s infinite ease-in-out;"></div>
+      </div>
+
+      <div class="ultimate-verdict" id="final-verdict-display">由 曉明 買 麥當勞 回來吃！</div>
+      <div class="funny-quote">感恩大德，讚嘆大德！快去把熱騰騰的午餐買回來吧～🛵🚀</div>
+      
+      <button id="btn-final-restart" class="btn btn-accent">
+        <span>太棒了！重新開始 🔄</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 碎紙花畫布 -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- ================= 核心 JavaScript 程式碼 ================= -->
+  <script>
+    // === 我們這一家風格 5 大角色精緻向量 SVG 庫 ===
+    const CHARACTERS_SVGs = {
+      mom: `
+        <svg viewBox="0 0 100 100">
+          <g fill="#D97706">
+            <circle cx="50" cy="22" r="15" />
+            <circle cx="36" cy="28" r="13" />
+            <circle cx="64" cy="28" r="13" />
+            <circle cx="28" cy="38" r="11" />
+            <circle cx="72" cy="38" r="11" />
+          </g>
+          <ellipse cx="50" cy="55" rx="25" ry="23" fill="#FDBA74" />
+          <circle cx="43" cy="48" r="2.5" fill="#1E293B" />
+          <circle cx="57" cy="48" r="2.5" fill="#1E293B" />
+          <g fill="#F43F5E">
+            <path d="M 38 60 Q 50 56 62 60 Q 50 63 38 60 Z" />
+            <path d="M 38 60 Q 50 67 62 60 Q 50 71 38 60 Z" />
+          </g>
+          <ellipse cx="33" cy="53" rx="4" ry="2" fill="#F472B6" opacity="0.6" />
+          <ellipse cx="67" cy="53" rx="4" ry="2" fill="#F472B6" opacity="0.6" />
+        </svg>
+      `,
+      dad: `
+        <svg viewBox="0 0 100 100">
+          <path d="M 28 32 C 28 20, 72 20, 72 32 Z" fill="#1E293B" />
+          <path d="M 28 32 Q 50 28 72 32 L 72 40 L 65 38 L 50 42 L 35 38 L 28 40 Z" fill="#1E293B" />
+          <rect x="28" y="38" width="44" height="42" rx="10" fill="#FDBA74" />
+          <rect x="36" y="46" width="10" height="8" rx="2" fill="none" stroke="#1E293B" stroke-width="2" />
+          <rect x="54" y="46" width="10" height="8" rx="2" fill="none" stroke="#1E293B" stroke-width="2" />
+          <line x1="46" y1="50" x2="54" y2="50" stroke="#1E293B" stroke-width="2" />
+          <circle cx="41" cy="50" r="1.5" fill="#1E293B" />
+          <circle cx="59" cy="50" r="1.5" fill="#1E293B" />
+          <circle cx="50" cy="56" r="3.5" fill="#E24A4A" />
+          <rect x="44" y="62" width="12" height="3" rx="1" fill="#1E293B" />
+          <line x1="43" y1="70" x2="57" y2="70" stroke="#1E293B" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      `,
+      mikan: `
+        <svg viewBox="0 0 100 100">
+          <ellipse cx="74" cy="52" rx="6" ry="12" fill="#B45309" transform="rotate(20 74 52)" />
+          <circle cx="70" cy="46" r="4" fill="#F43F5E" />
+          <circle cx="50" cy="54" r="23" fill="#FDBA74" />
+          <path d="M 24 45 C 24 25, 76 25, 76 45 C 76 35, 24 35, 24 45 Z" fill="#B45309" />
+          <path d="M 24 45 L 34 42 L 42 46 L 50 40 L 58 46 L 66 42 L 76 45 C 70 30, 30 30, 24 45 Z" fill="#B45309" />
+          <ellipse cx="40" cy="52" rx="2" ry="4" fill="#1E293B" />
+          <ellipse cx="60" cy="52" rx="2" ry="4" fill="#1E293B" />
+          <path d="M 36 48 Q 40 45 44 48" fill="none" stroke="#1E293B" stroke-width="2" stroke-linecap="round" />
+          <path d="M 56 48 Q 60 45 64 48" fill="none" stroke="#1E293B" stroke-width="2" stroke-linecap="round" />
+          <path d="M 43 62 Q 50 70 57 62 Z" fill="#E11D48" stroke="#1E293B" stroke-width="1.5" />
+          <circle cx="33" cy="57" r="2.5" fill="#F472B6" opacity="0.7" />
+          <circle cx="67" cy="57" r="2.5" fill="#F472B6" opacity="0.7" />
+        </svg>
+      `,
+      yuzu: `
+        <svg viewBox="0 0 100 100">
+          <path d="M 28 42 C 28 25, 72 25, 72 42 Z" fill="#1E293B" />
+          <path d="M 50 20 L 44 28 L 56 28 Z" fill="#1E293B" />
+          <path d="M 28 42 C 28 42, 28 65, 50 78 C 72 65, 72 42, 72 42 Z" fill="#FDBA74" />
+          <line x1="38" y1="50" x2="46" y2="50" stroke="#1E293B" stroke-width="2.5" stroke-linecap="round" />
+          <line x1="54" y1="50" x2="62" y2="50" stroke="#1E293B" stroke-width="2.5" stroke-linecap="round" />
+          <ellipse cx="36" cy="57" rx="3" ry="1.5" fill="#F472B6" opacity="0.5" />
+          <ellipse cx="64" cy="57" rx="3" ry="1.5" fill="#F472B6" opacity="0.5" />
+          <path d="M 47 62 Q 50 64 53 62" fill="none" stroke="#1E293B" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      `,
+      mizushima: `
+        <svg viewBox="0 0 100 100">
+          <path d="M 50 16 L 38 32 L 62 32 Z" fill="#78350F" />
+          <path d="M 32 40 C 32 28, 68 28, 68 40 C 68 55, 62 82, 50 82 C 38 82, 32 55, 32 40 Z" fill="#FDBA74" />
+          <path d="M 32 40 C 32 32, 68 32, 68 40 Z" fill="#78350F" />
+          <circle cx="41" cy="46" r="6" fill="none" stroke="#1E293B" stroke-width="1.5" />
+          <circle cx="59" cy="46" r="6" fill="none" stroke="#1E293B" stroke-width="1.5" />
+          <circle cx="41" cy="46" r="2" fill="#1E293B" />
+          <circle cx="59" cy="46" r="2" fill="#1E293B" />
+          <path d="M 36 60 Q 50 54 64 60 Q 50 69 36 60 Z" fill="#F59E0B" stroke="#1E293B" stroke-width="1.8" />
+        </svg>
+      `
+    };
+
+    // 角色中文名對照 (隨機派發與描述)
+    const CHAR_INFO = {
+      mom: { name: "花媽 👩", nextDefault: "想吃雞排的花媽" },
+      dad: { name: "花爸 👨", nextDefault: "淡定的花爸" },
+      mikan: { name: "橘子 🍊", nextDefault: "元氣滿滿的橘子" },
+      yuzu: { name: "柚子 🍋", nextDefault: "冷靜的柚子" },
+      mizushima: { name: "水島太太 🦆", nextDefault: "八卦的水島太太" }
+    };
+
+    // === 5 款經典台灣在地美食卡通 SVG 向量圖庫 ===
+    const FOOD_SVGs = {
+      noodles: `
+        <svg viewBox="0 0 100 100">
+          <g class="steam-group" stroke="#E2E8F0" stroke-width="2" fill="none" stroke-linecap="round">
+            <path d="M 40 22 Q 35 15 40 8" class="steam-line-1" />
+            <path d="M 50 20 Q 55 12 50 6" class="steam-line-2" />
+            <path d="M 60 22 Q 55 15 60 8" class="steam-line-3" />
+          </g>
+          <ellipse cx="50" cy="62" rx="34" ry="24" fill="#F8FAFC" stroke="#38BDF8" stroke-width="2.5" />
+          <ellipse cx="50" cy="54" rx="32" ry="14" fill="#7C2D12" />
+          <circle cx="34" cy="52" r="3" fill="#EF4444" />
+          <circle cx="68" cy="51" r="2.5" fill="#EF4444" />
+          <path d="M 28 50 Q 38 58 48 50 Q 58 58 68 50 Q 52 56 34 51 Z" fill="none" stroke="#FBBF24" stroke-width="3" stroke-linecap="round" />
+          <path d="M 32 54 Q 44 61 56 53 Q 66 57 70 51" fill="none" stroke="#FBBF24" stroke-width="2.5" stroke-linecap="round" />
+          <rect x="42" y="44" width="10" height="8" rx="2" fill="#451A03" transform="rotate(-15 47 48)" />
+          <rect x="56" y="46" width="11" height="9" rx="2" fill="#451A03" transform="rotate(10 61 50)" />
+          <circle cx="38" cy="51" r="1.5" fill="#22C55E" />
+          <circle cx="51" cy="49" r="1.5" fill="#22C55E" />
+          <circle cx="63" cy="53" r="1.5" fill="#22C55E" />
+          <path d="M 36 78 Q 50 84 64 78 L 60 84 Q 50 88 40 84 Z" fill="#E2E8F0" />
+        </svg>
+      `,
+      dumplings: `
+        <svg viewBox="0 0 100 100">
+          <ellipse cx="50" cy="65" rx="38" ry="18" fill="#F0FDFA" stroke="#0D9488" stroke-width="2.5" />
+          <ellipse cx="50" cy="65" rx="32" ry="13" fill="none" stroke="#2DD4BF" stroke-width="1" stroke-dasharray="4,2" />
+          <circle cx="78" cy="60" r="10" fill="#E2E8F0" stroke="#475569" stroke-width="1.5" />
+          <circle cx="78" cy="60" r="7" fill="#0F172A" />
+          <circle cx="76" cy="59" r="2" fill="#EF4444" />
+          <g transform="translate(10, -5)">
+            <path d="M 22 62 C 22 50, 42 46, 42 62 C 42 66, 22 66, 22 62 Z" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="2" />
+            <path d="M 26 56 Q 32 50 36 58" fill="none" stroke="#E2E8F0" stroke-width="1.5" />
+            <path d="M 32 54 Q 37 49 39 57" fill="none" stroke="#E2E8F0" stroke-width="1.5" />
+          </g>
+          <g transform="translate(34, -2)">
+            <path d="M 18 60 C 18 48, 38 44, 38 60 C 38 64, 18 64, 18 60 Z" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="2" />
+            <path d="M 22 54 Q 28 48 32 56" fill="none" stroke="#E2E8F0" stroke-width="1.5" />
+          </g>
+          <g transform="translate(20, 8)">
+            <path d="M 20 58 C 20 44, 44 40, 44 58 C 44 63, 20 63, 20 58 Z" fill="#FFFFFF" stroke="#94A3B8" stroke-width="2" />
+            <path d="M 24 50 Q 32 43 37 53" fill="none" stroke="#CBD5E1" stroke-width="2" />
+            <path d="M 32 48 Q 38 42 41 52" fill="none" stroke="#CBD5E1" stroke-width="2" />
+          </g>
+        </svg>
+      `,
+      buns: `
+        <svg viewBox="0 0 100 100">
+          <g class="steam-group" stroke="#E2E8F0" stroke-width="2" fill="none" stroke-linecap="round">
+            <path d="M 50 20 Q 45 12 50 4" class="steam-line-2" />
+          </g>
+          <ellipse cx="50" cy="70" rx="38" ry="18" fill="#F59E0B" stroke="#B45309" stroke-width="2.5" />
+          <path d="M 12 70 L 12 80 C 12 88, 88 88, 88 80 L 88 70 Z" fill="#D97706" stroke="#B45309" stroke-width="2.5" />
+          <line x1="20" y1="76" x2="20" y2="82" stroke="#B45309" stroke-width="1.5" />
+          <line x1="50" y1="79" x2="50" y2="85" stroke="#B45309" stroke-width="1.5" />
+          <line x1="80" y1="76" x2="80" y2="82" stroke="#B45309" stroke-width="1.5" />
+          <ellipse cx="50" cy="67" rx="34" ry="14" fill="#FEF3C7" />
+          <path d="M 28 58 C 28 36, 72 36, 72 58 C 72 68, 28 68, 28 58 Z" fill="#FFFFFF" stroke="#94A3B8" stroke-width="2" />
+          <path d="M 50 38 Q 48 48 42 54" fill="none" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round" />
+          <path d="M 50 38 Q 52 48 58 54" fill="none" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round" />
+          <path d="M 50 38 Q 44 45 34 50" fill="none" stroke="#CBD5E1" stroke-width="1.8" stroke-linecap="round" />
+          <path d="M 50 38 Q 56 45 66 50" fill="none" stroke="#CBD5E1" stroke-width="1.8" stroke-linecap="round" />
+          <circle cx="43" cy="54" r="1.5" fill="#1E293B" />
+          <circle cx="57" cy="54" r="1.5" fill="#1E293B" />
+          <path d="M 48 58 Q 50 60 52 58" fill="none" stroke="#1E293B" stroke-width="1.5" stroke-linecap="round" />
+          <ellipse cx="39" cy="56" rx="2" ry="1" fill="#F472B6" opacity="0.6" />
+          <ellipse cx="61" cy="56" rx="2" ry="1" fill="#F472B6" opacity="0.6" />
+        </svg>
+      `,
+      steak: `
+        <svg viewBox="0 0 100 100">
+          <g class="steam-group" stroke="#E2E8F0" stroke-width="2" fill="none" stroke-linecap="round">
+            <path d="M 35 24 Q 30 15 35 6" class="steam-line-1" />
+            <path d="M 55 24 Q 50 15 55 6" class="steam-line-3" />
+          </g>
+          <ellipse cx="50" cy="72" rx="42" ry="18" fill="#78350F" stroke="#451A03" stroke-width="2" />
+          <ellipse cx="50" cy="68" rx="36" ry="13" fill="#1E293B" />
+          <ellipse cx="50" cy="68" rx="34" ry="11" fill="#0F172A" />
+          <path d="M 22 68 Q 32 74 42 68 Q 30 72 24 67" fill="none" stroke="#F59E0B" stroke-width="2" />
+          <rect x="25" y="52" width="28" height="18" rx="6" fill="#451A03" stroke="#1E293B" stroke-width="1.5" transform="rotate(-5 39 61)" />
+          <line x1="30" y1="56" x2="48" y2="62" stroke="#78350F" stroke-width="2.5" />
+          <line x1="34" y1="54" x2="44" y2="66" stroke="#78350F" stroke-width="2.5" />
+          <ellipse cx="64" cy="67" rx="10" ry="6" fill="#FFFFFF" />
+          <circle cx="63" cy="66" r="3.5" fill="#F59E0B" class="egg-yolk" />
+          <circle cx="62" cy="65" r="1" fill="#FFFFFF" opacity="0.8" />
+        </svg>
+      `,
+      boba: `
+        <svg viewBox="0 0 100 100">
+          <path d="M 34 26 L 38 74 C 38 78, 62 78, 62 74 L 66 26 Z" fill="rgba(255, 255, 255, 0.2)" stroke="#E2E8F0" stroke-width="2" />
+          <path d="M 35 34 L 38 74 C 38 78, 62 78, 62 74 L 65 34 Z" fill="#DDB892" />
+          <line x1="50" y1="8" x2="42" y2="70" stroke="#F472B6" stroke-width="5" stroke-linecap="round" />
+          <line x1="42" y1="20" x2="42" y2="70" stroke="#EC4899" stroke-width="4.5" />
+          <g fill="#1E1B4B">
+            <circle cx="43" cy="72" r="3" />
+            <circle cx="50" cy="74" r="3" />
+            <circle cx="57" cy="71" r="3" />
+            <circle cx="46" cy="68" r="3" />
+            <circle cx="53" cy="67" r="3" />
+            <circle cx="40" cy="69" r="3" />
+            <circle cx="60" cy="67" r="3" />
+          </g>
+          <circle cx="45" cy="46" r="1.5" fill="#1E293B" />
+          <circle cx="55" cy="46" r="1.5" fill="#1E293B" />
+          <path d="M 48 50 Q 50 52 52 50" fill="none" stroke="#1E293B" stroke-width="1.5" stroke-linecap="round" />
+          <ellipse cx="40" cy="48" rx="2.5" ry="1.5" fill="#F43F5E" opacity="0.6" />
+          <ellipse cx="60" cy="48" rx="2.5" ry="1.5" fill="#F43F5E" opacity="0.6" />
+        </svg>
+      `
+    };
+
+    // 食物中文名與預設
+    const FOOD_INFO = {
+      noodles: { name: "川味牛肉麵 🍜", type: "noodles" },
+      dumplings: { name: "手工水餃 🥟", type: "dumplings" },
+      buns: { name: "蒸籠肉包 🥟", type: "buns" },
+      steak: { name: "台式鐵板牛排 🥩", type: "steak" },
+      boba: { name: "啵啵珍奶 🧋", type: "boba" }
+    };
+
+    // 趣味對白
+    const BUYER_QUOTES = [
+      "看來今天買單非你莫屬啦！跑腿小天使就是你！👼🎉",
+      "這就是命運！跑腿去吧，全家人的肚子都在呼喚你～🛵",
+      "今天你就是我們這一家最閃耀、最大方的那顆星！✨",
+      "花家恩典！買午餐的重責大任就交給你了！💪",
+      "不用懷疑，指針說的就是你，乖乖掏出錢包吧！💸"
+    ];
+
+    // 扇區配色
+    const SECTOR_COLORS = [
+      "#6366f1", "#ec4899", "#14b8a6", "#f59e0b", "#8b5cf6", 
+      "#ef4444", "#06b6d4", "#10b981", "#f43f5e", "#84cc16"
+    ];
+
+    // === 音效系統 ===
+    class SoundSynth {
+      constructor() {
+        this.ctx = null;
+      }
+
+      init() {
+        if (!this.ctx) {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playClick(volume = 0.2, freq = 1000) {
+        this.init();
+        if (!this.ctx) return;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.05);
+
+        gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.06);
+      }
+
+      playSlotTick() {
+        this.playClick(0.15, 1200);
+      }
+
+      playWin() {
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
+        
+        notes.forEach((freq, index) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + index * 0.08);
+
+          gain.gain.setValueAtTime(0, now + index * 0.08);
+          gain.gain.linearRampToValueAtTime(0.18, now + index * 0.08 + 0.04);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.08 + 0.4);
+
+          osc.start(now + index * 0.08);
+          osc.stop(now + index * 0.08 + 0.5);
+        });
+      }
+    }
+
+    const sound = new SoundSynth();
+
+    // === Confetti 碎紙花 ===
+    class ConfettiEffect {
+      constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+        this.particles = [];
+        this.active = false;
+        
+        window.addEventListener('resize', () => this.resize());
+        this.resize();
+      }
+
+      resize() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+      }
+
+      spawn() {
+        this.particles = [];
+        const colors = ['#f43f5e', '#ec4899', '#8b5cf6', '#6366f1', '#06b6d4', '#10b981', '#f59e0b'];
+        
+        for (let i = 0; i < 200; i++) {
+          this.particles.push({
+            x: window.innerWidth / 2 + (Math.random() - 0.5) * 80,
+            y: window.innerHeight + 20,
+            size: Math.random() * 8 + 6,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            speedX: (Math.random() - 0.5) * 18,
+            speedY: -Math.random() * 24 - 15,
+            gravity: 0.55,
+            resistance: 0.98,
+            rotation: Math.random() * Math.PI * 2,
+            rotationSpeed: (Math.random() - 0.5) * 0.25
+          });
+        }
+        
+        if (!this.active) {
+          this.active = true;
+          this.animate();
+        }
+      }
+
+      animate() {
+        if (!this.active) return;
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        let alive = false;
+        
+        this.particles.forEach(p => {
+          p.speedX *= p.resistance;
+          p.speedY += p.gravity;
+          p.x += p.speedX;
+          p.y += p.speedY;
+          p.rotation += p.rotationSpeed;
+          
+          if (p.y < window.innerHeight + 20) {
+            alive = true;
+            this.ctx.save();
+            this.ctx.translate(p.x, p.y);
+            this.ctx.rotate(p.rotation);
+            this.ctx.fillStyle = p.color;
+            this.ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+            this.ctx.restore();
+          }
+        });
+        
+        if (alive) {
+          requestAnimationFrame(() => this.animate());
+        } else {
+          this.active = false;
+          this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+      }
+
+      stop() {
+        this.active = false;
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      }
+    }
+
+    const confetti = new ConfettiEffect('confetti-canvas');
+
+    // === 遊戲狀態變數 ===
+    let playerCount = 5;
+    let players = [];         // 格式: [{ name: '曉明', avatar: 'mom' }]
+    let winnerIndex = -1;     // 得獎者索引
+
+    let foodCount = 3;
+    let foods = [];           // 格式: [{ name: '牛肉麵', type: 'noodles' }]
+    let selectedFoodIndex = -1;
+
+    let isSpinning = false;
+    let isSlotSpinning = false;
+    let wheelAngle = 0;
+
+    // === DOM 元素 ===
+    const cardStep1 = document.getElementById('card-step1');
+    const cardStep2 = document.getElementById('card-step2');
+    const cardStep3 = document.getElementById('card-step3');
+    const cardStep4 = document.getElementById('card-step4');
+    const cardStep5 = document.getElementById('card-step5');
+    const cardStep6 = document.getElementById('card-step6');
+
+    const playerCountInput = document.getElementById('player-count-input');
+    const btnNextStep1 = document.getElementById('btn-next-step1');
+    const errorMessage1 = document.getElementById('error-message-1');
+    const errorText1 = document.getElementById('error-text-1');
+
+    const nameInputsContainer = document.getElementById('name-inputs-container');
+    const btnNextStep2 = document.getElementById('btn-next-step2');
+    const btnBackStep2 = document.getElementById('btn-back-step2');
+
+    const canvas = document.getElementById('wheel-canvas');
+    const ctx = canvas.getContext('2d');
+    const btnSpin = document.getElementById('btn-spin');
+    const btnBackStep3 = document.getElementById('btn-back-step3');
+    const pointer = document.getElementById('wheel-pointer');
+    const contestantBoard = document.getElementById('contestant-board');
+
+    const foodCountInput = document.getElementById('food-count-input');
+    const btnNextStep4 = document.getElementById('btn-next-step4');
+    const errorMessage2 = document.getElementById('error-message-2');
+    const errorText2 = document.getElementById('error-text-2');
+
+    const foodInputsContainer = document.getElementById('food-inputs-container');
+    const btnNextStep5 = document.getElementById('btn-next-step5');
+    const btnBackStep5 = document.getElementById('btn-back-step5');
+
+    const slotTrack = document.getElementById('slot-track');
+    const btnSlotSpin = document.getElementById('btn-slot-spin');
+
+    const buyerModal = document.getElementById('buyer-modal');
+    const buyerAvatarBig = document.getElementById('buyer-avatar-big');
+    const buyerNameDisplay = document.getElementById('buyer-name-display');
+    const buyerQuoteDisplay = document.getElementById('buyer-quote-display');
+    const btnBuyerNext = document.getElementById('btn-buyer-next');
+
+    const finalModal = document.getElementById('final-modal');
+    const finalWinnerAvatarBox = document.getElementById('final-winner-avatar-box');
+    const finalFoodImgBox = document.getElementById('final-food-img-box');
+    const finalVerdictDisplay = document.getElementById('final-verdict-display');
+    const btnFinalRestart = document.getElementById('btn-final-restart');
+
+
+    // === 頁面切換控制 ===
+    function switchCard(fromCard, toCard) {
+      fromCard.classList.remove('active');
+      setTimeout(() => {
+        toCard.classList.add('active');
+      }, 300);
+    }
+
+
+    // ================= 階段一與二：玩家設定與頭像切換 =================
+
+    btnNextStep1.addEventListener('click', () => {
+      sound.init();
+
+      const inputValue = playerCountInput.value.trim();
+      const num = parseInt(inputValue, 10);
+
+      if (!inputValue || isNaN(num) || num < 2 || num > 10) {
+        playerCountInput.classList.add('error-shake');
+        errorText1.innerText = "請輸入 2 到 10 之間的數字！請重新輸入";
+        errorMessage1.style.display = 'flex';
+        
+        setTimeout(() => {
+          playerCountInput.classList.remove('error-shake');
+        }, 500);
+        return;
+      }
+
+      errorMessage1.style.display = 'none';
+      playerCount = num;
+      generateNameInputs();
+      switchCard(cardStep1, cardStep2);
+    });
+
+    playerCountInput.addEventListener('input', () => {
+      errorMessage1.style.display = 'none';
+    });
+
+    playerCountInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') btnNextStep1.click();
+    });
+
+    // 動態生成帶有「頭像選擇器」的玩家輸入框
+    function generateNameInputs() {
+      nameInputsContainer.innerHTML = '';
+      
+      const charKeys = ['mom', 'dad', 'mikan', 'yuzu', 'mizushima'];
+      const shuffledNames = [...charKeys].sort(() => Math.random() - 0.5);
+
+      for (let i = 0; i < playerCount; i++) {
+        const row = document.createElement('div');
+        row.className = 'input-row';
+        row.style.animationDelay = `${i * 0.05}s`;
+
+        // 輪流分配預設卡通角色頭像
+        const defaultChar = charKeys[i % charKeys.length];
+        const placeholderText = CHAR_INFO[defaultChar].nextDefault;
+
+        row.innerHTML = `
+          <div class="row-number">${i + 1}</div>
+          
+          <!-- 頭像點擊切換容器 -->
+          <div class="avatar-picker-btn" id="avatar-btn-${i}" data-avatar="${defaultChar}" title="點擊切換我們這一家角色頭像！">
+            ${CHARACTERS_SVGs[defaultChar]}
+          </div>
+
+          <input 
+            type="text" 
+            class="input-field player-name-input" 
+            id="player-name-${i}"
+            placeholder="預設：${placeholderText}" 
+            value="" 
+            maxlength="10"
+            autocomplete="off"
+            style="padding: 10px 15px; font-size: 1rem; text-align: left; margin: 0;"
+          >
+        `;
+
+        nameInputsContainer.appendChild(row);
+
+        // 為頭像新增點擊輪播切換事件
+        const avatarBtn = row.querySelector('.avatar-picker-btn');
+        avatarBtn.addEventListener('click', () => {
+          sound.playClick(0.1, 1500);
+          
+          const currentAvatar = avatarBtn.getAttribute('data-avatar');
+          const currentIndex = charKeys.indexOf(currentAvatar);
+          const nextIndex = (currentIndex + 1) % charKeys.length;
+          const nextAvatar = charKeys[nextIndex];
+
+          avatarBtn.setAttribute('data-avatar', nextAvatar);
+          avatarBtn.innerHTML = CHARACTERS_SVGs[nextAvatar];
+
+          // 自動更改預設 placeholder 提示名字
+          const inputField = document.getElementById(`player-name-${i}`);
+          if (!inputField.value.trim()) {
+            inputField.placeholder = `預設：${CHAR_INFO[nextAvatar].nextDefault}`;
+          }
+        });
+      }
+    }
+
+    btnBackStep2.addEventListener('click', () => {
+      switchCard(cardStep2, cardStep1);
+      playerCountInput.focus();
+    });
+
+    btnNextStep2.addEventListener('click', () => {
+      players = [];
+      for (let i = 0; i < playerCount; i++) {
+        const inputField = document.getElementById(`player-name-${i}`);
+        const avatarBtn = document.getElementById(`avatar-btn-${i}`);
+        
+        let name = inputField.value.trim();
+        const avatar = avatarBtn.getAttribute('data-avatar');
+
+        if (!name) {
+          name = inputField.getAttribute('placeholder').replace('預設：', '');
+        }
+
+        players.push({ name, avatar });
+      }
+
+      // 初始化轉盤與看板
+      wheelAngle = 0;
+      setupContestantBoard();
+      drawWheel();
+      switchCard(cardStep2, cardStep3);
+    });
+
+
+    // ================= 階段三：轉盤抽籤與看板動效 =================
+
+    // 建立轉盤下方的精美角色徽章看板
+    function setupContestantBoard() {
+      contestantBoard.innerHTML = '';
+      players.forEach((p, index) => {
+        const badge = document.createElement('div');
+        badge.className = 'contestant-badge';
+        badge.id = `contestant-badge-${index}`;
+        badge.innerHTML = `
+          <div class="contestant-avatar-box">
+            ${CHARACTERS_SVGs[p.avatar]}
+          </div>
+          <span>${p.name}</span>
+        `;
+        contestantBoard.appendChild(badge);
+      });
+    }
+
+    function drawWheel() {
+      const size = canvas.width;
+      const center = size / 2;
+      const radius = center - 20;
+      
+      ctx.clearRect(0, 0, size, size);
+      const arc = (2 * Math.PI) / players.length;
+
+      players.forEach((player, i) => {
+        const angle = wheelAngle + i * arc;
+        
+        ctx.beginPath();
+        ctx.fillStyle = SECTOR_COLORS[i % SECTOR_COLORS.length];
+        ctx.moveTo(center, center);
+        ctx.arc(center, center, radius, angle, angle + arc);
+        ctx.lineTo(center, center);
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(center, center);
+        ctx.rotate(angle + arc / 2);
+        
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '900 20px "Noto Sans TC", sans-serif';
+        
+        let displayName = player.name;
+        if (displayName.length > 5) {
+          displayName = displayName.substring(0, 4) + '...';
+        }
+        
+        ctx.fillText(displayName, radius - 42, 0);
+        ctx.restore();
+      });
+
+      // 同心圓裝飾
+      ctx.beginPath();
+      ctx.arc(center, center, radius, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 6;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(center, center, 45, 0, 2 * Math.PI);
+      ctx.fillStyle = '#1e1b4b';
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.beginPath();
+      ctx.arc(center, center, 45, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(center, center, 20, 0, 2 * Math.PI);
+      const centerGrad = ctx.createRadialGradient(center, center, 0, center, center, 20);
+      centerGrad.addColorStop(0, '#ffffff');
+      centerGrad.addColorStop(1, '#a855f7');
+      ctx.fillStyle = centerGrad;
+      ctx.fill();
+    }
+
+    function spinWheel() {
+      if (isSpinning) return;
+      
+      isSpinning = true;
+      btnSpin.disabled = true;
+      btnBackStep3.disabled = true;
+      btnSpin.style.opacity = 0.5;
+      btnBackStep3.style.opacity = 0.5;
+
+      const spinTime = 4000 + Math.random() * 2000;
+      const startSpeed = 0.45 + Math.random() * 0.15;
+      let currentSpeed = startSpeed;
+      
+      const startTime = performance.now();
+      const arc = (2 * Math.PI) / players.length;
+      let lastSectorIndex = -1;
+
+      let pointerAngle = 0;
+      let pointerVelocity = 0;
+
+      function update(now) {
+        const elapsed = now - startTime;
+        
+        if (elapsed < spinTime) {
+          const progress = elapsed / spinTime;
+          currentSpeed = startSpeed * Math.pow(1 - progress, 2.5);
+          
+          wheelAngle += currentSpeed;
+          drawWheel();
+
+          const relativeAngle = (-wheelAngle - Math.PI / 2) % (2 * Math.PI);
+          const normalizedAngle = relativeAngle < 0 ? relativeAngle + 2 * Math.PI : relativeAngle;
+          const currentSectorIndex = Math.floor(normalizedAngle / arc) % players.length;
+
+          // 物理指標觸碰與面板徽章點亮同步
+          if (currentSectorIndex !== lastSectorIndex) {
+            sound.playClick(0.25);
+            pointerVelocity = 15;
+            
+            // 看板點亮回饋
+            document.querySelectorAll('.contestant-badge').forEach(b => b.classList.remove('active-spin'));
+            const activeBadge = document.getElementById(`contestant-badge-${currentSectorIndex}`);
+            if (activeBadge) activeBadge.classList.add('active-spin');
+
+            lastSectorIndex = currentSectorIndex;
+          }
+
+          const springK = 0.3;
+          const damping = 0.8;
+          const force = -springK * pointerAngle;
+          pointerVelocity += force;
+          pointerVelocity *= damping;
+          pointerAngle += pointerVelocity;
+
+          const displayAngle = Math.min(Math.max(pointerAngle, -15), 30);
+          pointer.style.transform = `translateX(-50%) rotate(${displayAngle}deg)`;
+
+          requestAnimationFrame(update);
+        } else {
+          isSpinning = false;
+          btnSpin.disabled = false;
+          btnBackStep3.disabled = false;
+          btnSpin.style.opacity = 1;
+          btnBackStep3.style.opacity = 1;
+
+          pointer.style.transform = 'translateX(-50%) rotate(0deg)';
+
+          const finalAngle = (-wheelAngle - Math.PI / 2) % (2 * Math.PI);
+          const normalizedFinalAngle = finalAngle < 0 ? finalAngle + 2 * Math.PI : finalAngle;
+          winnerIndex = Math.floor(normalizedFinalAngle / arc) % players.length;
+
+          // 看板最後閃爍與揭曉
+          document.querySelectorAll('.contestant-badge').forEach(b => b.classList.remove('active-spin'));
+          const finalBadge = document.getElementById(`contestant-badge-${winnerIndex}`);
+          if (finalBadge) finalBadge.classList.add('active-spin');
+
+          setTimeout(() => {
+            showBuyerPopup(winnerIndex);
+          }, 400);
+        }
+      }
+
+      requestAnimationFrame(update);
+    }
+
+    btnSpin.addEventListener('click', spinWheel);
+    btnBackStep3.addEventListener('click', () => {
+      switchCard(cardStep3, cardStep2);
+    });
+
+    // 展現買單人彈窗 (帶有跳舞 SVG 頭像)
+    function showBuyerPopup(idx) {
+      const winner = players[idx];
+      
+      // 載入大卡通 SVG 並設定大彈跳
+      buyerAvatarBig.innerHTML = CHARACTERS_SVGs[winner.avatar];
+      buyerNameDisplay.innerText = winner.name;
+      buyerQuoteDisplay.innerText = BUYER_QUOTES[Math.floor(Math.random() * BUYER_QUOTES.length)];
+      
+      sound.playWin();
+      confetti.spawn();
+      buyerModal.classList.add('active');
+    }
+
+    btnBuyerNext.addEventListener('click', () => {
+      buyerModal.classList.remove('active');
+      confetti.stop();
+      switchCard(cardStep3, cardStep4);
+      foodCountInput.focus();
+    });
+
+
+    // ================= 階段四與五：食品品項驗證與美食圖更換 =================
+
+    btnNextStep4.addEventListener('click', () => {
+      const inputValue = foodCountInput.value.trim();
+      const num = parseInt(inputValue, 10);
+
+      // 驗證 1 - 5 種在地美食
+      if (!inputValue || isNaN(num) || num < 1 || num > 5) {
+        foodCountInput.classList.add('error-shake');
+        errorText2.innerText = "請輸入 1 到 5 之間的品項數量！請重新輸入";
+        errorMessage2.style.display = 'flex';
+        
+        setTimeout(() => {
+          foodCountInput.classList.remove('error-shake');
+        }, 500);
+        return;
+      }
+
+      errorMessage2.style.display = 'none';
+      foodCount = num;
+      generateFoodInputs();
+      switchCard(cardStep4, cardStep5);
+    });
+
+    foodCountInput.addEventListener('input', () => {
+      errorMessage2.style.display = 'none';
+    });
+
+    foodCountInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') btnNextStep4.click();
+    });
+
+    // 生成帶有美食卡通更換鈕的食品編輯框
+    function generateFoodInputs() {
+      foodInputsContainer.innerHTML = '';
+      
+      const foodKeys = ['noodles', 'dumplings', 'buns', 'steak', 'boba'];
+
+      for (let i = 0; i < foodCount; i++) {
+        const row = document.createElement('div');
+        row.className = 'input-row';
+        row.style.animationDelay = `${i * 0.05}s`;
+
+        // 輪流分配預設美味手繪卡通
+        const defaultFoodKey = foodKeys[i % foodKeys.length];
+        const defaultInfo = FOOD_INFO[defaultFoodKey];
+
+        row.innerHTML = `
+          <div class="row-number food">${i + 1}</div>
+          
+          <input 
+            type="text" 
+            class="input-field food-item-input" 
+            id="food-name-${i}"
+            placeholder="預設：${defaultInfo.name}" 
+            value="" 
+            maxlength="15"
+            autocomplete="off"
+            style="padding: 10px 15px; font-size: 1rem; text-align: left; margin: 0;"
+          >
+
+          <!-- 美食卡通插圖輪播鈕 -->
+          <div class="food-picker-btn" id="food-btn-${i}" data-food="${defaultFoodKey}" title="點擊更換對應的台灣在地美食卡通圖！">
+            ${FOOD_SVGs[defaultFoodKey]}
+          </div>
+        `;
+
+        foodInputsContainer.appendChild(row);
+
+        const foodBtn = row.querySelector('.food-picker-btn');
+        foodBtn.addEventListener('click', () => {
+          sound.playClick(0.1, 1400);
+
+          const currentFood = foodBtn.getAttribute('data-food');
+          const currentIndex = foodKeys.indexOf(currentFood);
+          const nextIndex = (currentIndex + 1) % foodKeys.length;
+          const nextFood = foodKeys[nextIndex];
+
+          foodBtn.setAttribute('data-food', nextFood);
+          foodBtn.innerHTML = FOOD_SVGs[nextFood];
+
+          // 自動更改預設 placeholder 提示名字
+          const inputField = document.getElementById(`food-name-${i}`);
+          if (!inputField.value.trim()) {
+            inputField.placeholder = `預設：${FOOD_INFO[nextFood].name}`;
+          }
+        });
+      }
+    }
+
+    btnBackStep5.addEventListener('click', () => {
+      switchCard(cardStep5, cardStep4);
+      foodCountInput.focus();
+    });
+
+    btnNextStep5.addEventListener('click', () => {
+      foods = [];
+      for (let i = 0; i < foodCount; i++) {
+        const inputField = document.getElementById(`food-name-${i}`);
+        const foodBtn = document.getElementById(`food-btn-${i}`);
+
+        let name = inputField.value.trim();
+        const type = foodBtn.getAttribute('data-food');
+
+        if (!name) {
+          name = inputField.getAttribute('placeholder').replace('預設：', '');
+        }
+
+        foods.push({ name, type });
+      }
+
+      setupSlotMachine();
+      switchCard(cardStep5, cardStep6);
+    });
+
+
+    // ================= 階段六：美食命運老虎機滾動與音效 =================
+
+    function setupSlotMachine() {
+      slotTrack.innerHTML = '';
+      
+      // 複製品項長軌道，營造無限滾動快感
+      const repeatTimes = 12;
+      const totalList = [];
+      for (let r = 0; r < repeatTimes; r++) {
+        foods.forEach(f => totalList.push(f));
+      }
+
+      totalList.forEach((food) => {
+        const item = document.createElement('div');
+        item.className = 'slot-item';
+        item.innerHTML = `
+          <div class="slot-food-img">${FOOD_SVGs[food.type]}</div>
+          <div class="slot-food-name">${food.name}</div>
+        `;
+        slotTrack.appendChild(item);
+      });
+
+      slotTrack.style.top = '0px';
+    }
+
+    btnSlotSpin.addEventListener('click', () => {
+      if (isSlotSpinning) return;
+      isSlotSpinning = true;
+      btnSlotSpin.disabled = true;
+      btnSlotSpin.style.opacity = 0.5;
+
+      selectedFoodIndex = Math.floor(Math.random() * foods.length);
+
+      const itemHeight = 120; // 每個滾動框高度
+      const spinTime = 4000 + Math.random() * 1000;
+      
+      const targetCycle = 6;
+      const targetIndex = selectedFoodIndex + targetCycle * foods.length;
+      const targetOffset = -targetIndex * itemHeight;
+      
+      const startTime = performance.now();
+      let lastTickItem = -1;
+
+      function animateSlot(now) {
+        const elapsed = now - startTime;
+
+        if (elapsed < spinTime) {
+          const progress = elapsed / spinTime;
+          const easeOut = 1 - Math.pow(1 - progress, 3);
+          const currentOffset = easeOut * targetOffset;
+
+          slotTrack.style.top = `${currentOffset}px`;
+
+          const currentItem = Math.floor(Math.abs(currentOffset) / itemHeight);
+          if (currentItem !== lastTickItem) {
+            sound.playSlotTick();
+            lastTickItem = currentItem;
+          }
+
+          requestAnimationFrame(animateSlot);
+        } else {
+          slotTrack.style.top = `${targetOffset}px`;
+          isSlotSpinning = false;
+          btnSlotSpin.disabled = false;
+          btnSlotSpin.style.opacity = 1;
+
+          setTimeout(() => {
+            showFinalVerdict();
+          }, 600);
+        }
+      }
+
+      requestAnimationFrame(animateSlot);
+    });
+
+
+    // ================= 階段七：最終世紀大結局卡漫合併展示 =================
+
+    function showFinalVerdict() {
+      const winner = players[winnerIndex];
+      const food = foods[selectedFoodIndex];
+
+      // 1. 大結局兩張卡片特寫：左大跳舞頭像，右美食圖
+      finalWinnerAvatarBox.innerHTML = CHARACTERS_SVGs[winner.avatar];
+      finalFoodImgBox.innerHTML = FOOD_SVGs[food.type];
+
+      // 2. 宣告大字報
+      finalVerdictDisplay.innerHTML = `
+        由 我們這一家的 <span style="color:var(--accent); font-weight:900;">${winner.name}</span> 買<br>
+        超美味的 <span style="color:var(--amber); font-weight:900; font-size:2.4rem;">${food.name}</span><br>
+        回來吃！
+      `;
+      
+      sound.playWin();
+      confetti.spawn();
+      finalModal.classList.add('active');
+    }
+
+    btnFinalRestart.addEventListener('click', () => {
+      finalModal.classList.remove('active');
+      confetti.stop();
+      
+      // 重設
+      playerCountInput.value = '';
+      foodCountInput.value = '';
+      
+      switchCard(cardStep6, cardStep1);
+      playerCountInput.focus();
+    });
+
+  </script>
+</body>
+</html>

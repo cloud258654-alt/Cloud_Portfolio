@@ -452,6 +452,7 @@
         .card-glow-pink   { background: linear-gradient(90deg, var(--secondary), #ffb347); }
         .card-glow-green  { background: linear-gradient(90deg, #00b894, #00f5a0); }
         .card-glow-blue   { background: linear-gradient(90deg, #3f51b5, #5c6bc0); }
+        .card-glow-orange { background: linear-gradient(90deg, #ff9f43, #ff5252); }
 
         /* Card Image / Preview Area */
         .card-preview {
@@ -482,6 +483,7 @@
         .preview-pink   { background: radial-gradient(circle at 50% 50%, var(--secondary), transparent 70%); }
         .preview-green  { background: radial-gradient(circle at 50% 50%, #00b894, transparent 70%); }
         .preview-blue   { background: radial-gradient(circle at 50% 50%, #3f51b5, transparent 70%); }
+        .preview-orange { background: radial-gradient(circle at 50% 50%, #ff9f43, transparent 70%); }
 
         .card-icon {
             position: relative;
@@ -632,6 +634,17 @@
         .btn-card-blue:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 28px rgba(63, 81, 181, 0.5);
+        }
+
+        .btn-card-orange {
+            background: linear-gradient(135deg, #ff9f43, #ff5252);
+            color: white;
+            box-shadow: 0 4px 16px rgba(255, 159, 67, 0.35);
+        }
+
+        .btn-card-orange:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(255, 159, 67, 0.55);
         }
 
         .btn-arrow {
@@ -989,7 +1002,7 @@
 
             <div class="stats-bar">
                 <div class="stat-item">
-                    <span class="stat-number" id="stat-projects">5</span>
+                    <span class="stat-number" id="stat-projects">6</span>
                     <span class="stat-label">完成作品</span>
                 </div>
                 <div class="stat-item">
@@ -1133,6 +1146,32 @@
                         <p class="card-desc">基於多代理人協作管線 (Multi-Agent Pipeline) 的台股綜合分析與決策系統。展示多位 AI 專家在技術、基本、籌碼、總經等面向的交叉質詢與共識過程。</p>
                         <div class="card-footer">
                             <a href="./projects/Taiwan-Stock/index.html" class="btn-card btn-card-blue" id="btn-stock-live" target="_blank" rel="noopener">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                                觀看 Live
+                            </a>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Card 06 -->
+                <article class="project-card reveal" id="card-lunch">
+                    <div class="card-glow card-glow-orange"></div>
+                    <div class="card-preview">
+                        <div class="card-preview-bg preview-orange"></div>
+                        <span class="card-icon" role="img" aria-label="午餐大轉盤">🎡</span>
+                        <div class="card-number">FUN</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-tags">
+                            <span class="tag tag-purple">HTML</span>
+                            <span class="tag tag-cyan">CSS</span>
+                            <span class="tag tag-green">JavaScript</span>
+                            <span class="tag tag-pink">Web Audio</span>
+                        </div>
+                        <h3 class="card-title">我們這一家午餐抉擇主控台</h3>
+                        <p class="card-desc">專為現代辦公團隊設計的互動式網頁產品。包含擬真物理碰撞大轉盤、卡通人物編輯器、Web Audio 音效合成與極客風美食老虎機，解決午餐吃什麼的世紀難題。</p>
+                        <div class="card-footer">
+                            <a href="./projects/0530-2/index.html" class="btn-card btn-card-orange" id="btn-lunch-live" target="_blank" rel="noopener">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                                 觀看 Live
                             </a>
