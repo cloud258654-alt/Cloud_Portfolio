@@ -14,6 +14,7 @@
 | 👤 關於我 | [查看](https://asia17242.github.io/Cloud_Portfolio/#about) |
 | 📁 作品展示 | [查看](https://asia17242.github.io/Cloud_Portfolio/#projects) |
 | 📅 學習歷程 | [查看](https://asia17242.github.io/Cloud_Portfolio/#journey) |
+| 📊 Homework 04 | [查看](https://share.streamlit.io/asia17242/homework_04/main/app.py) |
 
 ---
 
@@ -25,6 +26,7 @@
 | Homework 01 | 前端基礎練習 | HTML、CSS | [查看](https://asia17242.github.io/Cloud_Portfolio/projects/Homework_01/) |
 | Homework 02 | JavaScript 互動應用 | HTML、CSS、JS | [查看](https://asia17242.github.io/Cloud_Portfolio/projects/Homework_02/) |
 | Homework 03 | 進階互動應用 | HTML、CSS、JS | [查看](https://asia17242.github.io/Cloud_Portfolio/projects/Homework_03/) |
+| Homework 04 | 線性迴歸模擬與離群值偵測 | Python、Streamlit、Sklearn | [查看](https://share.streamlit.io/asia17242/homework_04/main/app.py) |
 
 ---
 
