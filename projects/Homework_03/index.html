@@ -399,6 +399,7 @@
       if (!currentVal) {
         promptInput.value = presetText;
       } else {
+        // Clean previous styles if present, or just append
         promptInput.value = `${currentVal}, ${presetText}`;
       }
       showToast(`已套用「${styleKey}」星際風格濾鏡！🎨`);
@@ -493,11 +494,13 @@
       overlay.classList.add('hidden');
       loadingBlock.classList.remove('hidden');
 
+      // Append negative prompt if exists to the prompt logic
       let finalPrompt = rawPrompt;
       lastGeneratedPrompt = finalPrompt;
 
       try {
         if (activeEngine === 'gemini') {
+          // Gemini Imagen-4 Endpoint
           loadingStatus.innerText = "正在傳送星際指令至 Gemini Imagen 中樞...";
           const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
           
@@ -523,6 +526,7 @@
           }
 
         } else {
+          // Hugging Face Inference Mode
           const hfToken = document.getElementById('hf-token').value.trim();
           if (!hfToken) {
             throw new Error("請先在上方整合設定中輸入您的 Hugging Face Token 哦！");
@@ -554,8 +558,10 @@
 
           if (!response.ok) {
             const errDetail = await response.text();
+            // Handle loading state model downloading from HF
             if (response.status === 503) {
               loadingStatus.innerText = "Hugging Face 正在加載模型，這可能需要一分鐘，請稍候...";
+              // Retry once after 10s delay
               await new Promise(resolve => setTimeout(resolve, 10000));
               return generateImage(); 
             }
@@ -588,6 +594,7 @@
       overlay.classList.remove('hidden');
       downloadBtn.href = imgUrl;
 
+      // Add to Session History Gallery
       addToHistory(imgUrl, lastGeneratedPrompt);
       showToast("🎉 宇宙景觀孕育成功！已保存在下方靈感庫中");
     }
@@ -601,7 +608,7 @@
         engine: activeEngine
       };
       
-      historyImages.unshift(newItem);
+      historyImages.unshift(newItem); // prepends to list
       saveToLocalStorage();
       updateHistoryUI();
     }
@@ -687,6 +694,7 @@
       container.appendChild(toast);
       lucide.createIcons();
       
+      // Auto-remove after 4.5s
       setTimeout(() => {
         toast.remove();
       }, 4500);
@@ -698,18 +706,6 @@
         localStorage.setItem(`cosmos_hist_${currentAppId}`, JSON.stringify(historyImages));
       } catch (e) {
         console.warn("LocalStorage space full, saving state in memory instead.");
-      }
-    }
-
-    function loadInLocalStorage() {
-      try {
-        const stored = localStorage.getItem(`cosmos_hist_${currentAppId}`);
-        if (stored) {
-          historyImages = JSON.parse(stored);
-          updateHistoryUI();
-        }
-      } catch (e) {
-        historyImages = [];
       }
     }
 
