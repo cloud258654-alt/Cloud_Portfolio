@@ -14,6 +14,12 @@ A machine learning project following the **CRISP-DM** methodology to predict sta
 
 ---
 
+## 🗺️ Kaggle ML Workflow Infographic | Kaggle 機器學習實戰特訓一頁式攻略藍圖
+
+![Kaggle ML Workflow](./edited-image.png)
+
+---
+
 ## 📊 Project Overview
 
 | Aspect | Detail |
@@ -56,6 +62,7 @@ A machine learning project following the **CRISP-DM** methodology to predict sta
 ├── app.py                        # Bilingual Streamlit interactive dashboard
 ├── index.html                    # Presentation slides (HTML/CSS)
 ├── requirements.txt              # Project dependencies
+├── edited-image.png              # Kaggle ML Workflow Infographic
 ├── 50SPP.md                      # Complete executive project report (CRISP-DM documentation)
 └── README.md                     # Project documentation
 ```
