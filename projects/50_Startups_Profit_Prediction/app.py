@@ -410,7 +410,6 @@ elif page == "Profit Predictor":
                 <strong>{i}.</strong> {rec}
             </div>""", unsafe_allow_html=True)
 
-        st.subheader("Feature Contribution (Standardized Coefficients)")
         scaler = preprocessor.named_transformers_['num']
         rd_mean, rd_std = scaler.mean_[0], scaler.scale_[0]
         admin_mean, admin_std = scaler.mean_[1], scaler.scale_[1]
@@ -433,12 +432,63 @@ elif page == "Profit Predictor":
                 scaled_val = (marketing - mkt_mean) / mkt_std
                 contribs.append({'Feature': name, 'Contribution': c * scaled_val, 'Type': 'Numerical'})
 
-        contrib_df = pd.DataFrame(contribs)
-        fig = px.bar(contrib_df, x='Feature', y='Contribution',
-                     title='Standardized Feature Contribution to Predicted Profit',
-                     color='Contribution', color_continuous_scale='RdYlGn',
-                     text_auto='.2f')
-        st.plotly_chart(fig, use_container_width=True)
+        # Columns for side-by-side charts
+        chart_col1, chart_col2 = st.columns(2)
+        
+        with chart_col1:
+            st.subheader("Feature Contribution")
+            contrib_df = pd.DataFrame(contribs)
+            fig = px.bar(contrib_df, x='Feature', y='Contribution',
+                         title='Standardized Feature Contribution to Predicted Profit',
+                         color='Contribution', color_continuous_scale='RdYlGn',
+                         text_auto='.2f')
+            st.plotly_chart(fig, use_container_width=True)
+            
+        with chart_col2:
+            st.subheader("Budget Allocation")
+            budget_df = pd.DataFrame({
+                'Department': ['R&D Spend', 'Administration', 'Marketing Spend'],
+                'Budget': [rd_spend, admin, marketing]
+            })
+            if rd_spend == 0 and admin == 0 and marketing == 0:
+                st.info("Please enter a budget greater than $0 to view allocation.")
+            else:
+                fig_pie = px.pie(budget_df, values='Budget', names='Department', hole=0.4,
+                                 title='Current Budget Allocation %',
+                                 color_discrete_sequence=px.colors.qualitative.Pastel)
+                st.plotly_chart(fig_pie, use_container_width=True)
+                
+        # Full width sensitivity analysis
+        st.subheader("R&D Spend Sensitivity Analysis (What-If)")
+        rd_range = np.linspace(0.0, 200000.0, 50)
+        sens_inputs = pd.DataFrame({
+            'R&D Spend': rd_range,
+            'Administration': [admin] * 50,
+            'Marketing Spend': [marketing] * 50,
+            'State': [state] * 50
+        })
+        sens_transformed = preprocessor.transform(sens_inputs)
+        sens_predictions = best_model.predict(sens_transformed)
+        
+        sens_df = pd.DataFrame({
+            'R&D Spend': rd_range,
+            'Predicted Profit': sens_predictions
+        })
+        
+        fig_sens = px.line(sens_df, x='R&D Spend', y='Predicted Profit',
+                           title='Predicted Profit vs. R&D Spend (Sensitivity analysis keeping other inputs fixed)',
+                           labels={'R&D Spend': 'R&D Spend ($)', 'Predicted Profit': 'Predicted Profit ($)'})
+        # Add current selection dot
+        fig_sens.add_trace(go.Scatter(
+            x=[rd_spend], y=[prediction],
+            mode='markers+text',
+            name='Current Input',
+            text=[f"Current: ${prediction:,.0f}"],
+            textposition="top left",
+            marker=dict(color='red', size=12, symbol='circle'),
+            showlegend=True
+        ))
+        st.plotly_chart(fig_sens, use_container_width=True)
 
     else:
         st.info("Adjust the parameters in the sidebar and click **Predict Profit** to see the result.")
