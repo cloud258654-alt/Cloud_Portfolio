@@ -7,8 +7,7 @@ A machine learning project following the **CRISP-DM** methodology to predict sta
 ## 🌐 線上預覽 | Live Demo
 
 *   **Interactive Web Application (Streamlit)**:  
-    🔗 **[Live Demo 網頁預估模型](https://share.streamlit.io/asia17242/cloud_portfolio/main/projects/50_Startups_Profit_Prediction/app.py)**  
-    *(Please allow a few seconds for the server to wake up if it is asleep.)*
+    🔗 **[Live Demo 網頁預估模型](https://cloudportfolio-khibgwiuagecuxc8gukdpm.streamlit.app/)**
 
 *   **HTML Presentation Slides (GitHub Pages)**:  
     🔗 **[Presentation Slides 專案簡報](https://asia17242.github.io/Cloud_Portfolio/projects/50_Startups_Profit_Prediction/index.html)**
