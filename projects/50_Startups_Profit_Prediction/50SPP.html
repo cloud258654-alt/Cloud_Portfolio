@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>50 Startups Profit Prediction</title>
+<style>
+  body { font-family: 'Segoe UI', system-ui, sans-serif; max-width: 960px; margin: 0 auto; padding: 40px 24px; line-height: 1.7; color: #1a1a2e; background: #f8f9fa; }
+  h1 { font-size: 2.2rem; color: #1E88E5; border-bottom: 3px solid #1E88E5; padding-bottom: 10px; }
+  h2 { font-size: 1.6rem; color: #1565C0; margin-top: 40px; border-bottom: 1px solid #e0e0e0; padding-bottom: 6px; }
+  h3 { font-size: 1.2rem; color: #333; margin-top: 28px; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  th, td { border: 1px solid #e0e0e0; padding: 10px 14px; text-align: left; }
+  th { background: #1E88E5; color: white; font-weight: 600; }
+  tr:nth-child(even) { background: #f5f7fa; }
+  blockquote { background: #e3f2fd; border-left: 5px solid #1E88E5; padding: 16px 20px; margin: 16px 0; border-radius: 0 8px 8px 0; }
+  code { background: #eef0f8; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  pre { background: #1a1a2e; color: #e0e0e0; padding: 16px 20px; border-radius: 8px; overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  .admonition { padding: 16px 20px; border-radius: 8px; margin: 16px 0; border-left: 5px solid; }
+  .admonition.note { background: #e3f2fd; border-color: #1E88E5; }
+  .admonition.warning { background: #fff3e0; border-color: #ff9800; }
+  .admonition.caution { background: #fce4ec; border-color: #e53935; }
+  .admonition-title { font-weight: 700; margin-bottom: 8px; }
+  hr { border: none; border-top: 1px solid #e0e0e0; margin: 32px 0; }
+  a { color: #1E88E5; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  strong { color: #1565C0; }
+</style>
+</head>
+<body>
+<h1>50 Startups Profit Prediction</h1>
+<blockquote>
+<p><strong>Ridge Regression</strong> · <strong>CRISP-DM Methodology</strong> · <strong>5-Fold Cross-Validation</strong>
+預測新創企業獲利，分析 R&amp;D、行政、行銷支出與州別對 Profit 的影響</p>
+</blockquote>
+<hr />
+<h2>Table of Contents</h2>
+<ul>
+<li><a href="#1-project-overview">1. Project Overview</a></li>
+<li><a href="#2-business-understanding">2. Business Understanding</a></li>
+<li><a href="#3-data-understanding">3. Data Understanding</a></li>
+<li><a href="#4-exploratory-data-analysis">4. Exploratory Data Analysis</a></li>
+<li><a href="#5-data-preparation">5. Data Preparation</a></li>
+<li><a href="#6-modeling">6. Modeling</a></li>
+<li><a href="#7-model-diagnostics">7. Model Diagnostics</a></li>
+<li><a href="#8-model-evaluation">8. Model Evaluation</a></li>
+<li><a href="#9-feature-importance">9. Feature Importance</a></li>
+<li><a href="#10-residual-analysis">10. Residual Analysis</a></li>
+<li><a href="#11-deployment--streamlit-app">11. Deployment — Streamlit App</a></li>
+<li><a href="#12-key-findings--business-insights">12. Key Findings &amp; Business Insights</a></li>
+<li><a href="#13-project-structure">13. Project Structure</a></li>
+<li><a href="#14-getting-started">14. Getting Started</a></li>
+<li><a href="#appendix">Appendix</a></li>
+</ul>
+<hr />
+<h2>1. Project Overview</h2>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Objective</strong></td>
+<td>Predict startup profit using historical data</td>
+</tr>
+<tr>
+<td><strong>Dataset</strong></td>
+<td>Kaggle 50 Startups (50 records, 5 features)</td>
+</tr>
+<tr>
+<td><strong>Methodology</strong></td>
+<td>CRISP-DM (Cross-Industry Standard Process for Data Mining)</td>
+</tr>
+<tr>
+<td><strong>Best Model</strong></td>
+<td>Ridge Regression (alpha=1.0)</td>
+</tr>
+<tr>
+<td><strong>5-Fold CV R²</strong></td>
+<td><strong>0.9326</strong> (+/- 0.0420)</td>
+</tr>
+<tr>
+<td><strong>CV MAE / RMSE</strong></td>
+<td>$7,976 / $10,436</td>
+</tr>
+</tbody>
+</table>
+<h3>Business Questions</h3>
+<ol>
+<li>企業獲利最受哪項支出影響？</li>
+<li>R&amp;D 投資是否與獲利具有顯著關聯？</li>
+<li>Marketing 投入是否能有效提高利潤？</li>
+<li>不同州別 (State) 是否影響企業獲利？</li>
+<li>是否可以透過歷史資料預測未來企業獲利？</li>
+</ol>
+<h3>Success Criteria</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Target</th>
+<th style="text-align: center;">Actual (CV)</th>
+<th style="text-align: center;">Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R² &gt; 0.90</td>
+<td>0.90</td>
+<td style="text-align: center;"><strong>0.9326</strong></td>
+<td style="text-align: center;">✅</td>
+</tr>
+<tr>
+<td>MAE (minimize)</td>
+<td>—</td>
+<td style="text-align: center;">$7,976</td>
+<td style="text-align: center;">✅</td>
+</tr>
+<tr>
+<td>RMSE (minimize)</td>
+<td>—</td>
+<td style="text-align: center;">$10,436</td>
+<td style="text-align: center;">✅</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>2. Business Understanding</h2>
+<p>新創企業在營運初期投入大量資金於 R&amp;D、Administration、Marketing。管理者希望了解哪些投資最能影響獲利，以最佳化預算配置。</p>
+<h3>2.1 指標的商業翻譯</h3>
+<table>
+<thead>
+<tr>
+<th>ML 指標</th>
+<th>對 CFO/投資人的意義</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>R² = 0.93</strong></td>
+<td>模型可解釋 93% 的獲利變異。若只用平均值猜測，誤差約 $40K；使用模型可將誤差降至 <strong>$10K 以內</strong></td>
+</tr>
+<tr>
+<td><strong>MAE = $7,976</strong></td>
+<td>每次預測平均偏差不到 $8K，對於數十萬到百萬級的預算決策，誤差率約 <strong>5–8%</strong></td>
+</tr>
+<tr>
+<td><strong>RMSE = $10,436</strong></td>
+<td>較大偏差的懲罰；RMSE 接近 MAE 表示無嚴重離群預測干擾</td>
+</tr>
+</tbody>
+</table>
+<h3>2.2 商業衡量指標 (Business KPIs)</h3>
+<table>
+<thead>
+<tr>
+<th>KPI</th>
+<th>衡量方式</th>
+<th>預期效益</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>預算配置效率</strong></td>
+<td>模型建議 vs 實際配置的 Profit 差異</td>
+<td>預測準確度 ±$8K，可將預算偏移降至 5% 內</td>
+</tr>
+<tr>
+<td><strong>財務規劃工時</strong></td>
+<td>每次預算調整所需人工分析時間</td>
+<td>從 8 小時降至 &lt;1 分鐘（自動化預測）</td>
+</tr>
+<tr>
+<td><strong>投資報酬率預測</strong></td>
+<td>每增加 $1 R&amp;D 對應的預測 Profit 增量</td>
+<td>提供量化依據，避免盲目投資</td>
+</tr>
+<tr>
+<td><strong>敏感度分析</strong></td>
+<td>變動單一支出時 Profit 的變化幅度</td>
+<td>支援 What-If 模擬決策</td>
+</tr>
+</tbody>
+</table>
+<h3>2.3 假設與風險邊界 (Assumptions &amp; Risk Boundaries)</h3>
+<blockquote>
+<p>[!WARNING]
+<strong>本模型為線性靜態模型，使用時須注意以下限制：</strong></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>風險</th>
+<th>說明</th>
+<th>緩解方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>R&amp;D 遞延效應</strong></td>
+<td>模型假設 R&amp;D 支出與 Profit 為同期關係。實際上 R&amp;D 投資通常需 6–18 個月才能轉化為營收</td>
+<td>建議搭配時間序列分析驗證滯後效應</td>
+</tr>
+<tr>
+<td><strong>過度投資風險</strong></td>
+<td>線性模型無法預測「過度投資 R&amp;D 導致現金流斷裂」，係數在極端值範圍外可能不成立</td>
+<td>預測值應作為輔助參考，搭配現金流壓力測試</td>
+</tr>
+<tr>
+<td><strong>樣本代表性</strong></td>
+<td>n=50 來自 Kaggle 公開數據，未必反映特定產業或地區的新創生態</td>
+<td>建議收集自有數據重新訓練，或使用遷移學習</td>
+</tr>
+<tr>
+<td><strong>因果 vs 相關</strong></td>
+<td>高相關 (r=0.97) 不代表因果關係。獲利高的企業可能只是有能力投入更多 R&amp;D</td>
+<td>決策需搭配 A/B 測試或領域專家判斷</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>3. Data Understanding</h2>
+<h3>Dataset Overview</h3>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Source</td>
+<td>Kaggle — 50 Startups Dataset</td>
+</tr>
+<tr>
+<td>Records</td>
+<td>50</td>
+</tr>
+<tr>
+<td>Features</td>
+<td>5</td>
+</tr>
+<tr>
+<td>Missing Values</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>[!CAUTION]
+<strong>樣本限制 (N=50)：</strong> 本數據集僅含 50 筆樣本，80/20 分割後測試集僅 10 筆。單次測試指標波動大，因此本專案以 <strong>5-Fold Cross-Validation</strong> 作為主要評估依據（CV R²=0.9326），而非單次 Test R²。即便如此，模型泛化至其他新創生態系時仍須謹慎。</p>
+</blockquote>
+<h3>Feature Description</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R&amp;D Spend</td>
+<td>float64</td>
+<td>研發支出 ($)</td>
+</tr>
+<tr>
+<td>Administration</td>
+<td>float64</td>
+<td>行政支出 ($)</td>
+</tr>
+<tr>
+<td>Marketing Spend</td>
+<td>float64</td>
+<td>行銷支出 ($)</td>
+</tr>
+<tr>
+<td>State</td>
+<td>object</td>
+<td>California / Florida / New York</td>
+</tr>
+<tr>
+<td>Profit</td>
+<td>float64</td>
+<td>Target — 公司獲利 ($)</td>
+</tr>
+</tbody>
+</table>
+<h3>Descriptive Statistics</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th style="text-align: right;">R&amp;D Spend</th>
+<th style="text-align: right;">Administration</th>
+<th style="text-align: right;">Marketing Spend</th>
+<th style="text-align: right;">Profit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mean</td>
+<td style="text-align: right;">73,802</td>
+<td style="text-align: right;">123,710</td>
+<td style="text-align: right;">205,393</td>
+<td style="text-align: right;">112,013</td>
+</tr>
+<tr>
+<td>std</td>
+<td style="text-align: right;">45,776</td>
+<td style="text-align: right;">26,520</td>
+<td style="text-align: right;">124,701</td>
+<td style="text-align: right;">40,306</td>
+</tr>
+<tr>
+<td>min</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">51,283</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">14,681</td>
+</tr>
+<tr>
+<td>max</td>
+<td style="text-align: right;">165,349</td>
+<td style="text-align: right;">182,646</td>
+<td style="text-align: right;">471,784</td>
+<td style="text-align: right;">192,262</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Dataset file: <a href="./data/50_Startups.csv"><code>data/50_Startups.csv</code></a></p>
+</blockquote>
+<hr />
+<h2>4. Exploratory Data Analysis</h2>
+<h3>4.1 Correlation Matrix</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th style="text-align: center;">R&amp;D Spend</th>
+<th style="text-align: center;">Admin</th>
+<th style="text-align: center;">Marketing</th>
+<th style="text-align: center;"><strong>Profit</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R&amp;D Spend</td>
+<td style="text-align: center;">1.000</td>
+<td style="text-align: center;">0.112</td>
+<td style="text-align: center;">0.782</td>
+<td style="text-align: center;"><strong>0.973</strong></td>
+</tr>
+<tr>
+<td>Administration</td>
+<td style="text-align: center;">0.112</td>
+<td style="text-align: center;">1.000</td>
+<td style="text-align: center;">-0.172</td>
+<td style="text-align: center;">0.043</td>
+</tr>
+<tr>
+<td>Marketing Spend</td>
+<td style="text-align: center;">0.782</td>
+<td style="text-align: center;">-0.172</td>
+<td style="text-align: center;">1.000</td>
+<td style="text-align: center;"><strong>0.807</strong></td>
+</tr>
+<tr>
+<td><strong>Profit</strong></td>
+<td style="text-align: center;"><strong>0.973</strong></td>
+<td style="text-align: center;">0.043</td>
+<td style="text-align: center;"><strong>0.807</strong></td>
+<td style="text-align: center;">1.000</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key Observations:</strong>
+- <strong>R&amp;D vs Profit: r = 0.973</strong> — 高度正相關
+- <strong>Marketing vs Profit: r = 0.807</strong> — 中度正相關
+- <strong>Admin vs Profit: r = 0.043</strong> — 近乎無關
+- <strong>R&amp;D vs Marketing: r = 0.782</strong> — 存在共線性疑慮（詳見 §7 診斷）</p>
+<h3>4.2 Visualizations</h3>
+<ul>
+<li><strong>Scatter Plots</strong>: R&amp;D 與 Profit 呈明顯線性趨勢；Marketing 次之；Admin 無趨勢</li>
+<li><strong>Profit Distribution</strong>: 右偏分布，mean=$112K, median=$108K</li>
+<li><strong>State Distribution</strong>: 三州大致均衡（各 ~1/3）</li>
+</ul>
+<blockquote>
+<p>EDA 圖表（assets 目錄）：<a href="./assets/eda_plots.png"><code>assets/eda_plots.png</code></a> · <a href="./assets/correlation_heatmap.png"><code>assets/correlation_heatmap.png</code></a> · <a href="./assets/pairplot.png"><code>assets/pairplot.png</code></a></p>
+</blockquote>
+<hr />
+<h2>5. Data Preparation</h2>
+<h3>5.1 Pipeline Design</h3>
+<pre class="codehilite"><code class="language-python">preprocessor = ColumnTransformer([
+    ('num', StandardScaler(), ['R&amp;D Spend', 'Administration', 'Marketing Spend']),
+    ('cat', OneHotEncoder(drop='first'), ['State'])
+])
+</code></pre>
+
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>StandardScaler</strong></td>
+<td>數值特徵標準化 (mean=0, std=1)，使係數可直接比較</td>
+</tr>
+<tr>
+<td><strong>OneHotEncoder</strong></td>
+<td>State 編碼 (drop first → California 為基準)</td>
+</tr>
+<tr>
+<td><strong>Output</strong></td>
+<td>5 個特徵 (3 numeric + 2 dummy)</td>
+</tr>
+</tbody>
+</table>
+<h3>5.2 Train-Test Split</h3>
+<table>
+<thead>
+<tr>
+<th>Split</th>
+<th style="text-align: center;">Samples</th>
+<th style="text-align: center;">Ratio</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Training</td>
+<td style="text-align: center;">40</td>
+<td style="text-align: center;">80%</td>
+</tr>
+<tr>
+<td>Testing</td>
+<td style="text-align: center;">10</td>
+<td style="text-align: center;">20%</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>[!IMPORTANT]
+使用 <code>train_test_split(random_state=42)</code> 確保可重現。Preprocessor 僅在 <strong>Training set</strong> 上 fit，避免 data leakage。</p>
+</blockquote>
+<hr />
+<h2>6. Modeling</h2>
+<h3>6.1 Model Selection Strategy</h3>
+<p>為解決小樣本 (n=50) 的過擬合與共線性問題，比較三種模型：</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Hyperparameter</th>
+<th>Search Range</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Linear Regression</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Ridge (L2)</td>
+<td>alpha</td>
+<td>[0.01, 0.1, 1.0, 5.0, 10.0, 50.0, 100.0]</td>
+</tr>
+<tr>
+<td>Lasso (L1)</td>
+<td>alpha</td>
+<td>[0.01, 0.1, 1.0, 5.0, 10.0, 50.0, 100.0]</td>
+</tr>
+</tbody>
+</table>
+<h3>6.2 Model Comparison (5-Fold CV)</h3>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th style="text-align: center;">CV R²</th>
+<th style="text-align: center;">CV MAE</th>
+<th style="text-align: center;">CV RMSE</th>
+<th style="text-align: center;">Test R²</th>
+<th style="text-align: center;">Best Alpha</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Linear Regression</td>
+<td style="text-align: center;">0.9304 ± 0.0446</td>
+<td style="text-align: center;">$8,039</td>
+<td style="text-align: center;">$10,624</td>
+<td style="text-align: center;">0.8746</td>
+<td style="text-align: center;">N/A</td>
+</tr>
+<tr>
+<td><strong>Ridge</strong></td>
+<td style="text-align: center;"><strong>0.9326 ± 0.0420</strong></td>
+<td style="text-align: center;"><strong>$7,976</strong></td>
+<td style="text-align: center;"><strong>$10,436</strong></td>
+<td style="text-align: center;">0.8592</td>
+<td style="text-align: center;"><strong>1.0</strong></td>
+</tr>
+<tr>
+<td>Lasso</td>
+<td style="text-align: center;">0.9314 ± 0.0434</td>
+<td style="text-align: center;">$8,003</td>
+<td style="text-align: center;">$10,551</td>
+<td style="text-align: center;">0.8821</td>
+<td style="text-align: center;">100.0</td>
+</tr>
+</tbody>
+</table>
+<h3>6.3 Winner: Ridge Regression (alpha=1.0)</h3>
+<ul>
+<li><strong>最低 CV MAE ($7,976)</strong> 與 <strong>最高 CV R² (0.9326)</strong></li>
+<li>L2 正則化有效抑制共線性造成的係數膨脹</li>
+<li>相比 Linear Regression 標準差更小 (0.0420 vs 0.0446)，穩定度更佳</li>
+</ul>
+<hr />
+<h2>7. Model Diagnostics</h2>
+<h3>7.1 為何需要標準化？</h3>
+<p>原始資料尺度差異巨大（R&amp;D 範圍 $0~$165K, Marketing $0~$472K），未標準化的係數無法直接比較：</p>
+<table>
+<thead>
+<tr>
+<th>特徵</th>
+<th style="text-align: center;">原始係數</th>
+<th style="text-align: center;">標準化後係數</th>
+<th style="text-align: center;">比較性</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R&amp;D Spend</td>
+<td style="text-align: center;">+0.76</td>
+<td style="text-align: center;"><strong>+33,497</strong></td>
+<td style="text-align: center;">✅ 可直接比較</td>
+</tr>
+<tr>
+<td>Marketing Spend</td>
+<td style="text-align: center;">+0.05</td>
+<td style="text-align: center;"><strong>+7,602</strong></td>
+<td style="text-align: center;">✅</td>
+</tr>
+<tr>
+<td>Administration</td>
+<td style="text-align: center;">-0.06</td>
+<td style="text-align: center;"><strong>-1,268</strong></td>
+<td style="text-align: center;">✅</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>標準化後，所有係數的單位為「Profit 變動量 per 1 std of feature」，可直接比大小。</p>
+</blockquote>
+<h3>7.2 共線性診斷 — VIF</h3>
+<p>對標準化後的訓練資料計算 VIF (Variance Inflation Factor)：</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th style="text-align: center;">VIF</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R&amp;D Spend</td>
+<td style="text-align: center;">3.47</td>
+</tr>
+<tr>
+<td>Marketing Spend</td>
+<td style="text-align: center;">3.57</td>
+</tr>
+<tr>
+<td>Administration</td>
+<td style="text-align: center;">1.20</td>
+</tr>
+<tr>
+<td>State_Florida</td>
+<td style="text-align: center;">1.00</td>
+</tr>
+<tr>
+<td>State_New York</td>
+<td style="text-align: center;">1.01</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>[!NOTE]
+- VIF &lt; 5：無嚴重共線性
+- R&amp;D (3.47) 與 Marketing (3.57) 存在<strong>中度相關</strong>（源自原始 r=0.78）
+- Ridge 的 L2 正則化可自動處理此問題，無需刪除變數</p>
+</blockquote>
+<h3>7.3 正則化軌跡</h3>
+<pre class="codehilite"><code>Ridge:  alpha=0.01 → CV R²=0.9308
+        alpha=0.1  → CV R²=0.9320
+        alpha=1.0  → CV R²=0.9326  ← best
+        alpha=10.0 → CV R²=0.9298
+        alpha=100  → CV R²=0.8921  (過度正則化)
+
+Lasso:  alpha=0.01 → CV R²=0.9304
+        alpha=100  → CV R²=0.9314  ← best (稀疏解逼近 Ridge)
+</code></pre>
+
+<hr />
+<h2>8. Model Evaluation</h2>
+<h3>8.1 Final Model Performance</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th style="text-align: center;">5-Fold CV</th>
+<th style="text-align: center;">Test Set</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>R²</strong></td>
+<td style="text-align: center;"><strong>0.9326</strong> ± 0.0420</td>
+<td style="text-align: center;">0.8592</td>
+</tr>
+<tr>
+<td><strong>MAE</strong></td>
+<td style="text-align: center;"><strong>$7,976</strong></td>
+<td style="text-align: center;">$8,539</td>
+</tr>
+<tr>
+<td><strong>RMSE</strong></td>
+<td style="text-align: center;"><strong>$10,436</strong></td>
+<td style="text-align: center;">$10,679</td>
+</tr>
+</tbody>
+</table>
+<h3>8.2 Sample Predictions (Test Set)</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Actual</th>
+<th style="text-align: right;">Predicted</th>
+<th style="text-align: right;">Error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">$134,307</td>
+<td style="text-align: right;">$128,904</td>
+<td style="text-align: right;">$5,403</td>
+</tr>
+<tr>
+<td style="text-align: right;">$81,006</td>
+<td style="text-align: right;">$88,407</td>
+<td style="text-align: right;">-$7,401</td>
+</tr>
+<tr>
+<td style="text-align: right;">$99,938</td>
+<td style="text-align: right;">$95,136</td>
+<td style="text-align: right;">$4,801</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>9. Feature Importance</h2>
+<p>使用<strong>標準化後的 Ridge 係數</strong>（可直接比較）：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Rank</th>
+<th>Feature</th>
+<th style="text-align: center;">Coefficient</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td><strong>R&amp;D Spend</strong></td>
+<td style="text-align: center;"><strong>+33,497</strong></td>
+<td>每增加 1 std R&amp;D，Profit 增加 $33.5K</td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td>Marketing Spend</td>
+<td style="text-align: center;">+7,602</td>
+<td>次要正向因子</td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td>State_New York</td>
+<td style="text-align: center;">-3,647</td>
+<td>相較 California 略低</td>
+</tr>
+<tr>
+<td style="text-align: center;">4</td>
+<td>State_Florida</td>
+<td style="text-align: center;">-3,119</td>
+<td>相較 California 略低</td>
+</tr>
+<tr>
+<td style="text-align: center;">5</td>
+<td>Administration</td>
+<td style="text-align: center;">-1,268</td>
+<td>影響最小，負向</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>[!IMPORTANT]
+R&amp;D 的標準化係數 (33,497) 約為 Marketing (7,602) 的 <strong>4.4 倍</strong>，證實 R&amp;D 是獲利的最主要驅動力。</p>
+<p>Feature importance 圖表：<a href="./assets/feature_importance.png"><code>assets/feature_importance.png</code></a></p>
+</blockquote>
+<hr />
+<h2>10. Residual Analysis</h2>
+<table>
+<thead>
+<tr>
+<th>Statistic</th>
+<th style="text-align: center;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mean</td>
+<td style="text-align: center;">$3,246</td>
+</tr>
+<tr>
+<td>Std</td>
+<td style="text-align: center;">$10,174</td>
+</tr>
+<tr>
+<td>Min</td>
+<td style="text-align: center;">-$15,531</td>
+</tr>
+<tr>
+<td>Max</td>
+<td style="text-align: center;">$19,728</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Residual Plot</strong>: 殘差隨機分布於零線兩側，無明顯異質變異</li>
+<li><strong>Q-Q Plot</strong>: 殘差近似常態分布（輕微右尾偏差）</li>
+</ul>
+<blockquote>
+<p>Residual analysis 圖表：<a href="./assets/residual_analysis.png"><code>assets/residual_analysis.png</code></a></p>
+</blockquote>
+<hr />
+<h2>11. Deployment — Streamlit App</h2>
+<h3>11.1 Architecture</h3>
+<pre class="codehilite"><code>User Input → Streamlit Frontend → Preprocessor (StandardScaler + OneHotEncoder)
+                                       ↓
+                              Ridge Regression Model
+                                       ↓
+                              Profit Prediction → Plotly Dashboard
+</code></pre>
+
+<h3>11.2 Technology Stack</h3>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Technology</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Frontend</td>
+<td>Streamlit</td>
+</tr>
+<tr>
+<td>ML Engine</td>
+<td>Scikit-Learn (Ridge, Pipeline)</td>
+</tr>
+<tr>
+<td>Visualization</td>
+<td>Plotly, Matplotlib, Seaborn</td>
+</tr>
+<tr>
+<td>Evaluation</td>
+<td>5-Fold Cross-Validation, GridSearchCV, VIF</td>
+</tr>
+</tbody>
+</table>
+<h3>11.3 App Pages</h3>
+<ol>
+<li><strong>EDA Dashboard</strong> — 資料概覽、相關性、分布圖</li>
+<li><strong>Model Evaluation</strong> — CV 結果、模型比較、標準化係數、殘差分析</li>
+<li><strong>Profit Predictor</strong> — 即時預測 + 商業建議</li>
+</ol>
+<h3>11.4 Demo</h3>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R&amp;D Spend</td>
+<td>$150,000</td>
+</tr>
+<tr>
+<td>Administration</td>
+<td>$120,000</td>
+</tr>
+<tr>
+<td>Marketing</td>
+<td>$300,000</td>
+</tr>
+<tr>
+<td>State</td>
+<td>California</td>
+</tr>
+</tbody>
+</table>
+<pre class="codehilite"><code>Predicted Profit: ~$180,500
+</code></pre>
+
+<hr />
+<h2>12. Key Findings &amp; Business Insights</h2>
+<h3>Key Findings</h3>
+<ol>
+<li><strong>R&amp;D Spend</strong> 為最強預測因子（標準化係數 33,497，是 Marketing 的 4.4 倍）</li>
+<li><strong>Marketing Spend</strong> 為次要因子（7,602）</li>
+<li><strong>Administration</strong> 影響最小（-1,268），甚至呈輕微負向</li>
+<li><strong>State</strong> 影響有限（Florida -3,119, New York -3,647 vs California 基準）</li>
+</ol>
+<h3>Business Insights</h3>
+<p>企業若希望提升獲利：</p>
+<ol>
+<li><strong>優先增加 R&amp;D 投資</strong> — 每 $1 投入約可帶來 $0.76 獲利</li>
+<li><strong>其次 Marketing</strong> — 仍有顯著正向效果</li>
+<li><strong>避免過度增加 Administration</strong> — 邊際效益極低且可能為負</li>
+<li><strong>地理位置非關鍵因素</strong> — 不應作為主要投資決策依據</li>
+</ol>
+<h3>Model Formula (Standardized Scale)</h3>
+<pre class="codehilite"><code>Profit = 117,824
+        + 33,497 × Z(R&amp;D Spend)
+        + 7,602  × Z(Marketing Spend)
+        - 3,647  × State_New York
+        - 3,119  × State_Florida
+        - 1,268  × Z(Administration)
+</code></pre>
+
+<hr />
+<h2>13. Project Structure</h2>
+<pre class="codehilite"><code>50_Startups_Profit_Prediction/
+├── 50SPP.md                   # 本文件 — 專案摘要
+├── README.md                  # 快速入門說明
+├── data/50_Startups.csv       # 原始資料集
+├── notebooks/EDA.ipynb        # Jupyter Notebook
+├── src/eda.py                 # EDA + 模型訓練腳本
+├── app.py                     # Streamlit Web 應用程式
+├── index.html                 # HTML 簡報
+├── assets/*.png               # 視覺化圖表
+└── requirements.txt           # 相依套件
+</code></pre>
+
+<hr />
+<h2>14. Getting Started</h2>
+<pre class="codehilite"><code class="language-bash">pip install -r requirements.txt
+python src/eda.py              # 執行完整分析
+streamlit run app.py           # 啟動 Web 應用
+</code></pre>
+
+<hr />
+<h2>Appendix</h2>
+<h3>Data &amp; Code References</h3>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Link</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dataset (CSV)</td>
+<td><a href="./data/50_Startups.csv"><code>data/50_Startups.csv</code></a></td>
+</tr>
+<tr>
+<td>EDA &amp; Training Script</td>
+<td><a href="./src/eda.py"><code>src/eda.py</code></a></td>
+</tr>
+<tr>
+<td>Streamlit Application</td>
+<td><a href="./app.py"><code>app.py</code></a></td>
+</tr>
+<tr>
+<td>Python Dependencies</td>
+<td><a href="./requirements.txt"><code>requirements.txt</code></a></td>
+</tr>
+<tr>
+<td>Jupyter Notebook</td>
+<td><a href="./notebooks/EDA.ipynb"><code>notebooks/EDA.ipynb</code></a></td>
+</tr>
+<tr>
+<td>EDA Plots</td>
+<td><a href="./assets/"><code>assets/</code></a></td>
+</tr>
+</tbody>
+</table>
+<h3>Tech Stack</h3>
+<pre class="codehilite"><code>Python 3.14 · Scikit-Learn 1.3+ · Streamlit 1.28+ · Plotly 5.15+ · statsmodels 0.14+
+</code></pre>
+
+<hr />
+<blockquote>
+<p><strong>Built with CRISP-DM Methodology · 5-Fold Cross-Validation · Ridge Regularization · 2026</strong></p>
+</blockquote>
+</body>
+</html>
