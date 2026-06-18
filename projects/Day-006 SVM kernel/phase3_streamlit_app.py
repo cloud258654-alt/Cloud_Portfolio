@@ -202,7 +202,7 @@ fig2d.update_layout(
     margin=dict(l=20, r=20, t=30, b=20),
     legend=dict(x=0.01, y=0.99, bgcolor="rgba(255,255,255,0.7)"),
 )
-st.plotly_chart(fig2d, use_container_width=True)
+st.plotly_chart(fig2d, width="stretch")
 
 # ── section 3: 3‑D surface ──────────────────────────────────────
 st.subheader("3‑D Decision Landscape  $f(x, y)$")
@@ -292,7 +292,7 @@ fig3d.update_layout(
     margin=dict(l=0, r=0, t=30, b=0),
     legend=dict(x=0.01, y=0.99, bgcolor="rgba(255,255,255,0.7)"),
 )
-st.plotly_chart(fig3d, use_container_width=True)
+st.plotly_chart(fig3d, width="stretch")
 
 # ── section 4: metrics ──────────────────────────────────────────
 st.subheader("Performance Metrics")
