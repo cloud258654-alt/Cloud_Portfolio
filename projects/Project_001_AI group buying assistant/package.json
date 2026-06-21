@@ -1,0 +1,14 @@
+{
+  "name": "project_001_ai_group_buying_assistant",
+  "version": "1.0.0",
+  "description": "AI group buying assistant - Phase 01 Order Core",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node verify_test.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "sqlite3": "^5.1.7"
+  }
+}

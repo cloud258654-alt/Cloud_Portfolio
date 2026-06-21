@@ -1,0 +1,329 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "AI Group Buying Assistant API",
+    "version": "1.0.0",
+    "description": "API documentation for the AI Group Buying Assistant (Phase 01 ~ Phase 05)"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local server"
+    }
+  ],
+  "paths": {
+    "/products": {
+      "get": {
+        "summary": "Get all products",
+        "responses": {
+          "200": {
+            "description": "List of products"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new product",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "price", "stock"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "price": { "type": "integer", "minimum": 0 },
+                  "stock": { "type": "integer", "minimum": 0 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Product created" },
+          "400": { "description": "Invalid input" }
+        }
+      }
+    },
+    "/products/{id}": {
+      "get": {
+        "summary": "Get a product by ID",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Product details" },
+          "404": { "description": "Product not found" }
+        }
+      },
+      "patch": {
+        "summary": "Update a product by ID",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "price": { "type": "integer" },
+                  "stock": { "type": "integer" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Product updated" },
+          "404": { "description": "Product not found" }
+        }
+      }
+    },
+    "/orders": {
+      "get": {
+        "summary": "Get all orders",
+        "responses": {
+          "200": { "description": "List of orders" }
+        }
+      },
+      "post": {
+        "summary": "Create a new order",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["customer_name", "product_id", "qty"],
+                "properties": {
+                  "customer_name": { "type": "string" },
+                  "product_id": { "type": "integer" },
+                  "qty": { "type": "integer", "minimum": 1 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Order created" },
+          "400": { "description": "Insufficient stock" },
+          "404": { "description": "Product not found" }
+        }
+      }
+    },
+    "/orders/{id}": {
+      "patch": {
+        "summary": "Update order status",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["status"],
+                "properties": {
+                  "status": { "type": "string", "enum": ["PENDING", "PAID", "SHIPPED", "CANCELLED"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Order updated" },
+          "400": { "description": "Invalid status or stock issue" },
+          "404": { "description": "Order not found" }
+        }
+      },
+      "delete": {
+        "summary": "Delete an order",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Order deleted" },
+          "404": { "description": "Order not found" }
+        }
+      }
+    },
+    "/comments": {
+      "post": {
+        "summary": "Parse AI comment and create order",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["product_id", "comment"],
+                "properties": {
+                  "product_id": { "type": "integer" },
+                  "comment": { "type": "string", "example": "王小明：+2" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Order created" },
+          "400": { "description": "Failed to parse comment or insufficient stock" }
+        }
+      }
+    },
+    "/messages": {
+      "get": {
+        "summary": "Get all messages",
+        "responses": {
+          "200": { "description": "List of messages" }
+        }
+      }
+    },
+    "/messages/send": {
+      "post": {
+        "summary": "Mark message as sent",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["message_id"],
+                "properties": {
+                  "message_id": { "type": "integer" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Message marked as sent" },
+          "404": { "description": "Message not found" }
+        }
+      }
+    },
+    "/messages/reminder": {
+      "post": {
+        "summary": "Trigger dunning reminder scheduler",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "current_time": { "type": "string", "format": "date-time", "description": "Optional mock time" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Scheduler finished" }
+        }
+      }
+    },
+    "/payment-report": {
+      "post": {
+        "summary": "Submit customer payment report",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["order_id", "amount", "account_tail"],
+                "properties": {
+                  "order_id": { "type": "integer" },
+                  "amount": { "type": "integer" },
+                  "account_tail": { "type": "string", "example": "12345" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Payment report submitted" },
+          "404": { "description": "Order not found" }
+        }
+      }
+    },
+    "/bank/import": {
+      "post": {
+        "summary": "Import bank transactions (JSON or CSV)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "text/csv": {
+              "schema": { "type": "string", "example": "amount,account_tail,transaction_date\n780,12345,2026-06-21" }
+            },
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["amount", "account_tail", "transaction_date"],
+                  "properties": {
+                    "amount": { "type": "integer" },
+                    "account_tail": { "type": "string" },
+                    "transaction_date": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Transactions imported" }
+        }
+      }
+    },
+    "/reconciliation/run": {
+      "post": {
+        "summary": "Run automatic reconciliation matching",
+        "responses": {
+          "200": { "description": "Reconciliation finished" }
+        }
+      }
+    },
+    "/shipping/create": {
+      "post": {
+        "summary": "Create shipping order for a PAID order",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["order_id", "carrier"],
+                "properties": {
+                  "order_id": { "type": "integer" },
+                  "carrier": { "type": "string", "enum": ["7-11", "FAMILYMART", "HOME_DELIVERY"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Shipping order created" },
+          "400": { "description": "Order not paid" },
+          "404": { "description": "Order not found" }
+        }
+      }
+    },
+    "/shipping/{tracking_no}": {
+      "get": {
+        "summary": "Query shipment details",
+        "parameters": [
+          { "name": "tracking_no", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Shipment details" },
+          "404": { "description": "Shipment not found" }
+        }
+      }
+    }
+  }
+}
