@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>採購與 POS 交易系統 (Ver 1.0)</title>
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="fa-solid fa-cash-register brand-icon"></i>
+                <h2>SmartPOS</h2>
+                <span class="version-badge">v1.0</span>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" data-tab="pos-tab" id="nav-pos">
+                    <i class="fa-solid fa-cart-shopping"></i> 收銀收單
+                </button>
+                <button class="nav-btn" data-tab="inventory-tab" id="nav-inventory">
+                    <i class="fa-solid fa-boxes-stacked"></i> 庫存管理
+                </button>
+                <button class="nav-btn" data-tab="history-tab" id="nav-history">
+                    <i class="fa-solid fa-history"></i> 交易歷史
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="cashier-info">
+                    <i class="fa-solid fa-user-circle cashier-avatar"></i>
+                    <div>
+                        <p class="cashier-name">收銀員 Admin</p>
+                        <p class="cashier-role">系統管理員</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header bar -->
+            <header class="app-header">
+                <div class="header-title">
+                    <h1 id="tab-title">收銀收單系統</h1>
+                    <p class="subtitle" id="tab-subtitle">建立交易、管理商品明細與結帳流程</p>
+                </div>
+                <div class="header-widgets">
+                    <div class="widget clock-widget">
+                        <i class="fa-solid fa-clock"></i>
+                        <span id="live-clock">2026-06-22 10:30:00</span>
+                    </div>
+                    <div class="widget transaction-widget">
+                        <span class="widget-label">目前交易單號:</span>
+                        <span class="widget-value" id="current-tran-no">T202606220001</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Tab Panels -->
+            <div class="tab-panels-container">
+                <!-- 1. POS 收銀 Tab -->
+                <section class="tab-panel active" id="pos-tab">
+                    <div class="pos-grid">
+                        <!-- POS Left: Scanner and Catalog -->
+                        <div class="pos-left">
+                            <!-- Scanner Simulator Card -->
+                            <div class="dashboard-card scanner-card">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-barcode"></i> 條碼掃描模擬</h3>
+                                    <span class="card-action-hint">Enter 鍵送出條碼</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="scanner-input-group">
+                                        <input type="text" id="barcode-input" placeholder="請輸入或掃描商品條碼 (例如: 471000000001)" autofocus autocomplete="off">
+                                        <button class="btn btn-primary" id="scan-submit-btn">
+                                            <i class="fa-solid fa-magnifying-glass"></i> 掃描
+                                        </button>
+                                    </div>
+                                    <div class="scanner-quick-select">
+                                        <label for="quick-select-dropdown">快速選擇商品模擬掃描:</label>
+                                        <select id="quick-select-dropdown">
+                                            <option value="">-- 選擇商品模擬掃描 --</option>
+                                            <!-- Dynamically filled -->
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Product Catalog Quick Add Grid -->
+                            <div class="dashboard-card catalog-card">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-grid-horizontal"></i> 快速商品選單</h3>
+                                    <span class="badge" id="catalog-count">0 項商品</span>
+                                </div>
+                                <div class="card-body scrollable-y">
+                                    <div class="catalog-grid" id="catalog-items-grid">
+                                        <!-- Dynamically filled by JS -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- POS Right: Cart and Checkout Details -->
+                        <div class="pos-right">
+                            <!-- Purchase List (Cart) Card -->
+                            <div class="dashboard-card cart-card">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-list-check"></i> 購買清單 (Purchase List)</h3>
+                                    <button class="btn btn-outline-danger btn-sm" id="clear-cart-btn">
+                                        <i class="fa-solid fa-trash-can"></i> 清空
+                                    </button>
+                                </div>
+                                <div class="card-body scrollable-y cart-table-container">
+                                    <table class="cart-table" id="cart-table">
+                                        <thead>
+                                            <tr>
+                                                <th>商品名稱</th>
+                                                <th class="text-right">單價</th>
+                                                <th class="text-center">數量</th>
+                                                <th class="text-right">小計</th>
+                                                <th class="text-center">操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="cart-table-body">
+                                            <!-- Empty state or Cart items -->
+                                            <tr class="empty-cart-row">
+                                                <td colspan="5" class="text-center empty-state-cell">
+                                                    <i class="fa-solid fa-cart-flatbed-suitcase empty-icon"></i>
+                                                    <p>購買清單目前是空的</p>
+                                                    <span class="sub-text">請掃描條碼或點擊左側快速商品選單加入</span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Checkout Summary Card -->
+                            <div class="dashboard-card summary-card">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-file-invoice-dollar"></i> 交易結帳明細 (Header)</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="summary-calculations">
+                                        <div class="calc-row">
+                                            <span class="calc-label">商品總小計 (Subtotal)</span>
+                                            <span class="calc-value" id="summary-subtotal">$0.00</span>
+                                        </div>
+                                        <div class="calc-row">
+                                            <span class="calc-label">折扣金額 (Discount)</span>
+                                            <div class="input-inline-group">
+                                                <span class="currency-prefix">$</span>
+                                                <input type="number" id="discount-input" value="0" min="0" step="5">
+                                            </div>
+                                        </div>
+                                        <div class="calc-row">
+                                            <span class="calc-label">營業稅率 (Tax Rate)</span>
+                                            <div class="input-inline-group">
+                                                <input type="number" id="tax-rate-input" value="5" min="0" max="100" step="1">
+                                                <span class="percent-suffix">%</span>
+                                            </div>
+                                        </div>
+                                        <div class="calc-row">
+                                            <span class="calc-label">計算稅額 (Tax)</span>
+                                            <span class="calc-value" id="summary-tax">$0.00</span>
+                                        </div>
+                                        <hr class="summary-divider">
+                                        <div class="calc-row grand-total-row">
+                                            <span class="calc-label">應收總金額 (Total)</span>
+                                            <span class="calc-value highlight" id="summary-total">$0.00</span>
+                                        </div>
+                                        
+                                        <div class="cash-register-inputs">
+                                            <div class="calc-row">
+                                                <span class="calc-label">實收現金 (Cash Paid)</span>
+                                                <div class="input-inline-group text-lg">
+                                                    <span class="currency-prefix">$</span>
+                                                    <input type="number" id="cash-paid-input" placeholder="請輸入收銀金額" min="0" step="10">
+                                                </div>
+                                            </div>
+                                            <div class="calc-row change-row">
+                                                <span class="calc-label">找零金額 (Change)</span>
+                                                <span class="calc-value text-success" id="summary-change">$0.00</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-success btn-lg btn-block" id="checkout-btn" disabled>
+                                        <i class="fa-solid fa-credit-card"></i> 確認付款結帳 (Checkout)
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. 庫存管理 Tab -->
+                <section class="tab-panel" id="inventory-tab">
+                    <div class="inventory-grid">
+                        <!-- Inventory list -->
+                        <div class="inventory-list-card dashboard-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-boxes-stacked"></i> 當前商品庫存列表</h3>
+                                <button class="btn btn-outline-primary btn-sm" id="reset-inventory-btn">
+                                    <i class="fa-solid fa-rotate-left"></i> 重設為預設庫存
+                                </button>
+                            </div>
+                            <div class="card-body scrollable-y">
+                                <table class="inventory-table">
+                                    <thead>
+                                        <tr>
+                                            <th>商品 ID</th>
+                                            <th>條碼</th>
+                                            <th>商品名稱</th>
+                                            <th class="text-right">單價</th>
+                                            <th class="text-center">目前庫存</th>
+                                            <th class="text-center">庫存狀態</th>
+                                            <th class="text-center">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="inventory-table-body">
+                                        <!-- Dynamically filled -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Add/Edit Product card -->
+                        <div class="inventory-form-card dashboard-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-plus-circle"></i> 新增 / 修改商品</h3>
+                            </div>
+                            <div class="card-body">
+                                <form id="product-form" class="standard-form">
+                                    <div class="form-group">
+                                        <label for="form-prod-id">商品唯一識別碼 (Prod ID)</label>
+                                        <input type="text" id="form-prod-id" placeholder="例如: P007" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="form-barcode">商品條碼 (Barcode)</label>
+                                        <input type="text" id="form-barcode" placeholder="例如: 471000000007" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="form-name">商品名稱 (Name)</label>
+                                        <input type="text" id="form-name" placeholder="例如: 香蕉牛奶" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="form-price">商品單價 (Price)</label>
+                                        <input type="number" id="form-price" min="0" step="0.5" placeholder="例如: 35" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="form-stock">初始庫存量 (Stock)</label>
+                                        <input type="number" id="form-stock" min="0" placeholder="例如: 50" required>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="submit" class="btn btn-primary btn-block">
+                                            <i class="fa-solid fa-save"></i> 儲存商品資料
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-block" id="form-clear-btn">
+                                            清除輸入
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. 交易歷史 Tab -->
+                <section class="tab-panel" id="history-tab">
+                    <div class="dashboard-card history-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-clock-rotate-left"></i> 系統交易歷史紀錄</h3>
+                            <button class="btn btn-outline-danger btn-sm" id="clear-history-btn">
+                                <i class="fa-solid fa-trash-can"></i> 清空交易歷史
+                            </button>
+                        </div>
+                        <div class="card-body scrollable-y">
+                            <table class="history-table" id="history-table">
+                                <thead>
+                                    <tr>
+                                        <th>交易編號</th>
+                                        <th>交易時間</th>
+                                        <th class="text-right">小計</th>
+                                        <th class="text-right">折扣</th>
+                                        <th class="text-right">稅額</th>
+                                        <th class="text-right">應收總金額</th>
+                                        <th class="text-center">列印次數</th>
+                                        <th class="text-center">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-table-body">
+                                    <!-- Dynamically filled -->
+                                    <tr class="empty-history-row">
+                                        <td colspan="8" class="text-center empty-state-cell">
+                                            <i class="fa-solid fa-receipt empty-icon"></i>
+                                            <p>目前沒有完成的交易紀錄</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Receipt Modal / Print Preview -->
+    <div class="modal-overlay" id="receipt-modal">
+        <div class="modal-container receipt-modal-container">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-print"></i> 發票／明細列印預覽</h3>
+                <button class="modal-close-btn" id="close-receipt-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="receipt-print-control">
+                    <label for="receipt-print-count-input">列印份數 (Print Count):</label>
+                    <input type="number" id="receipt-print-count-input" value="1" min="1" max="5">
+                    <button class="btn btn-primary" id="trigger-print-btn">
+                        <i class="fa-solid fa-print"></i> 執行列印
+                    </button>
+                </div>
+                
+                <!-- The actual thermal receipt -->
+                <div class="receipt-paper" id="receipt-paper-content">
+                    <!-- Dynamic receipt layout -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
