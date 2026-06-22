@@ -1,6 +1,6 @@
 # 🧠 十大機器學習方法：互動式視覺化資訊圖表
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://asia17242-hw52.streamlit.app)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://nizfwkilcanstommejqhs3.streamlit.app/)
 [![GitHub](https://img.shields.io/badge/GitHub-Cloud__Portfolio-181717?logo=github)](https://github.com/asia17242/Cloud_Portfolio/tree/main/projects/Homework_05_%E4%BD%9C%E5%93%81%E9%9B%86ML_10%E9%A0%85%E6%BC%94%E7%AE%97%E6%B3%95%E7%9A%84%E5%B1%95%E7%A4%BA)
 
 > 這是一個基於 **HTML5 Canvas、Tailwind CSS 與 Streamlit** 建立的機器學習演算法動態視覺化教學教材。
@@ -10,7 +10,7 @@
 
 ## 🚀 線上展示 (Live Demo)
 
-👉 **[點此觀看 Streamlit 線上展示](https://asia17242-hw52.streamlit.app)**
+👉 **[點此觀看 Streamlit 線上展示](https://nizfwkilcanstommejqhs3.streamlit.app/)**
 
 ---
 
@@ -82,7 +82,7 @@ Cloud_Portfolio/
 ## 🔗 相關連結
 
 - 📦 [GitHub Repository](https://github.com/asia17242/Cloud_Portfolio/tree/main/projects/Homework_05_%E4%BD%9C%E5%93%81%E9%9B%86ML_10%E9%A0%85%E6%BC%94%E7%AE%97%E6%B3%95%E7%9A%84%E5%B1%95%E7%A4%BA)
-- 🚀 [Streamlit App](https://asia17242-hw52.streamlit.app)
+- 🚀 [Streamlit App](https://nizfwkilcanstommejqhs3.streamlit.app/)
 - 📋 [開發工作日誌 log.md](./log.md)
 
 ---
