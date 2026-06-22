@@ -3,341 +3,412 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>採購與 POS 交易系統 (Ver 1.0)</title>
-    <!-- Google Fonts: Outfit -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome for icons -->
+    <title>吉卜力雜貨店 POS 系統</title>
+    <!-- Google Font & FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container">
-        <!-- Sidebar Navigation -->
-        <aside class="sidebar">
-            <div class="sidebar-brand">
-                <i class="fa-solid fa-cash-register brand-icon"></i>
-                <h2>SmartPOS</h2>
-                <span class="version-badge">v1.0</span>
+
+    <!-- Jiji the Black Cat sticker sitting on bottom left counter -->
+    <div class="jiji-container">
+        <svg viewBox="0 0 100 120" width="80" height="96" xmlns="http://www.w3.org/2000/svg">
+            <!-- Jiji Body -->
+            <path d="M 50 40 Q 60 40 62 55 Q 65 75 62 90 C 60 105 40 105 38 90 Q 35 75 38 55 Q 40 40 50 40 Z" fill="#2C2725" />
+            <!-- Tail -->
+            <path d="M 38 90 Q 25 95 18 85 Q 12 75 16 68 Q 20 62 24 68 Q 20 76 25 80 Q 30 84 38 88" fill="#2C2725" />
+            <!-- Head -->
+            <ellipse cx="50" cy="30" rx="20" ry="18" fill="#2C2725" />
+            <!-- Ears -->
+            <polygon points="32,22 22,2 38,15" fill="#2C2725" />
+            <polygon points="32,22 22,2 38,15" fill="#E8A7A1" transform="scale(0.8) translate(12, 6)" />
+            <polygon points="68,22 78,2 62,15" fill="#2C2725" />
+            <polygon points="68,22 78,2 62,15" fill="#E8A7A1" transform="scale(0.8) translate(22, 6)" />
+            <!-- Big Eyes -->
+            <ellipse cx="43" cy="28" rx="5" ry="7" fill="#FFFFFF" />
+            <circle cx="43" cy="28" r="2.5" fill="#000000" />
+            <ellipse cx="57" cy="28" rx="5" ry="7" fill="#FFFFFF" />
+            <circle cx="57" cy="28" r="2.5" fill="#000000" />
+            <!-- Nose & Mouth -->
+            <polygon points="50,34 48,32 52,32" fill="#E8A7A1" />
+            <path d="M 48 36 Q 50 38 52 36" stroke="#2C2725" stroke-width="1" fill="none" />
+            <!-- Red Bow Ribbon -->
+            <ellipse cx="50" cy="42" rx="6" ry="4" fill="#C62828" />
+            <polygon points="50,42 35,36 38,48" fill="#D32F2F" />
+            <polygon points="50,42 65,36 62,48" fill="#D32F2F" />
+            <!-- Whiskers -->
+            <line x1="28" y1="30" x2="16" y2="28" stroke="#FFFFFF" stroke-width="1" />
+            <line x1="28" y1="34" x2="14" y2="36" stroke="#FFFFFF" stroke-width="1" />
+            <line x1="72" y1="30" x2="84" y2="28" stroke="#FFFFFF" stroke-width="1" />
+            <line x1="72" y1="34" x2="86" y2="36" stroke="#FFFFFF" stroke-width="1" />
+        </svg>
+    </div>
+
+    <!-- Main POS App Frame -->
+    <div class="ghibli-app">
+        <!-- Header -->
+        <header class="ghibli-header">
+            <div class="brand-section">
+                <!-- Totoro Header Logo SVG -->
+                <svg class="brand-totoro-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M 50 15 C 38 15 28 28 28 48 C 28 68 36 85 50 85 C 64 85 72 68 72 48 C 72 28 62 15 50 15 Z" fill="#8E8578" />
+                    <!-- Belly -->
+                    <path d="M 50 42 C 40 42 34 50 34 65 C 34 76 40 82 50 82 C 60 82 66 76 66 65 C 66 50 60 42 50 42 Z" fill="#F7F1E5" />
+                    <!-- Ears -->
+                    <path d="M 36 20 C 34 10 38 5 40 5 C 42 5 42 12 40 20 Z" fill="#8E8578" />
+                    <path d="M 64 20 C 66 10 62 5 60 5 C 58 5 58 12 60 20 Z" fill="#8E8578" />
+                    <!-- Whiskers & Eyes -->
+                    <circle cx="42" cy="28" r="3" fill="#FFFFFF" />
+                    <circle cx="42" cy="28" r="1" fill="#000000" />
+                    <circle cx="58" cy="28" r="3" fill="#FFFFFF" />
+                    <circle cx="58" cy="28" r="1" fill="#000000" />
+                    <polygon points="50,31 47,29 53,29" fill="#000000" />
+                    <!-- Chest Marks (V-shapes) -->
+                    <path d="M 46 48 L 50 52 L 54 48" stroke="#8E8578" stroke-width="2" fill="none" />
+                    <path d="M 38 56 L 42 60 L 46 56" stroke="#8E8578" stroke-width="2" fill="none" />
+                    <path d="M 54 56 L 58 60 L 62 56" stroke="#8E8578" stroke-width="2" fill="none" />
+                </svg>
+                <h1 class="ghibli-serif">吉卜力雜貨店 POS 系統</h1>
             </div>
-            <nav class="sidebar-nav">
-                <button class="nav-btn active" data-tab="pos-tab" id="nav-pos">
-                    <i class="fa-solid fa-cart-shopping"></i> 收銀收單
-                </button>
-                <button class="nav-btn" data-tab="inventory-tab" id="nav-inventory">
-                    <i class="fa-solid fa-boxes-stacked"></i> 庫存管理
-                </button>
-                <button class="nav-btn" data-tab="history-tab" id="nav-history">
-                    <i class="fa-solid fa-history"></i> 交易歷史
-                </button>
-            </nav>
-            <div class="sidebar-footer">
-                <div class="cashier-info">
-                    <i class="fa-solid fa-user-circle cashier-avatar"></i>
-                    <div>
-                        <p class="cashier-name">收銀員 Admin</p>
-                        <p class="cashier-role">系統管理員</p>
-                    </div>
+
+            <!-- Cashier Badge -->
+            <div class="cashier-badge">
+                <div class="cashier-avatar" title="小梅">👧</div>
+                <div class="cashier-details">
+                    <span class="cashier-name">收銀員：小梅</span>
+                    <span class="cashier-id">OP042</span>
                 </div>
             </div>
-        </aside>
 
-        <!-- Main Content Area -->
-        <main class="main-content">
-            <!-- Header bar -->
-            <header class="app-header">
-                <div class="header-title">
-                    <h1 id="tab-title">收銀收單系統</h1>
-                    <p class="subtitle" id="tab-subtitle">建立交易、管理商品明細與結帳流程</p>
+            <!-- Clock widget & controls -->
+            <div class="header-status-group">
+                <div class="status-widget">
+                    <i class="fa-solid fa-calendar-day"></i>
+                    <span class="header-time" id="live-clock">2026-06-22 10:45:00</span>
                 </div>
-                <div class="header-widgets">
-                    <div class="widget clock-widget">
-                        <i class="fa-solid fa-clock"></i>
-                        <span id="live-clock">2026-06-22 10:30:00</span>
+                <div class="status-widget">
+                    <i class="fa-solid fa-wifi" title="網路連線正常"></i>
+                </div>
+                <button class="header-action-btn" title="系統設定">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- POS Columns Grid -->
+        <div class="ghibli-pos-grid">
+            
+            <!-- Left Column: Search & Cart table -->
+            <div class="grid-left">
+                <!-- Search panel -->
+                <div class="ghibli-card">
+                    <div class="ghibli-card-header">
+                        <h2 class="ghibli-serif">掃描商品條碼</h2>
+                        <span class="card-action-hint">輸入條碼、SKU 或商品名稱後按 Enter</span>
                     </div>
-                    <div class="widget transaction-widget">
-                        <span class="widget-label">目前交易單號:</span>
-                        <span class="widget-value" id="current-tran-no">T202606220001</span>
+                    <div class="ghibli-card-body" style="padding: 16px;">
+                        <div class="scanner-search-box">
+                            <input type="text" id="barcode-input" placeholder="請掃描商品條碼或輸入商品編號..." autofocus autocomplete="off">
+                            <div class="scanner-icons">
+                                <i class="fa-solid fa-barcode"></i>
+                                <!-- Cute Soot Sprite SVG inside search input -->
+                                <svg class="soot-sprite-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="50" cy="50" r="30" fill="#2C2725" />
+                                    <!-- Spikes -->
+                                    <path d="M 50 10 L 50 30 M 50 70 L 50 90 M 10 50 L 30 50 M 70 50 L 90 50 M 22 22 L 36 36 M 64 64 L 78 78 M 78 22 L 64 36 M 36 64 L 22 78" stroke="#2C2725" stroke-width="5" />
+                                    <!-- Eyes -->
+                                    <circle cx="42" cy="46" r="8" fill="#FFFFFF" />
+                                    <circle cx="42" cy="46" r="3.5" fill="#000000" />
+                                    <circle cx="58" cy="46" r="8" fill="#FFFFFF" />
+                                    <circle cx="58" cy="46" r="3.5" fill="#000000" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="scanner-quick-select" style="font-size: 13px; color: var(--ghibli-text-muted); display:flex; align-items:center; gap:8px;">
+                            <label for="quick-select-dropdown">快速選單:</label>
+                            <select id="quick-select-dropdown" style="flex-grow:1; background:#F7F1E5; border:1px solid #C8B99D; border-radius:4px; padding:3px 6px;">
+                                <option value="">-- 點選以模擬掃描商品 --</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-            </header>
 
-            <!-- Tab Panels -->
-            <div class="tab-panels-container">
-                <!-- 1. POS 收銀 Tab -->
-                <section class="tab-panel active" id="pos-tab">
-                    <div class="pos-grid">
-                        <!-- POS Left: Scanner and Catalog -->
-                        <div class="pos-left">
-                            <!-- Scanner Simulator Card -->
-                            <div class="dashboard-card scanner-card">
-                                <div class="card-header">
-                                    <h3><i class="fa-solid fa-barcode"></i> 條碼掃描模擬</h3>
-                                    <span class="card-action-hint">Enter 鍵送出條碼</span>
-                                </div>
-                                <div class="card-body">
-                                    <div class="scanner-input-group">
-                                        <input type="text" id="barcode-input" placeholder="請輸入或掃描商品條碼 (例如: 471000000001)" autofocus autocomplete="off">
-                                        <button class="btn btn-primary" id="scan-submit-btn">
-                                            <i class="fa-solid fa-magnifying-glass"></i> 掃描
-                                        </button>
-                                    </div>
-                                    <div class="scanner-quick-select">
-                                        <label for="quick-select-dropdown">快速選擇商品模擬掃描:</label>
-                                        <select id="quick-select-dropdown">
-                                            <option value="">-- 選擇商品模擬掃描 --</option>
-                                            <!-- Dynamically filled -->
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Product Catalog Quick Add Grid -->
-                            <div class="dashboard-card catalog-card">
-                                <div class="card-header">
-                                    <h3><i class="fa-solid fa-grid-horizontal"></i> 快速商品選單</h3>
-                                    <span class="badge" id="catalog-count">0 項商品</span>
-                                </div>
-                                <div class="card-body scrollable-y">
-                                    <div class="catalog-grid" id="catalog-items-grid">
-                                        <!-- Dynamically filled by JS -->
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- POS Right: Cart and Checkout Details -->
-                        <div class="pos-right">
-                            <!-- Purchase List (Cart) Card -->
-                            <div class="dashboard-card cart-card">
-                                <div class="card-header">
-                                    <h3><i class="fa-solid fa-list-check"></i> 購買清單 (Purchase List)</h3>
-                                    <button class="btn btn-outline-danger btn-sm" id="clear-cart-btn">
-                                        <i class="fa-solid fa-trash-can"></i> 清空
-                                    </button>
-                                </div>
-                                <div class="card-body scrollable-y cart-table-container">
-                                    <table class="cart-table" id="cart-table">
-                                        <thead>
-                                            <tr>
-                                                <th>商品名稱</th>
-                                                <th class="text-right">單價</th>
-                                                <th class="text-center">數量</th>
-                                                <th class="text-right">小計</th>
-                                                <th class="text-center">操作</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="cart-table-body">
-                                            <!-- Empty state or Cart items -->
-                                            <tr class="empty-cart-row">
-                                                <td colspan="5" class="text-center empty-state-cell">
-                                                    <i class="fa-solid fa-cart-flatbed-suitcase empty-icon"></i>
-                                                    <p>購買清單目前是空的</p>
-                                                    <span class="sub-text">請掃描條碼或點擊左側快速商品選單加入</span>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <!-- Checkout Summary Card -->
-                            <div class="dashboard-card summary-card">
-                                <div class="card-header">
-                                    <h3><i class="fa-solid fa-file-invoice-dollar"></i> 交易結帳明細 (Header)</h3>
-                                </div>
-                                <div class="card-body">
-                                    <div class="summary-calculations">
-                                        <div class="calc-row">
-                                            <span class="calc-label">商品總小計 (Subtotal)</span>
-                                            <span class="calc-value" id="summary-subtotal">$0.00</span>
-                                        </div>
-                                        <div class="calc-row">
-                                            <span class="calc-label">折扣金額 (Discount)</span>
-                                            <div class="input-inline-group">
-                                                <span class="currency-prefix">$</span>
-                                                <input type="number" id="discount-input" value="0" min="0" step="5">
-                                            </div>
-                                        </div>
-                                        <div class="calc-row">
-                                            <span class="calc-label">營業稅率 (Tax Rate)</span>
-                                            <div class="input-inline-group">
-                                                <input type="number" id="tax-rate-input" value="5" min="0" max="100" step="1">
-                                                <span class="percent-suffix">%</span>
-                                            </div>
-                                        </div>
-                                        <div class="calc-row">
-                                            <span class="calc-label">計算稅額 (Tax)</span>
-                                            <span class="calc-value" id="summary-tax">$0.00</span>
-                                        </div>
-                                        <hr class="summary-divider">
-                                        <div class="calc-row grand-total-row">
-                                            <span class="calc-label">應收總金額 (Total)</span>
-                                            <span class="calc-value highlight" id="summary-total">$0.00</span>
-                                        </div>
-                                        
-                                        <div class="cash-register-inputs">
-                                            <div class="calc-row">
-                                                <span class="calc-label">實收現金 (Cash Paid)</span>
-                                                <div class="input-inline-group text-lg">
-                                                    <span class="currency-prefix">$</span>
-                                                    <input type="number" id="cash-paid-input" placeholder="請輸入收銀金額" min="0" step="10">
-                                                </div>
-                                            </div>
-                                            <div class="calc-row change-row">
-                                                <span class="calc-label">找零金額 (Change)</span>
-                                                <span class="calc-value text-success" id="summary-change">$0.00</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <button class="btn btn-success btn-lg btn-block" id="checkout-btn" disabled>
-                                        <i class="fa-solid fa-credit-card"></i> 確認付款結帳 (Checkout)
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                <!-- Active cart card -->
+                <div class="ghibli-card" style="flex-grow: 1;">
+                    <div class="ghibli-card-header">
+                        <h2 class="ghibli-serif"><i class="fa-solid fa-basket-shopping"></i> 商品明細</h2>
+                        <span class="badge" id="cart-item-count">0 件商品</span>
                     </div>
-                </section>
-
-                <!-- 2. 庫存管理 Tab -->
-                <section class="tab-panel" id="inventory-tab">
-                    <div class="inventory-grid">
-                        <!-- Inventory list -->
-                        <div class="inventory-list-card dashboard-card">
-                            <div class="card-header">
-                                <h3><i class="fa-solid fa-boxes-stacked"></i> 當前商品庫存列表</h3>
-                                <button class="btn btn-outline-primary btn-sm" id="reset-inventory-btn">
-                                    <i class="fa-solid fa-rotate-left"></i> 重設為預設庫存
-                                </button>
-                            </div>
-                            <div class="card-body scrollable-y">
-                                <table class="inventory-table">
-                                    <thead>
-                                        <tr>
-                                            <th>商品 ID</th>
-                                            <th>條碼</th>
-                                            <th>商品名稱</th>
-                                            <th class="text-right">單價</th>
-                                            <th class="text-center">目前庫存</th>
-                                            <th class="text-center">庫存狀態</th>
-                                            <th class="text-center">操作</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="inventory-table-body">
-                                        <!-- Dynamically filled -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- Add/Edit Product card -->
-                        <div class="inventory-form-card dashboard-card">
-                            <div class="card-header">
-                                <h3><i class="fa-solid fa-plus-circle"></i> 新增 / 修改商品</h3>
-                            </div>
-                            <div class="card-body">
-                                <form id="product-form" class="standard-form">
-                                    <div class="form-group">
-                                        <label for="form-prod-id">商品唯一識別碼 (Prod ID)</label>
-                                        <input type="text" id="form-prod-id" placeholder="例如: P007" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="form-barcode">商品條碼 (Barcode)</label>
-                                        <input type="text" id="form-barcode" placeholder="例如: 471000000007" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="form-name">商品名稱 (Name)</label>
-                                        <input type="text" id="form-name" placeholder="例如: 香蕉牛奶" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="form-price">商品單價 (Price)</label>
-                                        <input type="number" id="form-price" min="0" step="0.5" placeholder="例如: 35" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="form-stock">初始庫存量 (Stock)</label>
-                                        <input type="number" id="form-stock" min="0" placeholder="例如: 50" required>
-                                    </div>
-                                    <div class="form-actions">
-                                        <button type="submit" class="btn btn-primary btn-block">
-                                            <i class="fa-solid fa-save"></i> 儲存商品資料
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-block" id="form-clear-btn">
-                                            清除輸入
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- 3. 交易歷史 Tab -->
-                <section class="tab-panel" id="history-tab">
-                    <div class="dashboard-card history-card">
-                        <div class="card-header">
-                            <h3><i class="fa-solid fa-clock-rotate-left"></i> 系統交易歷史紀錄</h3>
-                            <button class="btn btn-outline-danger btn-sm" id="clear-history-btn">
-                                <i class="fa-solid fa-trash-can"></i> 清空交易歷史
-                            </button>
-                        </div>
-                        <div class="card-body scrollable-y">
-                            <table class="history-table" id="history-table">
+                    <div class="ghibli-card-body" style="padding: 0;">
+                        <div class="ghibli-table-container scrollable-y">
+                            <table class="ghibli-table" id="cart-table">
                                 <thead>
                                     <tr>
-                                        <th>交易編號</th>
-                                        <th>交易時間</th>
-                                        <th class="text-right">小計</th>
-                                        <th class="text-right">折扣</th>
-                                        <th class="text-right">稅額</th>
-                                        <th class="text-right">應收總金額</th>
-                                        <th class="text-center">列印次數</th>
-                                        <th class="text-center">操作</th>
+                                        <th style="width: 45%;">商品</th>
+                                        <th class="text-right" style="width: 15%;">單價</th>
+                                        <th class="text-center" style="width: 20%;">數量</th>
+                                        <th class="text-right" style="width: 15%;">金額</th>
+                                        <th class="text-center" style="width: 5%;"></th>
                                     </tr>
                                 </thead>
-                                <tbody id="history-table-body">
-                                    <!-- Dynamically filled -->
-                                    <tr class="empty-history-row">
-                                        <td colspan="8" class="text-center empty-state-cell">
-                                            <i class="fa-solid fa-receipt empty-icon"></i>
-                                            <p>目前沒有完成的交易紀錄</p>
+                                <tbody id="cart-table-body">
+                                    <!-- Empty State Row -->
+                                    <tr class="empty-cart-row">
+                                        <td colspan="5" class="text-center" style="padding: 80px 20px; color: var(--ghibli-text-dimmed);">
+                                            <i class="fa-solid fa-store-slash" style="font-size: 40px; margin-bottom: 12px; opacity:0.4;"></i>
+                                            <p style="font-weight:700;">購物車空空如也 🍃</p>
+                                            <small>請掃描條碼或從上方選單快速加入商品</small>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                </section>
-            </div>
-        </main>
-    </div>
+                </div>
 
-    <!-- Toast Notification Container -->
-    <div class="toast-container" id="toast-container"></div>
-
-    <!-- Receipt Modal / Print Preview -->
-    <div class="modal-overlay" id="receipt-modal">
-        <div class="modal-container receipt-modal-container">
-            <div class="modal-header">
-                <h3><i class="fa-solid fa-print"></i> 發票／明細列印預覽</h3>
-                <button class="modal-close-btn" id="close-receipt-modal-btn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="receipt-print-control">
-                    <label for="receipt-print-count-input">列印份數 (Print Count):</label>
-                    <input type="number" id="receipt-print-count-input" value="1" min="1" max="5">
-                    <button class="btn btn-primary" id="trigger-print-btn">
-                        <i class="fa-solid fa-print"></i> 執行列印
+                <!-- Footer button grid -->
+                <div class="pos-footer-actions">
+                    <button class="ghibli-action-card action-clear-cart" id="clear-cart-btn">
+                        <!-- Soot Sprite SVG -->
+                        <svg class="action-icon-img" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="50" cy="50" r="30" fill="currentColor" />
+                            <path d="M 50 10 L 50 30 M 50 70 L 50 90 M 10 50 L 30 50 M 70 50 L 90 50" stroke="currentColor" stroke-width="5" />
+                            <circle cx="42" cy="46" r="6" fill="#FFFFFF" />
+                            <circle cx="42" cy="46" r="2" fill="#000000" />
+                            <circle cx="58" cy="46" r="6" fill="#FFFFFF" />
+                            <circle cx="58" cy="46" r="2" fill="#000000" />
+                        </svg>
+                        清空購物車
+                    </button>
+                    <button class="ghibli-action-card action-hold-tx" id="hold-tx-btn">
+                        <!-- Leaf SVG -->
+                        <svg class="action-icon-img" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                            <path d="M50,10 C65,25 75,45 75,65 C75,80 62,90 50,90 C38,90 25,80 25,65 C25,45 35,25 50,10 Z M50,10 L50,90" />
+                        </svg>
+                        暫存交易
+                    </button>
+                    <button class="ghibli-action-card action-load-tx" id="load-tx-btn">
+                        <!-- Autumn Leaf SVG -->
+                        <svg class="action-icon-img" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                            <path d="M50,15 C60,30 80,40 80,60 C80,75 68,85 50,85 C32,85 20,75 20,60 C20,40 40,30 50,15 Z M50,15 L50,85" />
+                        </svg>
+                        載入暫存
                     </button>
                 </div>
-                
-                <!-- The actual thermal receipt -->
-                <div class="receipt-paper" id="receipt-paper-content">
-                    <!-- Dynamic receipt layout -->
+            </div>
+
+            <!-- Right Column: Info & Checkout -->
+            <div class="grid-right">
+                <!-- Info details card -->
+                <div class="ghibli-card transaction-info-card" style="flex-grow: 1;">
+                    <!-- Totoro Watermark SVG overlay -->
+                    <svg class="totoro-watermark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M 50 15 C 38 15 28 28 28 48 C 28 68 36 85 50 85 C 64 85 72 68 72 48 C 72 28 62 15 50 15 Z" fill="#8E8578" />
+                        <path d="M 50 42 C 40 42 34 50 34 65 C 34 82 50 82 50 82 Z" fill="#FFFFFF" />
+                        <circle cx="42" cy="28" r="3" fill="#FFFFFF" /><circle cx="42" cy="28" r="1" fill="#000000" />
+                        <circle cx="58" cy="28" r="3" fill="#FFFFFF" /><circle cx="58" cy="28" r="1" fill="#000000" />
+                    </svg>
+
+                    <h2 class="ghibli-serif info-title"><i class="fa-solid fa-circle-info"></i> 交易資訊</h2>
+                    
+                    <div class="info-grid">
+                        <div class="info-row">
+                            <span class="info-label">交易編號</span>
+                            <span class="info-value font-mono" id="current-tran-no">T202606220001</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">交易狀態</span>
+                            <span class="badge badge-pending" id="transaction-status-badge">PENDING</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">付款方式</span>
+                            <select class="info-select" id="pay-method-select">
+                                <option value="CASH">現金 (CASH)</option>
+                                <option value="CARD">信用卡 (CARD)</option>
+                                <option value="LINE_PAY" selected>LINE Pay (LINE_PAY)</option>
+                            </select>
+                        </div>
+                        <hr style="border:0; border-top:1px dashed #C8B99D;">
+                        <div class="info-row">
+                            <span class="info-label">小計</span>
+                            <span class="summary-value" id="summary-subtotal">$0.00</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">折扣</span>
+                            <div class="summary-discount-group">
+                                <span style="font-weight:bold; color:var(--ghibli-orange);">-</span>
+                                <span style="font-size:12px; font-weight:700;">$</span>
+                                <input type="number" id="discount-input" value="0" min="0" step="5">
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">稅額 (5%)</span>
+                            <span class="summary-value" id="summary-tax">$0.00</span>
+                        </div>
+                        <hr style="border:0; border-top:2px solid #C8B99D; margin-top:8px; padding-bottom:8px;">
+                        <div class="info-row">
+                            <span class="grand-total-label">應付總額</span>
+                            <span class="grand-total-val" id="summary-total">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Green No-Face Checkout Button -->
+                <button class="noface-checkout-btn" id="checkout-btn" disabled>
+                    <!-- No Face SVG illustration -->
+                    <svg class="noface-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Black Body -->
+                        <path d="M 50 15 C 38 15 32 30 32 60 C 32 85 40 90 50 90 C 60 90 68 85 68 60 C 68 30 62 15 50 15 Z" fill="#2C2725" />
+                        <!-- White Mask -->
+                        <ellipse cx="50" cy="38" rx="16" ry="18" fill="#FAF6ED" />
+                        <!-- Eye slits -->
+                        <line x1="43" y1="34" x2="47" y2="34" stroke="#2C2725" stroke-width="2" />
+                        <line x1="53" y1="34" x2="57" y2="34" stroke="#2C2725" stroke-width="2" />
+                        <!-- Purple tribal marks -->
+                        <polygon points="43,24 45,30 41,30" fill="#9C27B0" />
+                        <polygon points="57,24 55,30 59,30" fill="#9C27B0" />
+                        <polygon points="43,52 45,46 41,46" fill="#9C27B0" />
+                        <polygon points="57,52 55,46 59,46" fill="#9C27B0" />
+                        <!-- Small mouth -->
+                        <line x1="47" y1="44" x2="53" y2="44" stroke="#2C2725" stroke-width="2" />
+                        <!-- Gold coin hands overlay -->
+                        <circle cx="50" cy="72" r="8" fill="#FBC02D" />
+                        <path d="M 48 72 L 52 72 M 50 70 L 50 74" stroke="#D84315" stroke-width="1.5" />
+                    </svg>
+                    結帳 / 付款
+                    <span class="noface-coin-sparkle">🪙</span>
+                </button>
+
+                <!-- Sub action panel -->
+                <div class="sub-actions-grid">
+                    <div class="sub-action-btn btn-print-invoice" id="print-receipt-btn">
+                        <i class="fa-solid fa-receipt"></i>
+                        <span>列印發票</span>
+                        <select id="receipt-print-count-select">
+                            <option value="1">份數: 1</option>
+                            <option value="2">份數: 2</option>
+                            <option value="3">份數: 3</option>
+                        </select>
+                    </div>
+                    <div class="sub-action-btn btn-transaction-history" id="view-history-btn">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>交易記錄</span>
+                    </div>
+                    <div class="sub-action-btn btn-cancel-tx" id="void-transaction-btn">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                        <span>取消交易</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Columns Row -->
+        <div class="ghibli-bottom-row">
+            <!-- Left: Transaction remarks -->
+            <div class="ghibli-card remarks-card">
+                <!-- Moomin SVG silhouette -->
+                <svg class="moomin-illustration" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M 60 110 C 65 110 70 105 72 90 C 75 75 70 65 65 55 C 62 48 58 35 55 25 C 50 10 38 12 35 22 C 32 30 30 45 32 60 C 34 80 40 100 50 108 C 53 110 57 110 60 110 Z" fill="#FFFFFF" stroke="#C8B99D" stroke-width="2" />
+                    <!-- Snout -->
+                    <ellipse cx="32" cy="40" rx="14" ry="12" fill="#FFFFFF" stroke="#C8B99D" stroke-width="2" />
+                    <!-- Tail -->
+                    <path d="M 65 105 Q 80 112 85 105" stroke="#C8B99D" stroke-width="2" fill="none" />
+                    <circle cx="85" cy="105" r="3.5" fill="#C8B99D" />
+                    <!-- Ears -->
+                    <path d="M 45 15 Q 48 2 52 10 Z M 38 15 Q 35 2 31 10 Z" fill="#FFFFFF" stroke="#C8B99D" stroke-width="2" />
+                    <!-- Eyes -->
+                    <ellipse cx="38" cy="35" rx="2" ry="3.5" fill="#3A342D" />
+                </svg>
+                <div class="remarks-input-group">
+                    <label for="transaction-notes">交易備註</label>
+                    <textarea id="transaction-notes" placeholder="可輸入備註 (如: 統編、外帶等)..."></textarea>
+                </div>
+            </div>
+
+            <!-- Right: System Tips panel -->
+            <div class="ghibli-card tips-card">
+                <div class="tips-content">
+                    <h3 class="ghibli-serif"><i class="fa-solid fa-circle-exclamation"></i> 系統提示</h3>
+                    <ul class="tips-list" id="sys-tips-list">
+                        <li>歡迎光臨吉卜力雜貨店！</li>
+                        <li>商品庫存充足。</li>
+                        <li>祝您有美好的一天！</li>
+                    </ul>
+                </div>
+                <!-- Kiki flyer SVG silhouette -->
+                <svg class="kiki-flyer-illustration" viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Broomstick -->
+                    <line x1="10" y1="75" x2="110" y2="40" stroke="#8C7355" stroke-width="4" stroke-linecap="round" />
+                    <!-- Straw of Broom -->
+                    <polygon points="10,75 5,85 20,85 15,75" fill="#DDBB6B" />
+                    <!-- Body (Black dress) -->
+                    <path d="M 55 45 C 50 45 42 55 45 70 L 68 62 C 68 52 64 45 55 45 Z" fill="#2C2725" />
+                    <!-- Head & Red Bow -->
+                    <circle cx="62" cy="38" r="9" fill="#E8A7A1" />
+                    <ellipse cx="62" cy="38" rx="8" ry="8" fill="#4E3629" />
+                    <!-- Red Bow Ribbon -->
+                    <polygon points="62,29 55,23 58,32" fill="#C62828" />
+                    <polygon points="62,29 69,23 66,32" fill="#C62828" />
+                    <circle cx="62" cy="29" r="2" fill="#D32F2F" />
+                    <!-- Legs -->
+                    <line x1="50" y1="70" x2="44" y2="78" stroke="#E8A7A1" stroke-width="3" />
+                    <line x1="55" y1="68" x2="50" y2="78" stroke="#E8A7A1" stroke-width="3" />
+                    <!-- Jiji cat sitting on back of broom -->
+                    <ellipse cx="38" cy="62" rx="3.5" ry="5.5" fill="#000" />
+                    <polygon points="35,58 35,53 37,56" fill="#000" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction History Ledger Modal (wooden catalog design) -->
+    <div class="modal-overlay" id="history-modal">
+        <div class="modal-wood-container">
+            <div class="modal-wood-header">
+                <h3 class="ghibli-serif"><i class="fa-solid fa-book"></i> 雜貨店交易登記簿 (History Ledger)</h3>
+                <button class="modal-wood-close" id="close-history-modal-btn">&times;</button>
+            </div>
+            <div class="modal-wood-body">
+                <div class="ghibli-table-container scrollable-y" style="max-height: 400px;">
+                    <table class="history-ledger-table">
+                        <thead>
+                            <tr>
+                                <th>交易單號</th>
+                                <th>建立時間</th>
+                                <th>付款方式</th>
+                                <th class="text-right">總額</th>
+                                <th class="text-center">狀態</th>
+                                <th class="text-center">列印份數</th>
+                                <th class="text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <!-- Dynamically loaded -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Thermal Receipt Modal -->
+    <div class="modal-overlay" id="receipt-modal">
+        <div class="modal-wood-container" style="max-width: 400px;">
+            <div class="modal-wood-header">
+                <h3 class="ghibli-serif"><i class="fa-solid fa-print"></i> 明細列印預覽</h3>
+                <button class="modal-wood-close" id="close-receipt-modal-btn">&times;</button>
+            </div>
+            <div class="modal-wood-body" style="padding: 16px;">
+                <!-- Thermal receipt structure -->
+                <div class="thermal-receipt-paper" id="receipt-paper-content">
+                    <!-- Filled by js -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Area -->
+    <div class="toast-container" id="toast-container"></div>
 
     <script src="app.js"></script>
 </body>

@@ -1,97 +1,85 @@
 // ==========================================
-// SmartPOS System Logic (Ver 1.0)
+// Ghibli POS Application Logic (Ver 1.3)
 // ==========================================
 
-// --- Default Data for Initialization ---
+// --- Default Ghibli Catalog ---
 const DEFAULT_INVENTORY = [
-    { prod_id: "P001", barcode: "471000000001", name: "可口可樂罐裝 330ml", price: 40.00, stock: 25, avatar: "🥤" },
-    { prod_id: "P002", barcode: "471000000002", name: "樂事原味洋芋片", price: 50.00, stock: 15, avatar: "🥔" },
-    { prod_id: "P003", barcode: "471000000003", name: "瑞穗全脂鮮乳 930ml", price: 90.00, stock: 8, avatar: "🥛" },
-    { prod_id: "P004", barcode: "471000000004", name: "統一肉燥風味麵 5入", price: 20.00, stock: 30, avatar: "🍜" },
-    { prod_id: "P005", barcode: "471000000005", name: "茶裏王無糖綠茶 600ml", price: 25.00, stock: 4, avatar: "🍵" },
-    { prod_id: "P006", barcode: "471000000006", name: "鮮奶超柔吐司 8片裝", price: 60.00, stock: 0, avatar: "🍞" }
+    { prod_id: "P001", barcode: "471000000001", name: "可樂 600ml", price: 40.00, stock: 25, avatar: "🥤" },
+    { prod_id: "P002", barcode: "471000000002", name: "洋芋片", price: 50.00, stock: 15, avatar: "🥔" },
+    { prod_id: "P003", barcode: "471000000003", name: "鮮奶 946ml", price: 60.00, stock: 8, avatar: "🥛" },
+    { prod_id: "P004", barcode: "471000000004", name: "手工薰衣草餅乾", price: 35.00, stock: 20, avatar: "🍪" },
+    { prod_id: "P005", barcode: "471000000005", name: "艾莉緹紅茶 500ml", price: 30.00, stock: 4, avatar: "🍵" },
+    { prod_id: "P006", barcode: "471000000006", name: "魔女特製吐司", price: 80.00, stock: 0, avatar: "🍞" }
 ];
 
-// --- Application State ---
+// --- State Variables ---
 let inventory = [];
 let transactions = [];
 let cart = [];
 let activeReceiptTranNo = null;
 
-// --- DOM Elements Cache ---
-const navButtons = document.querySelectorAll('.nav-btn');
-const tabPanels = document.querySelectorAll('.tab-panel');
-const tabTitle = document.getElementById('tab-title');
-const tabSubtitle = document.getElementById('tab-subtitle');
+// --- DOM Cache ---
 const liveClock = document.getElementById('live-clock');
 const currentTranNoEl = document.getElementById('current-tran-no');
-
-// POS Tab elements
-const barcodeInput = document.getElementById('barcode-input');
-const scanSubmitBtn = document.getElementById('scan-submit-btn');
-const quickSelectDropdown = document.getElementById('quick-select-dropdown');
-const catalogItemsGrid = document.getElementById('catalog-items-grid');
-const catalogCountEl = document.getElementById('catalog-count');
+const transactionStatusBadge = document.getElementById('transaction-status-badge');
+const payMethodSelect = document.getElementById('pay-method-select');
+const cartItemCountEl = document.getElementById('cart-item-count');
 const cartTableBody = document.getElementById('cart-table-body');
-const clearCartBtn = document.getElementById('clear-cart-btn');
+const barcodeInput = document.getElementById('barcode-input');
+const quickSelectDropdown = document.getElementById('quick-select-dropdown');
+
+// Totals Inputs & Values
 const summarySubtotal = document.getElementById('summary-subtotal');
 const discountInput = document.getElementById('discount-input');
-const taxRateInput = document.getElementById('tax-rate-input');
 const summaryTax = document.getElementById('summary-tax');
 const summaryTotal = document.getElementById('summary-total');
-const cashPaidInput = document.getElementById('cash-paid-input');
-const summaryChange = document.getElementById('summary-change');
 const checkoutBtn = document.getElementById('checkout-btn');
+const transactionNotes = document.getElementById('transaction-notes');
 
-// Inventory Tab elements
-const inventoryTableBody = document.getElementById('inventory-table-body');
-const productForm = document.getElementById('product-form');
-const formProdId = document.getElementById('form-prod-id');
-const formBarcode = document.getElementById('form-barcode');
-const formName = document.getElementById('form-name');
-const formPrice = document.getElementById('form-price');
-const formStock = document.getElementById('form-stock');
-const formClearBtn = document.getElementById('form-clear-btn');
-const resetInventoryBtn = document.getElementById('reset-inventory-btn');
+// Bottom panels / Actions
+const clearCartBtn = document.getElementById('clear-cart-btn');
+const holdTxBtn = document.getElementById('hold-tx-btn');
+const loadTxBtn = document.getElementById('load-tx-btn');
+const printReceiptBtn = document.getElementById('print-receipt-btn');
+const printCountSelect = document.getElementById('receipt-print-count-select');
+const viewHistoryBtn = document.getElementById('view-history-btn');
+const voidTransactionBtn = document.getElementById('void-transaction-btn');
+const sysTipsList = document.getElementById('sys-tips-list');
 
-// History Tab elements
+// Modals
+const historyModal = document.getElementById('history-modal');
+const closeHistoryModalBtn = document.getElementById('close-history-modal-btn');
 const historyTableBody = document.getElementById('history-table-body');
-const clearHistoryBtn = document.getElementById('clear-history-btn');
 
-// Modal elements
 const receiptModal = document.getElementById('receipt-modal');
 const closeReceiptModalBtn = document.getElementById('close-receipt-modal-btn');
-const receiptPrintCountInput = document.getElementById('receipt-print-count-input');
-const triggerPrintBtn = document.getElementById('trigger-print-btn');
 const receiptPaperContent = document.getElementById('receipt-paper-content');
 
-// Toast container
 const toastContainer = document.getElementById('toast-container');
 
 // ==========================================
-// 1. Initialization & State Management
+// 1. App Bootstrap
 // ==========================================
 
 function initApp() {
-    // Load data from localStorage or fallback to defaults
     loadInventory();
     loadTransactions();
     
-    // Set up real-time clock
+    // Live Clock
     updateClock();
     setInterval(updateClock, 1000);
     
-    // Set up initial active transaction number
     generateNextTransactionNumber();
     
-    // Initial Render
-    renderCatalog();
+    // Render catalog options and cart table
+    renderQuickSelect();
     renderCart();
-    renderInventoryTable();
-    renderHistoryTable();
     
-    // Setup Event Listeners
+    // Bind Actions
     setupEventListeners();
+    
+    // Initial welcome feeds
+    updateTipsFeed(["歡迎光臨吉卜力雜貨店！🌿", "商品庫存充足，工作愉快！", "祝您有美好的一天！✨"]);
 }
 
 function loadInventory() {
@@ -100,11 +88,10 @@ function loadInventory() {
         try {
             inventory = JSON.parse(stored);
         } catch (e) {
-            console.error("Error parsing stored inventory, resetting to defaults", e);
-            inventory = [...DEFAULT_INVENTORY];
+            inventory = [...DEFAULT_INVENTORY.map(x => ({...x}))];
         }
     } else {
-        inventory = [...DEFAULT_INVENTORY];
+        inventory = [...DEFAULT_INVENTORY.map(x => ({...x}))];
         saveInventory();
     }
 }
@@ -119,7 +106,6 @@ function loadTransactions() {
         try {
             transactions = JSON.parse(stored);
         } catch (e) {
-            console.error("Error parsing stored transactions, resetting", e);
             transactions = [];
         }
     } else {
@@ -140,21 +126,19 @@ function updateClock() {
     const hh = pad(now.getHours());
     const min = pad(now.getMinutes());
     const ss = pad(now.getSeconds());
-    
     liveClock.textContent = `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
 }
 
 function generateNextTransactionNumber() {
     const now = new Date();
     const pad = (num) => String(num).padStart(2, '0');
-    const dateStr = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}`; // YYYYMMDD
+    const dateStr = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}`;
     
-    // Find highest index for today's transactions
     let todayCount = 0;
     const prefix = `T${dateStr}`;
     
     transactions.forEach(t => {
-        if (t.tran_no.startsWith(prefix)) {
+        if (t.tran_no && t.tran_no.startsWith(prefix)) {
             const index = parseInt(t.tran_no.substring(prefix.length), 10);
             if (index > todayCount) {
                 todayCount = index;
@@ -167,139 +151,7 @@ function generateNextTransactionNumber() {
 }
 
 // ==========================================
-// 2. Tab Navigation
-// ==========================================
-
-function setupEventListeners() {
-    // Tab switching
-    navButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tabId = btn.getAttribute('data-tab');
-            switchTab(tabId);
-        });
-    });
-    
-    // Scanner simulation
-    barcodeInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            handleBarcodeScan();
-        }
-    });
-    
-    scanSubmitBtn.addEventListener('click', handleBarcodeScan);
-    
-    quickSelectDropdown.addEventListener('change', (e) => {
-        if (e.target.value) {
-            barcodeInput.value = e.target.value;
-            handleBarcodeScan();
-            e.target.value = ""; // Reset dropdown
-        }
-    });
-    
-    // Cart management
-    clearCartBtn.addEventListener('click', () => {
-        if (cart.length === 0) return;
-        if (confirm("確認清空目前的購買清單？")) {
-            cart = [];
-            renderCart();
-            showToast("購買清單已清空", "warning");
-        }
-    });
-    
-    // Checkout Summary inputs
-    discountInput.addEventListener('input', () => {
-        // Validate discount
-        let val = parseFloat(discountInput.value);
-        if (isNaN(val) || val < 0) {
-            discountInput.value = 0;
-        }
-        calculateCartTotals();
-    });
-    
-    taxRateInput.addEventListener('input', () => {
-        // Validate tax rate
-        let val = parseFloat(taxRateInput.value);
-        if (isNaN(val) || val < 0) {
-            taxRateInput.value = 0;
-        } else if (val > 100) {
-            taxRateInput.value = 100;
-        }
-        calculateCartTotals();
-    });
-    
-    cashPaidInput.addEventListener('input', calculateChange);
-    
-    checkoutBtn.addEventListener('click', handleCheckout);
-    
-    // Inventory form
-    productForm.addEventListener('submit', handleProductFormSubmit);
-    formClearBtn.addEventListener('click', clearProductForm);
-    resetInventoryBtn.addEventListener('click', () => {
-        if (confirm("確認將所有商品庫存重設為初始預設值？這將覆蓋現有庫存。")) {
-            inventory = [...DEFAULT_INVENTORY.map(item => ({...item}))];
-            saveInventory();
-            renderCatalog();
-            renderInventoryTable();
-            showToast("庫存資料已重設為預設值", "success");
-        }
-    });
-    
-    // History Actions
-    clearHistoryBtn.addEventListener('click', () => {
-        if (transactions.length === 0) return;
-        if (confirm("警告：確認清空所有歷史交易紀錄？這無法復原。")) {
-            transactions = [];
-            saveTransactions();
-            renderHistoryTable();
-            generateNextTransactionNumber();
-            showToast("歷史交易紀錄已清空", "danger");
-        }
-    });
-    
-    // Receipt Modal Close
-    closeReceiptModalBtn.addEventListener('click', closeReceiptModal);
-    
-    // Reprint / Print Trigger
-    triggerPrintBtn.addEventListener('click', executePrint);
-}
-
-function switchTab(tabId) {
-    // Nav buttons update
-    navButtons.forEach(btn => {
-        if (btn.getAttribute('data-tab') === tabId) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-    
-    // Tab panels update
-    tabPanels.forEach(panel => {
-        if (panel.id === tabId) {
-            panel.classList.add('active');
-        } else {
-            panel.classList.remove('active');
-        }
-    });
-    
-    // Update Subtitles/Titles
-    if (tabId === 'pos-tab') {
-        tabTitle.textContent = "收銀收單系統";
-        tabSubtitle.textContent = "建立交易、管理商品明細與結帳流程";
-        barcodeInput.focus();
-    } else if (tabId === 'inventory-tab') {
-        tabTitle.textContent = "商品與庫存管理";
-        tabSubtitle.textContent = "編輯商品資料、調整庫存水位與新增商品項目";
-        renderInventoryTable();
-    } else if (tabId === 'history-tab') {
-        tabTitle.textContent = "交易歷史紀錄";
-        tabSubtitle.textContent = "查詢過往交易明細、重新列印收據明細";
-        renderHistoryTable();
-    }
-}
-
-// ==========================================
-// 3. Toasts / Notification System
+// 2. Notifications & Tips System
 // ==========================================
 
 function showToast(message, type = "info") {
@@ -308,17 +160,16 @@ function showToast(message, type = "info") {
     
     let iconClass = 'fa-info-circle';
     if (type === 'success') iconClass = 'fa-check-circle';
-    if (type === 'danger') iconClass = 'fa-circle-xmark';
-    if (type === 'warning') iconClass = 'fa-triangle-exclamation';
+    if (type === 'danger') iconClass = 'fa-triangle-exclamation';
+    if (type === 'warning') iconClass = 'fa-leaf';
     
     toast.innerHTML = `
         <i class="fa-solid ${iconClass} toast-icon"></i>
-        <div class="toast-content">${message}</div>
+        <span>${message}</span>
     `;
     
     toastContainer.appendChild(toast);
     
-    // Slide out after 3 seconds
     setTimeout(() => {
         toast.classList.add('fade-out');
         toast.addEventListener('animationend', () => {
@@ -327,102 +178,187 @@ function showToast(message, type = "info") {
     }, 3000);
 }
 
-// ==========================================
-// 4. Cashier POS Logic (Barcode & Catalog)
-// ==========================================
-
-function renderCatalog() {
-    catalogItemsGrid.innerHTML = '';
-    quickSelectDropdown.innerHTML = '<option value="">-- 選擇商品模擬掃描 --</option>';
-    
-    let count = 0;
-    inventory.forEach(item => {
-        count++;
-        // Populate dropdown
-        const opt = document.createElement('option');
-        opt.value = item.barcode;
-        opt.textContent = `${item.barcode} | ${item.name} ($${item.price})`;
-        quickSelectDropdown.appendChild(opt);
-        
-        // Populate grid buttons
-        const gridItem = document.createElement('div');
-        gridItem.className = `catalog-item-btn ${item.stock <= 0 ? 'out-of-stock' : ''}`;
-        gridItem.setAttribute('data-barcode', item.barcode);
-        
-        let stockTagClass = 'stock-tag-normal';
-        let stockText = `庫存: ${item.stock}`;
-        if (item.stock === 0) {
-            stockTagClass = 'stock-tag-none';
-            stockText = '缺貨中';
-        } else if (item.stock < 5) {
-            stockTagClass = 'stock-tag-low';
-            stockText = `低庫存: ${item.stock}`;
-        }
-        
-        gridItem.innerHTML = `
-            <span class="item-avatar">${item.avatar || '📦'}</span>
-            <span class="item-name">${item.name}</span>
-            <span class="item-price">$${item.price.toFixed(2)}</span>
-            <span class="item-stock-tag ${stockTagClass}">${stockText}</span>
-        `;
-        
-        // Add click listener
-        gridItem.addEventListener('click', () => {
-            if (item.stock <= 0) {
-                showToast("商品目前缺貨中，無法加入！", "danger");
-                return;
-            }
-            barcodeInput.value = item.barcode;
-            handleBarcodeScan();
-        });
-        
-        catalogItemsGrid.appendChild(gridItem);
+function updateTipsFeed(logsArray) {
+    sysTipsList.innerHTML = '';
+    logsArray.forEach(log => {
+        const li = document.createElement('li');
+        li.textContent = log;
+        sysTipsList.appendChild(li);
     });
-    
-    catalogCountEl.textContent = `${count} 項商品`;
 }
 
-function handleBarcodeScan() {
-    const rawBarcode = barcodeInput.value.trim();
+function refreshSystemTips() {
+    const tips = [];
+    
+    if (cart.length === 0) {
+        tips.push("購物車目前是空的 🍃");
+        // Add info about items running low
+        const lowStockItems = inventory.filter(i => i.stock > 0 && i.stock < 5);
+        if (lowStockItems.length > 0) {
+            tips.push(`⚠️ 注意：${lowStockItems.map(i => i.name).join('、')} 庫存吃緊！`);
+        } else {
+            tips.push("雜貨店商品貨源充足。");
+        }
+    } else {
+        tips.push(`🛒 已加入 ${cart.length} 項商品明細。`);
+        // Check if any cart item matches or nears stock boundaries
+        cart.forEach(c => {
+            const product = inventory.find(p => p.prod_id === c.prod_id);
+            if (product && product.stock === c.qty) {
+                tips.push(`⚠️ ${c.name} 購物數量已達庫存上限 (${c.qty})！`);
+            }
+        });
+    }
+    
+    tips.push("祝您有美好的一天！✨");
+    updateTipsFeed(tips);
+}
+
+// ==========================================
+// 3. POS Actions & Setup
+// ==========================================
+
+function setupEventListeners() {
+    // Search simulation
+    barcodeInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            handleScanOrSearch();
+        }
+    });
+    
+    // Quick select dropdown
+    quickSelectDropdown.addEventListener('change', (e) => {
+        if (e.target.value) {
+            barcodeInput.value = e.target.value;
+            handleScanOrSearch();
+            e.target.value = ''; // reset
+        }
+    });
+    
+    // Cart inputs
+    discountInput.addEventListener('input', () => {
+        let val = parseInt(discountInput.value, 10);
+        if (isNaN(val) || val < 0) {
+            discountInput.value = 0;
+        }
+        calculateCartTotals();
+    });
+    
+    // Clear Cart
+    clearCartBtn.addEventListener('click', () => {
+        if (cart.length === 0) return;
+        if (confirm("確認清空目前的商品明細嗎？🧹")) {
+            cart = [];
+            transactionStatusBadge.textContent = "PENDING";
+            transactionStatusBadge.className = "badge badge-pending";
+            renderCart();
+            showToast("購物車已清空 🧹", "info");
+        }
+    });
+    
+    // Draft Hold & Retrieve
+    holdTxBtn.addEventListener('click', handleHoldTransaction);
+    loadTxBtn.addEventListener('click', handleLoadTransaction);
+    
+    // Checkout
+    checkoutBtn.addEventListener('click', handleCheckout);
+    
+    // Print receipts
+    printReceiptBtn.addEventListener('click', () => {
+        if (!activeReceiptTranNo && transactions.length > 0) {
+            // Pick the latest transaction
+            const latest = transactions[transactions.length - 1];
+            openReceiptModal(latest.tran_no);
+        } else if (activeReceiptTranNo) {
+            executePrint();
+        } else {
+            showToast("尚無交易明細可進行列印！", "danger");
+        }
+    });
+    
+    // Void Transaction
+    voidTransactionBtn.addEventListener('click', () => {
+        if (cart.length > 0) {
+            if (confirm("確認取消並清空目前這筆正在編輯的交易嗎？")) {
+                cart = [];
+                discountInput.value = 0;
+                transactionNotes.value = '';
+                transactionStatusBadge.textContent = "CANCELLED";
+                transactionStatusBadge.className = "badge badge-cancelled";
+                renderCart();
+                showToast("交易已取消！💨", "danger");
+            }
+        } else {
+            showToast("目前無編輯中的交易，您可以點擊「交易記錄」作廢過往單據。", "info");
+        }
+    });
+    
+    // Modals
+    viewHistoryBtn.addEventListener('click', openHistoryModal);
+    closeHistoryModalBtn.addEventListener('click', closeHistoryModal);
+    closeReceiptModalBtn.addEventListener('click', closeReceiptModal);
+}
+
+function renderQuickSelect() {
+    quickSelectDropdown.innerHTML = '<option value="">-- 點選以模擬掃描商品 --</option>';
+    inventory.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.barcode;
+        opt.textContent = `${item.barcode} | ${item.name} ($${item.price}) [庫存:${item.stock}]`;
+        quickSelectDropdown.appendChild(opt);
+    });
+}
+
+function handleScanOrSearch() {
+    const query = barcodeInput.value.trim();
     barcodeInput.value = '';
     barcodeInput.focus();
     
-    if (!rawBarcode) return;
+    if (!query) return;
     
-    // Query item from inventory
-    const product = inventory.find(p => p.barcode === rawBarcode);
+    // Find matching item by Barcode, ID or Name
+    const product = inventory.find(p => 
+        p.barcode === query || 
+        p.prod_id.toLowerCase() === query.toLowerCase() ||
+        p.name.includes(query)
+    );
     
     if (!product) {
-        showToast(`找不到條碼「${rawBarcode}」的商品！`, "danger");
+        showToast(`找不到與「${query}」相符的商品！🍂`, "danger");
         return;
     }
     
-    // Check constraints: quantity must not exceed available stock
-    const cartItem = cart.find(c => c.prod_id === product.prod_id);
-    const currentQtyInCart = cartItem ? cartItem.qty : 0;
+    if (product.stock <= 0) {
+        showToast(`❌ 庫存不足！${product.name} 目前已無庫存。`, "danger");
+        return;
+    }
     
-    if (currentQtyInCart + 1 > product.stock) {
-        showToast(`庫存不足！該商品剩餘庫存: ${product.stock}，購物車已有: ${currentQtyInCart}`, "warning");
+    const cartItem = cart.find(c => c.prod_id === product.prod_id);
+    const cartQty = cartItem ? cartItem.qty : 0;
+    
+    if (cartQty + 1 > product.stock) {
+        showToast(`⚠ 庫存不足！目前庫存：${product.stock}，已加入：${cartQty}`, "danger");
         return;
     }
     
     if (cartItem) {
-        // Increment Qty
         cartItem.qty += 1;
         cartItem.amt = cartItem.price * cartItem.qty;
-        showToast(`增加 ${product.name} 數量為 ${cartItem.qty}`, "success");
+        showToast(`已增加 ${product.name} 數量為 ${cartItem.qty} 🛒`, "success");
     } else {
-        // Add new Item
         cart.push({
             prod_id: product.prod_id,
             barcode: product.barcode,
             name: product.name,
             price: product.price,
             qty: 1,
-            amt: product.price * 1
+            amt: product.price
         });
-        showToast(`已將 ${product.name} 加入購買清單`, "success");
+        showToast(`已將 ${product.name} 加入明細 🛒`, "success");
     }
+    
+    transactionStatusBadge.textContent = "PENDING";
+    transactionStatusBadge.className = "badge badge-pending";
     
     renderCart();
 }
@@ -431,69 +367,70 @@ function renderCart() {
     if (cart.length === 0) {
         cartTableBody.innerHTML = `
             <tr class="empty-cart-row">
-                <td colspan="5" class="text-center empty-state-cell">
-                    <i class="fa-solid fa-cart-flatbed-suitcase empty-icon"></i>
-                    <p>購買清單目前是空的</p>
-                    <span class="sub-text">請掃描條碼或點擊左側快速商品選單加入</span>
+                <td colspan="5" class="text-center" style="padding: 80px 20px; color: var(--ghibli-text-dimmed);">
+                    <i class="fa-solid fa-store-slash" style="font-size: 40px; margin-bottom: 12px; opacity:0.4;"></i>
+                    <p style="font-weight:700;">購物車空空如也 🍃</p>
+                    <small>請掃描條碼或從上方選單快速加入商品</small>
                 </td>
             </tr>
         `;
+        cartItemCountEl.textContent = "0 件商品";
         checkoutBtn.disabled = true;
     } else {
         cartTableBody.innerHTML = '';
+        let totalCount = 0;
+        
         cart.forEach(item => {
+            totalCount += item.qty;
             const tr = document.createElement('tr');
+            
+            // Get avatar from catalog inventory
+            const catalogItem = inventory.find(p => p.prod_id === item.prod_id);
+            const avatar = catalogItem ? catalogItem.avatar : "📦";
+            
             tr.innerHTML = `
                 <td>
-                    <div class="cart-item-info">
-                        <span class="cart-item-name">${item.name}</span>
-                        <span class="cart-item-barcode">${item.barcode}</span>
+                    <div class="product-row-info">
+                        <span class="product-row-img">${avatar}</span>
+                        <div class="product-row-details">
+                            <span class="product-row-name">${item.name}</span>
+                            <span class="product-row-code">${item.prod_id}</span>
+                        </div>
                     </div>
                 </td>
-                <td class="text-right font-mono">$${item.price.toFixed(2)}</td>
+                <td class="text-right font-mono">$${item.price.toFixed(0)}</td>
                 <td class="text-center">
-                    <div class="qty-control">
-                        <button class="qty-btn dec-btn" data-prod-id="${item.prod_id}"><i class="fa-solid fa-minus"></i></button>
-                        <input type="number" class="qty-input" data-prod-id="${item.prod_id}" value="${item.qty}" min="1">
-                        <button class="qty-btn inc-btn" data-prod-id="${item.prod_id}"><i class="fa-solid fa-plus"></i></button>
+                    <div class="wood-qty-control">
+                        <span class="wood-qty-btn dec-btn" data-prod-id="${item.prod_id}">-</span>
+                        <span class="wood-qty-val">${item.qty}</span>
+                        <span class="wood-qty-btn inc-btn" data-prod-id="${item.prod_id}">+</span>
                     </div>
                 </td>
-                <td class="text-right font-mono">$${item.amt.toFixed(2)}</td>
+                <td class="text-right font-mono">$${item.amt.toFixed(0)}</td>
                 <td class="text-center">
-                    <button class="delete-item-btn" data-prod-id="${item.prod_id}">
+                    <button class="trash-btn" data-prod-id="${item.prod_id}">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </td>
             `;
             
-            // Wire up quantity adjustments
-            tr.querySelector('.dec-btn').addEventListener('click', () => adjustCartQty(item.prod_id, -1));
-            tr.querySelector('.inc-btn').addEventListener('click', () => adjustCartQty(item.prod_id, 1));
-            
-            const qtyInput = tr.querySelector('.qty-input');
-            qtyInput.addEventListener('change', (e) => {
-                let newQty = parseInt(e.target.value, 10);
-                if (isNaN(newQty) || newQty <= 0) {
-                    newQty = 1;
-                }
-                setCartQty(item.prod_id, newQty);
-            });
-            
-            // Wire up delete
-            tr.querySelector('.delete-item-btn').addEventListener('click', () => {
-                deleteCartItem(item.prod_id);
-            });
+            // Wire listeners
+            tr.querySelector('.dec-btn').addEventListener('click', () => adjustQty(item.prod_id, -1));
+            tr.querySelector('.inc-btn').addEventListener('click', () => adjustQty(item.prod_id, 1));
+            tr.querySelector('.trash-btn').addEventListener('click', () => deleteItem(item.prod_id));
             
             cartTableBody.appendChild(tr);
         });
         
+        cartItemCountEl.textContent = `${totalCount} 件商品`;
         checkoutBtn.disabled = false;
     }
     
     calculateCartTotals();
+    refreshSystemTips();
 }
 
-function adjustCartQty(prod_id, change) {
+function adjustQty(prod_id, change) {
     const item = cart.find(c => c.prod_id === prod_id);
     if (!item) return;
     
@@ -501,12 +438,12 @@ function adjustCartQty(prod_id, change) {
     const targetQty = item.qty + change;
     
     if (targetQty <= 0) {
-        deleteCartItem(prod_id);
+        deleteItem(prod_id);
         return;
     }
     
     if (targetQty > product.stock) {
-        showToast(`庫存不足！該商品最多僅能購買 ${product.stock} 件`, "warning");
+        showToast(`⚠ 庫存不足！該商品最多僅有 ${product.stock} 件。`, "danger");
         return;
     }
     
@@ -515,97 +452,105 @@ function adjustCartQty(prod_id, change) {
     renderCart();
 }
 
-function setCartQty(prod_id, targetQty) {
-    const item = cart.find(c => c.prod_id === prod_id);
-    if (!item) return;
-    
-    const product = inventory.find(p => p.prod_id === prod_id);
-    
-    if (targetQty > product.stock) {
-        showToast(`庫存不足！該商品最多僅能購買 ${product.stock} 件。已設定為庫存上限。`, "warning");
-        item.qty = product.stock;
-    } else {
-        item.qty = targetQty;
-    }
-    
-    item.amt = item.price * item.qty;
-    renderCart();
-}
-
-function deleteCartItem(prod_id) {
-    const itemIndex = cart.findIndex(c => c.prod_id === prod_id);
-    if (itemIndex > -1) {
-        const item = cart[itemIndex];
-        cart.splice(itemIndex, 1);
-        showToast(`已自購買清單移除 ${item.name}`, "info");
+function deleteItem(prod_id) {
+    const idx = cart.findIndex(c => c.prod_id === prod_id);
+    if (idx > -1) {
+        const item = cart[idx];
+        cart.splice(idx, 1);
+        showToast(`已移除 ${item.name} 🍂`, "info");
         renderCart();
     }
 }
 
 // ==========================================
-// 5. Grand Totals & Price Calculation
+// 4. Calculations
 // ==========================================
 
 function calculateCartTotals() {
-    // 1. Subtotal
+    // Subtotal
     const subtotal = cart.reduce((sum, item) => sum + item.amt, 0);
-    summarySubtotal.textContent = `$${subtotal.toFixed(2)}`;
+    summarySubtotal.textContent = `$${subtotal.toFixed(0)}`;
     
-    // 2. Discount
-    let discount = parseFloat(discountInput.value);
-    if (isNaN(discount) || discount < 0) {
-        discount = 0;
-    }
+    // Discount
+    let discount = parseInt(discountInput.value, 10);
+    if (isNaN(discount)) discount = 0;
     if (discount > subtotal) {
-        discount = subtotal; // Cannot discount more than subtotal
+        discount = subtotal;
+        discountInput.value = subtotal;
     }
     
-    // 3. Discounted Amount
     const discountedAmount = subtotal - discount;
     
-    // 4. Tax
-    let taxRate = parseFloat(taxRateInput.value);
-    if (isNaN(taxRate) || taxRate < 0) {
-        taxRate = 5;
-    }
+    // Tax 5%
+    const tax = Math.round(discountedAmount * 0.05);
+    summaryTax.textContent = `$${tax.toFixed(0)}`;
     
-    const tax = discountedAmount * (taxRate / 100);
-    summaryTax.textContent = `$${tax.toFixed(2)}`;
-    
-    // 5. Total
+    // Grand Total
     const total = discountedAmount + tax;
-    summaryTotal.textContent = `$${total.toFixed(2)}`;
-    
-    // Recalculate change with new total
-    calculateChange();
+    summaryTotal.textContent = `$${total.toFixed(0)}`;
 }
 
-function calculateChange() {
-    const totalText = summaryTotal.textContent.replace('$', '');
-    const total = parseFloat(totalText);
-    
-    const cashPaidVal = cashPaidInput.value.trim();
-    if (!cashPaidVal) {
-        summaryChange.textContent = '$0.00';
-        summaryChange.className = "calc-value text-success";
+// ==========================================
+// 5. Hold / Load Draft Transactions
+// ==========================================
+
+function handleHoldTransaction() {
+    if (cart.length === 0) {
+        showToast("商品明細為空，無法暫存！", "danger");
         return;
     }
     
-    const cashPaid = parseFloat(cashPaidVal);
-    if (isNaN(cashPaid) || cashPaid < 0) {
-        summaryChange.textContent = '$0.00';
-        summaryChange.className = "calc-value text-success";
+    let discount = parseInt(discountInput.value, 10);
+    if (isNaN(discount)) discount = 0;
+    
+    const draft = {
+        cart: [...cart],
+        discount: discount,
+        pay_method: payMethodSelect.value,
+        notes: transactionNotes.value
+    };
+    
+    localStorage.setItem('pos_held_transaction', JSON.stringify(draft));
+    
+    // Reset active cart
+    cart = [];
+    discountInput.value = 0;
+    transactionNotes.value = '';
+    transactionStatusBadge.textContent = "PENDING";
+    transactionStatusBadge.className = "badge badge-pending";
+    
+    renderCart();
+    showToast("交易已成功暫存！🍂", "warning");
+}
+
+function handleLoadTransaction() {
+    const stored = localStorage.getItem('pos_held_transaction');
+    if (!stored) {
+        showToast("目前沒有暫存的交易紀錄！", "danger");
         return;
     }
     
-    const change = cashPaid - total;
+    if (cart.length > 0 && !confirm("載入暫存交易將會覆蓋當前編輯的購物車，是否繼續？")) {
+        return;
+    }
     
-    if (change < 0) {
-        summaryChange.textContent = `不足 $${Math.abs(change).toFixed(2)}`;
-        summaryChange.className = "calc-value text-danger";
-    } else {
-        summaryChange.textContent = `$${change.toFixed(2)}`;
-        summaryChange.className = "calc-value text-success";
+    try {
+        const draft = JSON.parse(stored);
+        cart = draft.cart || [];
+        discountInput.value = draft.discount || 0;
+        payMethodSelect.value = draft.pay_method || "LINE_PAY";
+        transactionNotes.value = draft.notes || '';
+        
+        // Remove draft once loaded
+        localStorage.removeItem('pos_held_transaction');
+        
+        transactionStatusBadge.textContent = "PENDING";
+        transactionStatusBadge.className = "badge badge-pending";
+        
+        renderCart();
+        showToast("已成功載入暫存交易！🍃", "success");
+    } catch (e) {
+        showToast("載入暫存交易出錯！", "danger");
     }
 }
 
@@ -616,11 +561,36 @@ function calculateChange() {
 function handleCheckout() {
     if (cart.length === 0) return;
     
-    // Calculations parameters
+    // Double check inventory
+    let stockValid = true;
+    let failedItem = null;
+    
+    for (let c of cart) {
+        const p = inventory.find(i => i.prod_id === c.prod_id);
+        if (!p || p.stock < c.qty) {
+            stockValid = false;
+            failedItem = c;
+            break;
+        }
+    }
+    
+    if (!stockValid) {
+        showToast(`❌ 庫存不足！請重新確認「${failedItem.name}」的剩餘庫存。`, "danger");
+        return;
+    }
+    
+    // Deduct stock formally
+    cart.forEach(c => {
+        const p = inventory.find(i => i.prod_id === c.prod_id);
+        p.stock -= c.qty;
+    });
+    saveInventory();
+    
+    // Create transaction object following ver1.3.md schema
     const subtotalText = summarySubtotal.textContent.replace('$', '');
     const subtotal = parseFloat(subtotalText);
     
-    let discount = parseFloat(discountInput.value);
+    let discount = parseInt(discountInput.value, 10);
     if (isNaN(discount)) discount = 0;
     
     const taxText = summaryTax.textContent.replace('$', '');
@@ -629,42 +599,6 @@ function handleCheckout() {
     const totalText = summaryTotal.textContent.replace('$', '');
     const total = parseFloat(totalText);
     
-    const cashPaidVal = cashPaidInput.value.trim();
-    let cashPaid = total; // Default to exact cash
-    if (cashPaidVal) {
-        cashPaid = parseFloat(cashPaidVal);
-        if (isNaN(cashPaid) || cashPaid < total) {
-            showToast("實收金額不足，無法完成結帳！", "danger");
-            return;
-        }
-    }
-    
-    // Double check all inventory before formal deduction
-    let stockValid = true;
-    let failedItem = null;
-    
-    for (let cartItem of cart) {
-        const product = inventory.find(p => p.prod_id === cartItem.prod_id);
-        if (!product || product.stock < cartItem.qty) {
-            stockValid = false;
-            failedItem = cartItem;
-            break;
-        }
-    }
-    
-    if (!stockValid) {
-        showToast(`庫存不足！請重新確認「${failedItem.name}」的剩餘量。`, "danger");
-        return;
-    }
-    
-    // DEDUCT INVENTORY
-    cart.forEach(cartItem => {
-        const product = inventory.find(p => p.prod_id === cartItem.prod_id);
-        product.stock -= cartItem.qty;
-    });
-    saveInventory();
-    
-    // CREATE TRANSACTION RECORD
     const nextTranNo = currentTranNoEl.textContent;
     const now = new Date();
     const pad = (num) => String(num).padStart(2, '0');
@@ -672,55 +606,53 @@ function handleCheckout() {
     
     const transaction = {
         tran_no: nextTranNo,
-        tran_date: fullDateStr,
+        tran_date: fullDateStr.split(' ')[0], // YYYY-MM-DD format
+        status: "SUCCESS",
+        pay_method: payMethodSelect.value,
         subtotal: subtotal,
         discount: discount,
         tax: tax,
         total: total,
-        cash_paid: cashPaid,
-        change: cashPaid - total,
         print_count: 0,
+        operator_id: "OP042",
+        created_at: fullDateStr,
+        notes: transactionNotes.value.trim(),
         details: [...cart]
     };
     
     transactions.push(transaction);
     saveTransactions();
     
-    showToast(`交易成功！單號: ${nextTranNo}`, "success");
+    showToast(`付款結帳成功！單號: ${nextTranNo} 🪙`, "success");
+    transactionStatusBadge.textContent = "SUCCESS";
+    transactionStatusBadge.className = "badge badge-success";
     
-    // Open receipt modal for printing
+    // Render and open receipt
     openReceiptModal(nextTranNo);
     
-    // RESET ACTIVE CART
+    // Reset active cart
     cart = [];
     discountInput.value = 0;
-    cashPaidInput.value = '';
+    transactionNotes.value = '';
     
-    // Refresh GUI
     renderCart();
-    renderCatalog();
-    renderInventoryTable();
-    renderHistoryTable();
-    
-    // Generate new tran no
+    renderQuickSelect(); // updates stock levels in dropdown
     generateNextTransactionNumber();
 }
 
 // ==========================================
-// 7. Receipt Preview & Printing Simulator
+// 7. Receipts Modal
 // ==========================================
 
 function openReceiptModal(tranNo) {
     activeReceiptTranNo = tranNo;
-    receiptPrintCountInput.value = 1; // Default print count
-    
     const tx = transactions.find(t => t.tran_no === tranNo);
     if (!tx) {
-        showToast("找不到交易資料", "danger");
+        showToast("找不到交易明細單！", "danger");
         return;
     }
     
-    renderReceiptHTML(tx);
+    renderReceiptContent(tx);
     receiptModal.classList.add('active');
 }
 
@@ -729,69 +661,68 @@ function closeReceiptModal() {
     activeReceiptTranNo = null;
 }
 
-function renderReceiptHTML(tx) {
+function renderReceiptContent(tx) {
     let itemsHTML = '';
     tx.details.forEach(item => {
         itemsHTML += `
-<div class="receipt-item-row">
-    <span>${item.name}</span>
-    <span>x${item.qty}</span>
-    <span>$${item.amt.toFixed(2)}</span>
-</div>`;
+            <div class="receipt-item-row">
+                <span>${item.name}</span>
+                <span>x${item.qty}</span>
+                <span>$${item.amt.toFixed(0)}</span>
+            </div>
+        `;
     });
     
+    let statusText = "成功 (SUCCESS)";
+    if (tx.status === "CANCELLED") statusText = "已作廢 (CANCELLED)";
+    
     receiptPaperContent.innerHTML = `
-        <div class="receipt-header">
-            <h4>SMARTPOS 超商</h4>
-            <p>統一發票 / 購買交易明細</p>
-            <small>台北市大安區信義路一段1號</small>
+        <div class="thermal-receipt-header">
+            <h4>吉卜力雜貨店</h4>
+            <p>統一發票 / 交易明細聯</p>
+            <small>森林區橡子路 4 號</small>
         </div>
-        <hr class="receipt-divider">
-        <div class="receipt-metadata">
-            <div class="receipt-meta-row"><span>單號:</span><span>${tx.tran_no}</span></div>
-            <div class="receipt-meta-row"><span>日期:</span><span>${tx.tran_date}</span></div>
-            <div class="receipt-meta-row"><span>收銀:</span><span>Admin</span></div>
+        <hr>
+        <div>
+            <div class="receipt-item-row"><span>單號:</span><span>${tx.tran_no}</span></div>
+            <div class="receipt-item-row"><span>日期:</span><span>${tx.created_at}</span></div>
+            <div class="receipt-item-row"><span>收銀:</span><span>OP042 / 小梅</span></div>
+            <div class="receipt-item-row"><span>付款:</span><span>${tx.pay_method}</span></div>
+            <div class="receipt-item-row"><span>狀態:</span><span>${statusText}</span></div>
+            ${tx.notes ? `<div class="receipt-item-row"><span>備註:</span><span>${tx.notes}</span></div>` : ''}
         </div>
-        <hr class="receipt-divider">
-        <div class="receipt-items">
+        <hr>
+        <div class="receipt-item-grid">
             <div class="receipt-item-row" style="font-weight: bold;">
                 <span>品名</span>
-                <span style="text-align: right;">數量</span>
-                <span style="text-align: right;">金額</span>
+                <span>數量</span>
+                <span>金額</span>
             </div>
             ${itemsHTML}
         </div>
-        <hr class="receipt-divider">
-        <div class="receipt-totals">
-            <div class="receipt-totals-row">
+        <hr>
+        <div>
+            <div class="receipt-item-row">
                 <span>小計 Subtotal:</span>
-                <span>$${tx.subtotal.toFixed(2)}</span>
+                <span>$${tx.subtotal.toFixed(0)}</span>
             </div>
-            <div class="receipt-totals-row">
+            <div class="receipt-item-row">
                 <span>折扣 Discount:</span>
-                <span>-$${tx.discount.toFixed(2)}</span>
+                <span>-$${tx.discount.toFixed(0)}</span>
             </div>
-            <div class="receipt-totals-row">
-                <span>營業稅 Tax:</span>
-                <span>$${tx.tax.toFixed(2)}</span>
+            <div class="receipt-item-row">
+                <span>營業稅 Tax (5%):</span>
+                <span>$${tx.tax.toFixed(0)}</span>
             </div>
-            <div class="receipt-totals-row grand-total">
+            <div class="receipt-item-row" style="font-weight: bold; font-size:14px; margin-top:4px;">
                 <span>總計 Total:</span>
-                <span>$${tx.total.toFixed(2)}</span>
-            </div>
-            <div class="receipt-totals-row" style="margin-top: 4px;">
-                <span>實收 Cash Paid:</span>
-                <span>$${tx.cash_paid.toFixed(2)}</span>
-            </div>
-            <div class="receipt-totals-row">
-                <span>找零 Change:</span>
-                <span>$${tx.change.toFixed(2)}</span>
+                <span>$${tx.total.toFixed(0)}</span>
             </div>
         </div>
-        <hr class="receipt-divider">
-        <div class="receipt-footer">
-            <p>※ 謝謝您的光臨，請妥善保存明細 ※</p>
-            <p>印製份數: <span id="receipt-printed-copies-badge">${tx.print_count}</span></p>
+        <hr>
+        <div class="thermal-receipt-footer">
+            <p>※ 感謝您的光臨，祝您擁有奇幻的一天 ※</p>
+            <p>列印份數: <span id="receipt-print-count-badge">${tx.print_count}</span></p>
         </div>
     `;
 }
@@ -799,175 +730,41 @@ function renderReceiptHTML(tx) {
 function executePrint() {
     if (!activeReceiptTranNo) return;
     
-    const count = parseInt(receiptPrintCountInput.value, 10);
-    if (isNaN(count) || count < 1) {
-        showToast("請輸入有效的列印份數", "warning");
-        return;
-    }
+    const count = parseInt(printCountSelect.value, 10);
+    if (isNaN(count) || count < 1) return;
     
     const tx = transactions.find(t => t.tran_no === activeReceiptTranNo);
     if (!tx) return;
     
-    // Increase printed copies
     tx.print_count += count;
     saveTransactions();
     
-    // Update badge inside receipt view
-    const badge = document.getElementById('receipt-printed-copies-badge');
+    const badge = document.getElementById('receipt-print-count-badge');
     if (badge) badge.textContent = tx.print_count;
     
-    // Update history table view
-    renderHistoryTable();
-    
-    showToast(`正在發送列印要求... 列印 ${count} 份完成！`, "success");
-    
-    // Trigger standard browser print
+    showToast(`明細發票發送列印成功！印製 ${count} 份。`, "success");
     window.print();
 }
 
 // ==========================================
-// 8. Inventory Management Tab Logic
+// 8. History Ledger Modal & Cancel logic
 // ==========================================
 
-function renderInventoryTable() {
-    inventoryTableBody.innerHTML = '';
-    
-    inventory.forEach(item => {
-        const tr = document.createElement('tr');
-        
-        let stockClass = 'badge-success';
-        let stockStateText = '正常庫存';
-        if (item.stock === 0) {
-            stockClass = 'badge-danger';
-            stockStateText = '缺貨';
-        } else if (item.stock < 5) {
-            stockClass = 'badge-warning';
-            stockStateText = '低庫存警示';
-        }
-        
-        tr.innerHTML = `
-            <td>${item.prod_id}</td>
-            <td class="font-mono">${item.barcode}</td>
-            <td><span style="font-size: 16px; margin-right: 6px;">${item.avatar || '📦'}</span>${item.name}</td>
-            <td class="text-right font-mono">$${item.price.toFixed(2)}</td>
-            <td class="text-center font-mono" style="font-weight: 600;">${item.stock}</td>
-            <td class="text-center"><span class="status-badge ${stockClass}">${stockStateText}</span></td>
-            <td class="text-center">
-                <button class="btn btn-outline-primary btn-sm edit-inv-btn" data-prod-id="${item.prod_id}">
-                    <i class="fa-solid fa-edit"></i> 編輯
-                </button>
-            </td>
-        `;
-        
-        tr.querySelector('.edit-inv-btn').addEventListener('click', () => {
-            populateProductForm(item);
-        });
-        
-        inventoryTableBody.appendChild(tr);
-    });
+function openHistoryModal() {
+    renderHistoryLedger();
+    historyModal.classList.add('active');
 }
 
-function populateProductForm(item) {
-    formProdId.value = item.prod_id;
-    formProdId.disabled = true; // Key cannot be edited in simple update
-    formBarcode.value = item.barcode;
-    formName.value = item.name;
-    formPrice.value = item.price;
-    formStock.value = item.stock;
-    showToast(`已載入「${item.name}」商品資料至編輯欄`, "info");
+function closeHistoryModal() {
+    historyModal.classList.remove('active');
 }
 
-function clearProductForm() {
-    formProdId.value = '';
-    formProdId.disabled = false;
-    formBarcode.value = '';
-    formName.value = '';
-    formPrice.value = '';
-    formStock.value = '';
-}
-
-function handleProductFormSubmit(e) {
-    e.preventDefault();
-    
-    const prodIdVal = formProdId.value.trim();
-    const barcodeVal = formBarcode.value.trim();
-    const nameVal = formName.value.trim();
-    const priceVal = parseFloat(formPrice.value);
-    const stockVal = parseInt(formStock.value, 10);
-    
-    if (!prodIdVal || !barcodeVal || !nameVal || isNaN(priceVal) || isNaN(stockVal)) {
-        showToast("所有欄位均為必填！", "danger");
-        return;
-    }
-    
-    if (priceVal < 0 || stockVal < 0) {
-        showToast("價格與庫存不可低於 0！", "danger");
-        return;
-    }
-    
-    // Check if updating or adding
-    const isEditMode = formProdId.disabled;
-    
-    if (isEditMode) {
-        // Update product
-        const product = inventory.find(p => p.prod_id === prodIdVal);
-        if (product) {
-            // Check if updated barcode is taken by another product
-            const otherP = inventory.find(p => p.barcode === barcodeVal && p.prod_id !== prodIdVal);
-            if (otherP) {
-                showToast(`條碼「${barcodeVal}」已配給另一款商品「${otherP.name}」，無法重複使用！`, "danger");
-                return;
-            }
-            
-            product.barcode = barcodeVal;
-            product.name = nameVal;
-            product.price = priceVal;
-            product.stock = stockVal;
-            showToast(`商品「${nameVal}」資料已成功更新！`, "success");
-        }
-    } else {
-        // Create new product
-        // Check uniqueness of ID and Barcode
-        const existId = inventory.find(p => p.prod_id === prodIdVal);
-        if (existId) {
-            showToast(`商品 ID 「${prodIdVal}」已被佔用！`, "danger");
-            return;
-        }
-        
-        const existBarcode = inventory.find(p => p.barcode === barcodeVal);
-        if (existBarcode) {
-            showToast(`商品條碼「${barcodeVal}」已存在於另一款商品中！`, "danger");
-            return;
-        }
-        
-        inventory.push({
-            prod_id: prodIdVal,
-            barcode: barcodeVal,
-            name: nameVal,
-            price: priceVal,
-            stock: stockVal,
-            avatar: "📦"
-        });
-        showToast(`成功新增商品項目「${nameVal}」！`, "success");
-    }
-    
-    saveInventory();
-    clearProductForm();
-    renderCatalog();
-    renderInventoryTable();
-}
-
-// ==========================================
-// 9. Transaction History Log Logic
-// ==========================================
-
-function renderHistoryTable() {
+function renderHistoryLedger() {
     if (transactions.length === 0) {
         historyTableBody.innerHTML = `
-            <tr class="empty-history-row">
-                <td colspan="8" class="text-center empty-state-cell">
-                    <i class="fa-solid fa-receipt empty-icon"></i>
-                    <p>目前沒有完成的交易紀錄</p>
+            <tr>
+                <td colspan="7" class="text-center" style="padding: 40px; color: var(--ghibli-text-dimmed);">
+                    登記簿目前是空的 🍃
                 </td>
             </tr>
         `;
@@ -976,35 +773,82 @@ function renderHistoryTable() {
     
     historyTableBody.innerHTML = '';
     
-    // Sort transaction history in reverse chronological order
-    const sortedTx = [...transactions].reverse();
+    // reverse order to display latest transaction on top
+    const sorted = [...transactions].reverse();
     
-    sortedTx.forEach(tx => {
+    sorted.forEach(tx => {
         const tr = document.createElement('tr');
+        
+        let statusBadgeClass = 'badge-pending';
+        let statusText = 'PENDING';
+        if (tx.status === 'SUCCESS') {
+            statusBadgeClass = 'badge-success';
+            statusText = 'SUCCESS';
+        } else if (tx.status === 'CANCELLED') {
+            statusBadgeClass = 'badge-cancelled';
+            statusText = 'CANCELLED';
+        }
+        
         tr.innerHTML = `
             <td>${tx.tran_no}</td>
-            <td>${tx.tran_date}</td>
-            <td class="text-right font-mono">$${tx.subtotal.toFixed(2)}</td>
-            <td class="text-right font-mono">-$${tx.discount.toFixed(2)}</td>
-            <td class="text-right font-mono">$${tx.tax.toFixed(2)}</td>
-            <td class="text-right font-mono" style="font-weight: 600; color: var(--color-accent);">$${tx.total.toFixed(2)}</td>
-            <td class="text-center font-mono">${tx.print_count}</td>
+            <td>${tx.created_at}</td>
+            <td>${tx.pay_method}</td>
+            <td class="text-right font-mono">$${tx.total.toFixed(0)}</td>
+            <td class="text-center"><span class="badge ${statusBadgeClass}">${statusText}</span></td>
+            <td class="text-center">${tx.print_count}</td>
             <td class="text-center">
-                <button class="btn btn-outline-primary btn-sm view-receipt-btn" data-tran-no="${tx.tran_no}">
-                    <i class="fa-solid fa-print"></i> 檢視發票 / 列印
-                </button>
+                <div class="history-action-group">
+                    <button class="ledger-btn-small ledger-btn-print" data-tran-no="${tx.tran_no}">檢視</button>
+                    ${tx.status === 'SUCCESS' ? `<button class="ledger-btn-small ledger-btn-void" data-tran-no="${tx.tran_no}">作廢</button>` : ''}
+                </div>
             </td>
         `;
         
-        tr.querySelector('.view-receipt-btn').addEventListener('click', () => {
+        tr.querySelector('.ledger-btn-print').addEventListener('click', () => {
             openReceiptModal(tx.tran_no);
         });
+        
+        const voidBtn = tr.querySelector('.ledger-btn-void');
+        if (voidBtn) {
+            voidBtn.addEventListener('click', () => {
+                voidCompletedTransaction(tx.tran_no);
+            });
+        }
         
         historyTableBody.appendChild(tr);
     });
 }
 
+function voidCompletedTransaction(tranNo) {
+    if (!confirm(`確定要作廢交易單號「${tranNo}」嗎？這將會退回庫存並作廢單據。`)) {
+        return;
+    }
+    
+    const tx = transactions.find(t => t.tran_no === tranNo);
+    if (!tx) return;
+    
+    // RESTORE STOCK
+    tx.details.forEach(item => {
+        const p = inventory.find(i => i.prod_id === item.prod_id);
+        if (p) {
+            p.stock += item.qty;
+        }
+    });
+    saveInventory();
+    
+    // Set status to cancelled
+    tx.status = 'CANCELLED';
+    saveTransactions();
+    
+    showToast(`交易單 ${tranNo} 已成功作廢！庫存已退回。`, "warning");
+    
+    // Refresh GUI
+    renderHistoryLedger();
+    renderQuickSelect();
+    renderCart();
+}
+
 // ==========================================
-// 10. Boot App
+// Boot App
 // ==========================================
 window.addEventListener('DOMContentLoaded', initApp);
