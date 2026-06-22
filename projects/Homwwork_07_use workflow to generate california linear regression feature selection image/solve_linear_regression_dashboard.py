@@ -21,7 +21,6 @@ from sklearn.feature_selection import (
 )
 
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from scipy.stats import spearmanr
 
 # ==============================================================================
 # Page Configuration & Styling
@@ -276,7 +275,7 @@ pearson_all_ranks = np.argsort(pearson_scores)[::-1]
 results.append(evaluate_selected("Pearson Correlation", pearson_all_ranks[:top_k]))
 
 # 2. Spearman Correlation
-spearman_scores = [abs(spearmanr(X_train_processed[:, i], y_train)[0]) for i in range(X_train_processed.shape[1])]
+spearman_scores = [abs(pd.Series(X_train_processed[:, i]).corr(pd.Series(y_train.values), method='spearman')) for i in range(X_train_processed.shape[1])]
 spearman_all_ranks = np.argsort(spearman_scores)[::-1]
 results.append(evaluate_selected("Spearman Correlation", spearman_all_ranks[:top_k]))
 

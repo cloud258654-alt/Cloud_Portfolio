@@ -10,7 +10,6 @@ from sklearn.linear_model import LinearRegression, LassoCV
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.feature_selection import SelectKBest, f_regression, mutual_info_regression, RFE, SequentialFeatureSelector
 from sklearn.metrics import r2_score, mean_squared_error
-from scipy.stats import spearmanr
 
 # ==============================================================================
 # 1. Load and Prepare Data
@@ -50,7 +49,7 @@ pearson_scores = [abs(np.corrcoef(X_train_processed[:, i], y_train)[0, 1]) for i
 pearson_rank_order = np.argsort(pearson_scores)[::-1]
 
 # 2. Spearman Correlation
-spearman_scores = [abs(spearmanr(X_train_processed[:, i], y_train)[0]) for i in range(X_train_processed.shape[1])]
+spearman_scores = [abs(pd.Series(X_train_processed[:, i]).corr(pd.Series(y_train.values), method='spearman')) for i in range(X_train_processed.shape[1])]
 spearman_rank_order = np.argsort(spearman_scores)[::-1]
 
 # 3. Variance Threshold - KICKED OUT from stepwise evaluation plot

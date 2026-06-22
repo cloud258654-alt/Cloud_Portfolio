@@ -23,7 +23,6 @@ from sklearn.feature_selection import (
 )
 
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from scipy.stats import spearmanr
 
 
 # ============================================================
@@ -130,7 +129,7 @@ results.append(
 spearman_scores = []
 
 for i in range(X_train_processed.shape[1]):
-    corr, _ = spearmanr(X_train_processed[:, i], y_train)
+    corr = pd.Series(X_train_processed[:, i]).corr(pd.Series(y_train.values), method='spearman')
     spearman_scores.append(abs(corr))
 
 spearman_scores = np.array(spearman_scores)

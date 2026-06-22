@@ -12,7 +12,6 @@ from sklearn.linear_model import LinearRegression, LassoCV
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.feature_selection import SelectKBest, f_regression, mutual_info_regression, RFE, SequentialFeatureSelector
 from sklearn.metrics import r2_score, mean_squared_error
-from scipy.stats import spearmanr
 
 def main():
     dataset_file = "data.csv"
@@ -84,7 +83,7 @@ def main():
     pearson_rank_order = np.argsort(pearson_scores)[::-1]
 
     # 2. Spearman
-    spearman_scores = [abs(spearmanr(X_train_processed[:, i], y_train)[0]) for i in range(num_features)]
+    spearman_scores = [abs(pd.Series(X_train_processed[:, i]).corr(pd.Series(y_train.values), method='spearman')) for i in range(num_features)]
     spearman_rank_order = np.argsort(spearman_scores)[::-1]
 
     # 3. F-test
