@@ -14,9 +14,6 @@
 | 👤 關於我 | [查看](https://asia17242.github.io/Cloud_Portfolio/#about) |
 | 📁 作品展示 | [查看](https://asia17242.github.io/Cloud_Portfolio/#projects) |
 | 📅 學習歷程 | [查看](https://asia17242.github.io/Cloud_Portfolio/#journey) |
-| 📊 Homework 04 | [查看](https://share.streamlit.io/asia17242/homework_04/main/app.py) |
-| 📈 Startups Profit | [查看](https://cloudportfolio-khibgwiuagecuxc8gukdpm.streamlit.app/) |
-| 🏠 Homework 07 | [查看](https://share.streamlit.io/asia17242/cloud_portfolio/main/projects/Homwwork_07_use%20workflow%20to%20generate%20california%20linear%20regression%20feature%20selection%20image/solve_linear_regression_dashboard.py) |
 
 ---
 
