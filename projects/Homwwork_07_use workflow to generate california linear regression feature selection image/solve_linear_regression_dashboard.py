@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -153,10 +154,13 @@ st.markdown("""
 # ==============================================================================
 @st.cache_data
 def load_and_preprocess_data():
+    # Use __file__ to get absolute path - works on Streamlit Cloud where
+    # working directory is repo root, not the script's subfolder
+    script_dir = os.path.dirname(os.path.abspath(__file__))
     try:
-        data = pd.read_csv("boston_housing.csv")
+        data = pd.read_csv(os.path.join(script_dir, "boston_housing.csv"))
     except FileNotFoundError:
-        data = pd.read_csv("data.csv")
+        data = pd.read_csv(os.path.join(script_dir, "data.csv"))
     return data
 
 df = load_and_preprocess_data()
