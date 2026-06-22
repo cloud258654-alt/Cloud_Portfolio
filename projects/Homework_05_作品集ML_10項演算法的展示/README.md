@@ -1,6 +1,7 @@
 # 🧠 十大機器學習方法：互動式視覺化資訊圖表
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://asia17242-hw52.streamlit.app)
+[![GitHub](https://img.shields.io/badge/GitHub-Cloud__Portfolio-181717?logo=github)](https://github.com/asia17242/Cloud_Portfolio/tree/main/projects/Homework_05_%E4%BD%9C%E5%93%81%E9%9B%86ML_10%E9%A0%85%E6%BC%94%E7%AE%97%E6%B3%95%E7%9A%84%E5%B1%95%E7%A4%BA)
 
 > 這是一個基於 **HTML5 Canvas、Tailwind CSS 與 Streamlit** 建立的機器學習演算法動態視覺化教學教材。
 > 使用者可以透過直觀的調整參數，即時觀察 10 大演算法的動態收斂行為。
@@ -66,19 +67,21 @@ streamlit run streamlit_app.py
 ## 📂 專案結構
 
 ```text
-HW52/
-├── code_artifact.html    # 主要互動式前端網頁 (HTML5/JS/Canvas + TailwindCSS)
-├── streamlit_app.py      # Streamlit Python 應用程式進入點
-├── requirements.txt      # Python 套件相依清單
-├── README.md             # 專案說明文件（本檔案）
-└── log.md                # 開發工作日誌
+Cloud_Portfolio/
+└── projects/
+    └── Homework_05_作品集ML_10項演算法的展示/
+        ├── code_artifact.html    # 主要互動式前端網頁 (HTML5/JS/Canvas + TailwindCSS)
+        ├── streamlit_app.py      # Streamlit Python 應用程式進入點
+        ├── requirements.txt      # Python 套件相依清單
+        ├── README.md             # 專案說明文件（本檔案）
+        └── log.md                # 開發工作日誌
 ```
 
 ---
 
 ## 🔗 相關連結
 
-- 📦 [GitHub Repository](https://github.com/asia17242/HW52)
+- 📦 [GitHub Repository](https://github.com/asia17242/Cloud_Portfolio/tree/main/projects/Homework_05_%E4%BD%9C%E5%93%81%E9%9B%86ML_10%E9%A0%85%E6%BC%94%E7%AE%97%E6%B3%95%E7%9A%84%E5%B1%95%E7%A4%BA)
 - 🚀 [Streamlit App](https://asia17242-hw52.streamlit.app)
 - 📋 [開發工作日誌 log.md](./log.md)
 
