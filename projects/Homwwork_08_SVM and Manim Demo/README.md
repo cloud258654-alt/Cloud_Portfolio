@@ -20,7 +20,9 @@ A complete educational repository that teaches the SVM kernel trick through thre
 
 The Phase 3 interactive playground is deployed on Streamlit Community Cloud — no installation needed to try it:
 
-**https://svm-kernel-trick-3d-demo.streamlit.app**
+**[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://cloudportfolio-2ylxy2lbvefaladuuktunk.streamlit.app/)**
+
+🔗 **https://cloudportfolio-2ylxy2lbvefaladuuktunk.streamlit.app/**
 
 Run it locally in under 60 seconds:
 
