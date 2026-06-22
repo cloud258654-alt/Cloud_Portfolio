@@ -1,5 +1,6 @@
 import streamlit as st
 import streamlit.components.v1 as components
+import os
 
 # 設定 Streamlit 頁面為寬螢幕模式與標題
 st.set_page_config(
@@ -29,9 +30,11 @@ hide_menu_style = """
         """
 st.markdown(hide_menu_style, unsafe_allow_html=True)
 
-# 讀取原本的 HTML 檔案內容
+# 讀取原本的 HTML 檔案內容（使用絕對路徑，避免 Streamlit Cloud 工作目錄問題）
 try:
-    with open("code_artifact.html", "r", encoding="utf-8") as f:
+    _dir = os.path.dirname(os.path.abspath(__file__))
+    html_file_path = os.path.join(_dir, "code_artifact.html")
+    with open(html_file_path, "r", encoding="utf-8") as f:
         html_code = f.read()
     
     # 使用 Streamlit HTML 元件嵌入，設定高度為 1600px 以完整容納網頁
