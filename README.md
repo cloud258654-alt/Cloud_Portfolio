@@ -16,6 +16,7 @@
 | 📅 學習歷程 | [查看](https://asia17242.github.io/Cloud_Portfolio/#journey) |
 | 📊 Homework 04 | [查看](https://share.streamlit.io/asia17242/homework_04/main/app.py) |
 | 📈 Startups Profit | [查看](https://cloudportfolio-khibgwiuagecuxc8gukdpm.streamlit.app/) |
+| 🏠 Homework 07 | [查看](https://share.streamlit.io/asia17242/cloud_portfolio/main/projects/Homwwork_07_use%20workflow%20to%20generate%20california%20linear%20regression%20feature%20selection%20image/solve_linear_regression_dashboard.py) |
 
 ---
 
@@ -29,6 +30,7 @@
 | Homework 03 | 文字生圖 App (手機版) | HTML、CSS、JS | [查看](https://asia17242.github.io/Cloud_Portfolio/projects/Homework_03/) |
 | Homework 04 | 線性迴歸模擬與離群值偵測 | Python、Streamlit、Sklearn | [查看](https://share.streamlit.io/asia17242/homework_04/main/app.py) |
 | 50 Startups | 新創企業獲利預估分析器 (包含雙語切換與 Sensitivity 圖表) | Python、Streamlit、Sklearn、Plotly | [查看](https://cloudportfolio-khibgwiuagecuxc8gukdpm.streamlit.app/) |
+| Homework 07 | 線性迴歸特徵選擇工作流與互動儀表板 | Python、Streamlit、Sklearn、Altair | [查看](https://share.streamlit.io/asia17242/cloud_portfolio/main/projects/Homwwork_07_use%20workflow%20to%20generate%20california%20linear%20regression%20feature%20selection%20image/solve_linear_regression_dashboard.py) |
 | AuraReader AI | 書籍雙 Agent 播客與精華萃取平台 | HTML、CSS、JS、Multi-Agent | [查看](https://asia17242.github.io/Cloud_Portfolio/projects/Listen%20to%20e-books/) |
 
 ---

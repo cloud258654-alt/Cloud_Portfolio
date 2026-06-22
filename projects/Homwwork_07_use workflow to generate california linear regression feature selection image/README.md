@@ -1,5 +1,9 @@
 # L7-Multiple Linear Regression Workflow
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/asia17242/cloud_portfolio/main/projects/Homwwork_07_use%20workflow%20to%20generate%20california%20linear%20regression%20feature%20selection%20image/solve_linear_regression_dashboard.py)
+
+💡 **[Streamlit Live Demo 連結](https://share.streamlit.io/asia17242/cloud_portfolio/main/projects/Homwwork_07_use%20workflow%20to%20generate%20california%20linear%20regression%20feature%20selection%20image/solve_linear_regression_dashboard.py)**
+
 This repository implements a modular Scikit-learn regression solution to predict Boston neighborhood housing values based on ecological, structural, and demographic indicators, adhering strictly to the **CRISP-DM (Cross-Industry Standard Process for Data Mining)** methodology.
 
 ---
