@@ -241,127 +241,155 @@ st.markdown('<div class="gradient-title">L7-Multiple Linear Regression Workflow<
 st.markdown(f'<div class="gradient-subtitle">CRISP-DM Step 4: Comparing Feature Selectors Evaluated via <b>{model_type}</b></div>', unsafe_allow_html=True)
 
 # ==============================================================================
-# Run All Feature Selection Algorithms (Full Ranking Computations)
+# Run All Feature Selection Algorithms (Cached for Performance)
 # ==============================================================================
-results = []
-feature_selections = {}
+@st.cache_data(show_spinner=False)
+def run_all_feature_selections(_X_train, _X_test, y_train, y_test, _clean_feature_names, model_type, top_k, random_seed):
+    """Compute all 9 feature selection algorithms. Cached to avoid recomputation."""
+    results = []
+    feature_selections = {}
 
-# Evaluation Helper
-def evaluate_selected(name, indices):
-    X_tr = X_train_processed[:, indices]
-    X_te = X_test_processed[:, indices]
-    
-    model = get_model_instance(model_type)
-    model.fit(X_tr, y_train)
-    y_pred = model.predict(X_te)
-    
-    mae = mean_absolute_error(y_test, y_pred)
-    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-    r2 = r2_score(y_test, y_pred)
-    
-    selected_feats = clean_feature_names[indices]
-    feature_selections[name] = selected_feats
-    
-    return {
-        "Method": name,
-        "Selected Features": list(selected_feats),
-        "Number of Features": len(indices),
-        "MAE": mae,
-        "RMSE": rmse,
-        "R2": r2,
-        "Model": model,
-        "Indices": indices
-    }
+    def get_model(name):
+        if name == "Linear Regression":
+            return LinearRegression()
+        elif name == "Lasso (L1 Regularized)":
+            return Lasso(alpha=0.1, random_state=random_seed)
+        elif name == "Random Forest Regressor":
+            return RandomForestRegressor(n_estimators=50, random_state=random_seed)
+        elif name == "Decision Tree Regressor":
+            return DecisionTreeRegressor(max_depth=4, random_state=random_seed)
 
-# 1. Pearson Correlation
-pearson_scores = [abs(np.corrcoef(X_train_processed[:, i], y_train)[0, 1]) for i in range(X_train_processed.shape[1])]
-pearson_all_ranks = np.argsort(pearson_scores)[::-1]
-results.append(evaluate_selected("Pearson Correlation", pearson_all_ranks[:top_k]))
+    def evaluate_selected(name, indices):
+        X_tr = _X_train[:, indices]
+        X_te = _X_test[:, indices]
+        model = get_model(model_type)
+        model.fit(X_tr, y_train)
+        y_pred = model.predict(X_te)
+        mae  = mean_absolute_error(y_test, y_pred)
+        rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+        r2   = r2_score(y_test, y_pred)
+        selected_feats = _clean_feature_names[indices]
+        feature_selections[name] = selected_feats
+        return {
+            "Method": name,
+            "Selected Features": list(selected_feats),
+            "Number of Features": len(indices),
+            "MAE": mae, "RMSE": rmse, "R2": r2,
+            "Model": model, "Indices": indices
+        }
 
-# 2. Spearman Correlation
-spearman_scores = [abs(pd.Series(X_train_processed[:, i]).corr(pd.Series(y_train.values), method='spearman')) for i in range(X_train_processed.shape[1])]
-spearman_all_ranks = np.argsort(spearman_scores)[::-1]
-results.append(evaluate_selected("Spearman Correlation", spearman_all_ranks[:top_k]))
+    # 1. Pearson
+    pearson_scores = [abs(np.corrcoef(_X_train[:, i], y_train)[0, 1]) for i in range(_X_train.shape[1])]
+    pearson_all_ranks = np.argsort(pearson_scores)[::-1]
+    results.append(evaluate_selected("Pearson Correlation", pearson_all_ranks[:top_k]))
 
-# 3. F-test Regression
-f_selector = SelectKBest(score_func=f_regression, k='all')
-f_selector.fit(X_train_processed, y_train)
-f_all_ranks = np.argsort(f_selector.scores_)[::-1]
-results.append(evaluate_selected("F-test Regression", f_all_ranks[:top_k]))
+    # 2. Spearman
+    spearman_scores = [abs(pd.Series(_X_train[:, i]).corr(pd.Series(y_train.values), method='spearman')) for i in range(_X_train.shape[1])]
+    spearman_all_ranks = np.argsort(spearman_scores)[::-1]
+    results.append(evaluate_selected("Spearman Correlation", spearman_all_ranks[:top_k]))
 
-# 4. Mutual Information Regression
-mi_scores = mutual_info_regression(X_train_processed, y_train, random_state=random_seed)
-mi_all_ranks = np.argsort(mi_scores)[::-1]
-results.append(evaluate_selected("Mutual Information", mi_all_ranks[:top_k]))
+    # 3. F-test
+    f_selector = SelectKBest(score_func=f_regression, k='all')
+    f_selector.fit(_X_train, y_train)
+    f_all_ranks = np.argsort(f_selector.scores_)[::-1]
+    results.append(evaluate_selected("F-test Regression", f_all_ranks[:top_k]))
 
-# 5. RFE
-if "Forest" in model_type:
-    rfe_est = RandomForestRegressor(n_estimators=50, random_state=random_seed)
-elif "Tree" in model_type:
-    rfe_est = DecisionTreeRegressor(max_depth=4, random_state=random_seed)
-else:
-    rfe_est = LinearRegression()
-rfe_selector = RFE(estimator=rfe_est, n_features_to_select=1)
-rfe_selector.fit(X_train_processed, y_train)
-rfe_all_ranks = np.argsort(rfe_selector.ranking_)
-results.append(evaluate_selected("RFE Selection Path", rfe_all_ranks[:top_k]))
+    # 4. Mutual Information
+    mi_scores = mutual_info_regression(_X_train, y_train, random_state=random_seed)
+    mi_all_ranks = np.argsort(mi_scores)[::-1]
+    results.append(evaluate_selected("Mutual Information", mi_all_ranks[:top_k]))
 
-# 6. SFS Forward
-sfs_forward_features = []
-max_eval_k = min(8, X_train_processed.shape[1])
-for k in range(1, max_eval_k + 1):
-    if k == X_train_processed.shape[1]:
-        sfs_forward_features.append(np.arange(X_train_processed.shape[1]))
+    # 5. RFE
+    if "Forest" in model_type:
+        rfe_est = RandomForestRegressor(n_estimators=30, random_state=random_seed)
+    elif "Tree" in model_type:
+        rfe_est = DecisionTreeRegressor(max_depth=4, random_state=random_seed)
     else:
-        sfs = SequentialFeatureSelector(get_model_instance(model_type), n_features_to_select=k, direction="forward", cv=3)
-        sfs.fit(X_train_processed, y_train)
-        sfs_forward_features.append(np.where(sfs.get_support())[0])
+        rfe_est = LinearRegression()
+    rfe_selector = RFE(estimator=rfe_est, n_features_to_select=1)
+    rfe_selector.fit(_X_train, y_train)
+    rfe_all_ranks = np.argsort(rfe_selector.ranking_)
+    results.append(evaluate_selected("RFE Selection Path", rfe_all_ranks[:top_k]))
 
-sfs_f_rank_order = []
-for k in range(max_eval_k):
-    for idx in sfs_forward_features[k]:
-        if idx not in sfs_f_rank_order:
-            sfs_f_rank_order.append(idx)
-            break
-# Fill remaining if any
-for i in range(X_train_processed.shape[1]):
-    if i not in sfs_f_rank_order:
-        sfs_f_rank_order.append(i)
-results.append(evaluate_selected("Sequential Forward Selection", sfs_f_rank_order[:top_k]))
+    # 6. SFS Forward (cv=2 for speed)
+    max_eval_k = min(8, _X_train.shape[1])
+    sfs_forward_features = []
+    for k in range(1, max_eval_k + 1):
+        if k == _X_train.shape[1]:
+            sfs_forward_features.append(np.arange(_X_train.shape[1]))
+        else:
+            sfs = SequentialFeatureSelector(get_model(model_type), n_features_to_select=k, direction="forward", cv=2)
+            sfs.fit(_X_train, y_train)
+            sfs_forward_features.append(np.where(sfs.get_support())[0])
+    sfs_f_rank_order = []
+    for k in range(max_eval_k):
+        for idx in sfs_forward_features[k]:
+            if idx not in sfs_f_rank_order:
+                sfs_f_rank_order.append(idx)
+                break
+    for i in range(_X_train.shape[1]):
+        if i not in sfs_f_rank_order:
+            sfs_f_rank_order.append(i)
+    results.append(evaluate_selected("Sequential Forward Selection", sfs_f_rank_order[:top_k]))
 
-# 7. SBS Backward
-sfs_backward_features = []
-for k in range(1, max_eval_k + 1):
-    if k == X_train_processed.shape[1]:
-        sfs_backward_features.append(np.arange(X_train_processed.shape[1]))
-    else:
-        sfs = SequentialFeatureSelector(get_model_instance(model_type), n_features_to_select=k, direction="backward", cv=3)
-        sfs.fit(X_train_processed, y_train)
-        sfs_backward_features.append(np.where(sfs.get_support())[0])
+    # 7. SBS Backward (cv=2 for speed)
+    sfs_backward_features = []
+    for k in range(1, max_eval_k + 1):
+        if k == _X_train.shape[1]:
+            sfs_backward_features.append(np.arange(_X_train.shape[1]))
+        else:
+            sfs = SequentialFeatureSelector(get_model(model_type), n_features_to_select=k, direction="backward", cv=2)
+            sfs.fit(_X_train, y_train)
+            sfs_backward_features.append(np.where(sfs.get_support())[0])
+    sfs_b_rank_order = []
+    for k in range(max_eval_k):
+        for idx in sfs_backward_features[k]:
+            if idx not in sfs_b_rank_order:
+                sfs_b_rank_order.append(idx)
+                break
+    for i in range(_X_train.shape[1]):
+        if i not in sfs_b_rank_order:
+            sfs_b_rank_order.append(i)
+    results.append(evaluate_selected("Sequential Backward Selection", sfs_b_rank_order[:top_k]))
 
-sfs_b_rank_order = []
-# greedy extraction
-for k in range(max_eval_k):
-    for idx in sfs_backward_features[k]:
-        if idx not in sfs_b_rank_order:
-            sfs_b_rank_order.append(idx)
-            break
-for i in range(X_train_processed.shape[1]):
-    if i not in sfs_b_rank_order:
-        sfs_b_rank_order.append(i)
-results.append(evaluate_selected("Sequential Backward Selection", sfs_b_rank_order[:top_k]))
+    # 8. Lasso
+    lasso = LassoCV(cv=2, random_state=random_seed)
+    lasso.fit(_X_train, y_train)
+    lasso_all_ranks = np.argsort(abs(lasso.coef_))[::-1]
+    results.append(evaluate_selected("Lasso L1 Selection", lasso_all_ranks[:top_k]))
 
-# 8. Lasso Selection Model
-lasso = LassoCV(cv=3, random_state=random_seed)
-lasso.fit(X_train_processed, y_train)
-lasso_all_ranks = np.argsort(abs(lasso.coef_))[::-1]
-results.append(evaluate_selected("Lasso L1 Selection", lasso_all_ranks[:top_k]))
+    # 9. Random Forest Importance
+    rf = RandomForestRegressor(n_estimators=50, random_state=random_seed)
+    rf.fit(_X_train, y_train)
+    rf_all_ranks = np.argsort(rf.feature_importances_)[::-1]
+    results.append(evaluate_selected("Random Forest Importance", rf_all_ranks[:top_k]))
 
-# 9. Random Forest Selection Model
-rf = RandomForestRegressor(n_estimators=100, random_state=random_seed)
-rf.fit(X_train_processed, y_train)
-rf_all_ranks = np.argsort(rf.feature_importances_)[::-1]
-results.append(evaluate_selected("Random Forest Importance", rf_all_ranks[:top_k]))
+    return results, feature_selections, pearson_all_ranks, spearman_all_ranks, f_all_ranks, mi_all_ranks, rfe_all_ranks, sfs_f_rank_order, sfs_b_rank_order, lasso_all_ranks, rf_all_ranks
+
+# Call the cached computation function with a spinner
+with st.spinner("⏳ Computing 9 feature selection algorithms... (first load ~20s, then cached ⚡)"):
+    (
+        results,
+        feature_selections,
+        pearson_all_ranks,
+        spearman_all_ranks,
+        f_all_ranks,
+        mi_all_ranks,
+        rfe_all_ranks,
+        sfs_f_rank_order,
+        sfs_b_rank_order,
+        lasso_all_ranks,
+        rf_all_ranks
+    ) = run_all_feature_selections(
+        X_train_processed,
+        X_test_processed,
+        y_train,
+        y_test,
+        clean_feature_names,
+        model_type,
+        top_k,
+        random_seed
+    )
 
 # Convert to DataFrame
 results_df = pd.DataFrame(results)
