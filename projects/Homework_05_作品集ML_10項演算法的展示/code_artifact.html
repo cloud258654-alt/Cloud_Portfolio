@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>十大機器學習方法：互動式視覺化資訊圖表</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #FFFDF0 0%, #FDF9DB 100%);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(234, 179, 8, 0.2);
+            box-shadow: 0 10px 30px -10px rgba(133, 77, 14, 0.15);
+        }
+        .active-tab {
+            background: linear-gradient(135deg, rgba(234, 179, 8, 0.15) 0%, rgba(245, 158, 11, 0.15) 100%);
+            border-left: 4px solid #ca8a04;
+            color: #854d0e;
+        }
+        .canvas-container {
+            position: relative;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px dashed rgba(202, 138, 4, 0.35);
+        }
+
+        /* 輕量黃色主題覆寫 */
+        .text-slate-100 { color: #1e293b !important; }
+        .text-slate-200 { color: #334155 !important; }
+        .text-slate-300 { color: #334155 !important; }
+        .text-slate-400 { color: #475569 !important; }
+        .text-slate-500 { color: #64748b !important; }
+        .text-white { color: #1e293b !important; }
+        .bg-slate-900\/80 { background-color: rgba(254, 253, 240, 0.9) !important; border-color: rgba(234, 179, 8, 0.2) !important; }
+        header h1 {
+            background: linear-gradient(135deg, #1e293b 0%, #ca8a04 100%) !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            color: transparent !important;
+        }
+        footer {
+            background-color: #fef08a !important;
+            color: #854d0e !important;
+            border-color: rgba(234, 179, 8, 0.2) !important;
+        }
+        .border-slate-800 { border-color: rgba(234, 179, 8, 0.15) !important; }
+        .border-slate-700 { border-color: rgba(234, 179, 8, 0.2) !important; }
+        .bg-slate-800 { background-color: #ffffff !important; border-color: rgba(234, 179, 8, 0.2) !important; color: #1e293b !important; }
+        .bg-slate-800:hover { background-color: #fefce8 !important; }
+        
+        /* 交互元件中的暗色區塊覆寫 */
+        .bg-slate-950\/80, .bg-slate-900, .bg-slate-900\/60, .bg-slate-900\/40, .bg-slate-950\/60, .bg-slate-950\/40 {
+            background-color: #ffffff !important;
+            border-color: rgba(234, 179, 8, 0.2) !important;
+            color: #1e293b !important;
+        }
+        
+        select {
+            background-color: #ffffff !important;
+            color: #1e293b !important;
+            border: 1px solid rgba(234, 179, 8, 0.3) !important;
+        }
+        
+        input[type="range"] {
+            background-color: #e2e8f0 !important;
+        }
+        
+        /* OLS 提示框 */
+        .bg-slate-900\/60.text-slate-400 {
+            color: #475569 !important;
+            background-color: rgba(254, 252, 232, 0.8) !important;
+            border-color: rgba(234, 179, 8, 0.2) !important;
+        }
+
+        #algorithm-list button div.text-slate-100 {
+            color: #475569 !important;
+        }
+        #algorithm-list button.active-tab div.text-slate-100 {
+            color: #854d0e !important;
+        }
+        #algorithm-list button i.text-slate-400 {
+            color: #64748b !important;
+        }
+        #algorithm-list button:hover i.text-slate-200 {
+            color: #ca8a04 !important;
+        }
+        #algorithm-list button div.bg-slate-800 {
+            background-color: #fefce8 !important;
+            color: #854d0e !important;
+        }
+        #algorithm-list button.active-tab div.bg-indigo-600 {
+            background-color: #ca8a04 !important;
+            color: #ffffff !important;
+        }
+    </style>
+</head>
+<body class="gradient-bg text-slate-800 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+    <!-- 頂部導航導覽列 -->
+    <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50 backdrop-blur-md px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <i class="fa-solid fa-brain text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-black text-xl tracking-wider bg-gradient-to-r from-white via-slate-200 to-indigo-400 bg-clip-text text-transparent">ML ALGORITHMS INFOGRAPHIC</h1>
+                <p class="text-xs text-slate-400 font-medium">十大機器學習方法 · 互動式動態學習教材</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="px-3 py-1 rounded-full bg-slate-800 text-xs border border-slate-700 text-slate-300 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                動態模擬實驗室已就緒
+            </span>
+            <button onclick="resetAllExperiments()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition flex items-center gap-1">
+                <i class="fa-solid fa-arrow-rotate-left"></i> 重設所有實驗
+            </button>
+        </div>
+    </header>
+
+    <!-- 全局統計與導覽總覽 -->
+    <section class="max-w-7xl w-full mx-auto px-6 pt-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="glass-panel p-4 rounded-xl flex items-center space-x-4">
+                <div class="p-3 rounded-lg bg-blue-500/10 text-blue-400"><i class="fa-solid fa-list-check text-xl"></i></div>
+                <div>
+                    <div class="text-xs text-slate-400">涵蓋核心方法</div>
+                    <div class="text-xl font-bold">10 大核心演算法</div>
+                </div>
+            </div>
+            <div class="glass-panel p-4 rounded-xl flex items-center space-x-4">
+                <div class="p-3 rounded-lg bg-purple-500/10 text-purple-400"><i class="fa-solid fa-gears text-xl"></i></div>
+                <div>
+                    <div class="text-xs text-slate-400">包含學習範式</div>
+                    <div class="text-xl font-bold">監督 / 非監督 / 降維</div>
+                </div>
+            </div>
+            <div class="glass-panel p-4 rounded-xl flex items-center space-x-4">
+                <div class="p-3 rounded-lg bg-emerald-500/10 text-emerald-400"><i class="fa-solid fa-flask text-xl"></i></div>
+                <div>
+                    <div class="text-xs text-slate-400">互動組件</div>
+                    <div class="text-xl font-bold">10 組即時模擬實驗</div>
+                </div>
+            </div>
+            <div class="glass-panel p-4 rounded-xl flex items-center space-x-4">
+                <div class="p-3 rounded-lg bg-amber-500/10 text-amber-400"><i class="fa-solid fa-book text-xl"></i></div>
+                <div>
+                    <div class="text-xs text-slate-400">教材深度</div>
+                    <div class="text-xl font-bold">極高 (附公式與應用)</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 主體內容區塊 -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- 左側：演算法切換菜單 (3/12 cols) -->
+        <nav class="lg:col-span-3 flex flex-col gap-2">
+            <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 px-3 mb-2 flex items-center justify-between">
+                <span>選擇機器學習方法</span>
+                <i class="fa-solid fa-chevron-down text-[10px]"></i>
+            </div>
+            <div class="space-y-1.5 overflow-y-auto max-h-[calc(100vh-280px)] pr-2" id="algorithm-list">
+                <!-- 透過 JavaScript 動態生成菜單項 -->
+            </div>
+        </nav>
+
+        <!-- 右側：詳細內容與互動實驗室 (9/12 cols) -->
+        <section class="lg:col-span-9 flex flex-col gap-6">
+            
+            <!-- 大字卡片：原理與資訊 -->
+            <div class="glass-panel rounded-2xl p-6 lg:p-8" id="algorithm-content-card">
+                <!-- 動態注入內容 -->
+                <div class="animate-pulse space-y-4">
+                    <div class="h-8 bg-slate-800 rounded w-1/3"></div>
+                    <div class="h-4 bg-slate-800 rounded w-2/3"></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="h-24 bg-slate-800 rounded"></div>
+                        <div class="h-24 bg-slate-800 rounded"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 下方卡片：互動實驗室 (Interactive Lab) -->
+            <div class="glass-panel rounded-2xl p-6 border-t-4 border-indigo-500 shadow-xl shadow-indigo-950/10">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                            <i class="fa-solid fa-vial-circle-check"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg text-white">動態視覺化實驗室 (Live Sandbox)</h3>
+                            <p class="text-xs text-slate-400">藉由直接調整參數與點擊，觀察演算法的動態收斂行為</p>
+                        </div>
+                    </div>
+                    <div id="lab-controls" class="flex gap-2">
+                        <!-- 動態控制項 -->
+                    </div>
+                </div>
+
+                <!-- 實驗核心顯示區 -->
+                <div class="w-full flex flex-col items-center justify-center" id="experiment-playground">
+                    <!-- 動態載入 Canvas 或 交互介面 -->
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- 頁尾 -->
+    <footer class="border-t border-slate-800 bg-slate-950 py-6 text-center text-xs text-slate-500 mt-12">
+        <p>© 2026 機器學習全景圖互動教研組. 版權所有. 專為教育與學術研討設計.</p>
+    </footer>
+
+    <!-- 演算法資料庫 -->
+    <script>
+        const algorithms = [
+            {
+                id: "linear_regression",
+                name: "線性回歸",
+                english: "Linear Regression",
+                icon: "fa-chart-line",
+                paradigm: "有監督學習 · 回歸",
+                tagColor: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+                formula: "Y = β₀ + β₁X₁ + β₂X₂ + ... + βₙXₙ + ε",
+                description: "尋找一條最佳的直線（或超平面），來建模自變數與應變數之間的線性映射關係，使所有觀測點到直線的殘差平方和（RSS）最小化。",
+                pros: ["模型極其簡單，計算速度極快", "結果具有極高的統計學可解釋性，容易推廣"],
+                cons: ["無法捕捉非線性關係", "對極端異常值（Outliers）非常敏感"],
+                application: "銷售量預測、氣溫變化趨勢、房價估算、經濟指標預測。",
+                labInstructions: "【動態回歸繪圖板】在下方的暗色畫布上任意點擊新增數據點。系統會使用最小二乘法（OLS）即時計算出最優斜率與截距，並動態補捉全新回歸線！",
+            },
+            {
+                id: "logistic_regression",
+                name: "邏輯回歸",
+                english: "Logistic Regression",
+                icon: "fa-circle-half-stroke",
+                paradigm: "有監督學習 · 二分類",
+                tagColor: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+                formula: "P(Y=1|X) = σ(WᵀX + b) = 1 / (1 + e^{-(WᵀX + b)})",
+                description: "將線性回歸的實數輸出，映射到 [0, 1] 的機率區間。透過對數幾率（Log Odds）描述樣本屬於特定類別的後驗概率。",
+                pros: ["直接輸出概率值，有助於業務決策閾值劃分", "模型穩健，計算資源要求低"],
+                cons: ["本質上仍是線性分類器，無法直接處理高度交叉非線性特徵"],
+                application: "信用卡刷卡欺詐識別、廣告點擊率預測（CTR）、疾病臨床診斷。",
+                labInstructions: "【Sigmoid 閾值分類器】左右移動下方的「分類閾值臨界線」滑桿。觀察原本綠色與紅色的樣本點如何被即時劃分，並觀察 Sigmoid 曲線上的概率對應關係。",
+            },
+            {
+                id: "decision_tree",
+                name: "決策樹",
+                english: "Decision Tree",
+                icon: "fa-network-wired",
+                paradigm: "有監督學習 · 分類與回歸",
+                tagColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+                formula: "Gain(D, A) = Entropy(D) - ∑ |Dᵥ|/|D| * Entropy(Dᵥ)",
+                description: "模仿人類決策過程，透過信息熵（Entropy）、基尼係數（Gini）等分裂指標，對數據特徵進行逐步二分，形成樹狀階層結構。",
+                pros: ["完全不要求數據分佈假設，可直接處理不均勻特徵", "決策路徑可視化，易於向非技術人員展示"],
+                cons: ["極易隨著樹深增加而陷入過擬合（Overfitting）"],
+                application: "金融貸款審核規則生成、電商客戶行為決策流分析。",
+                labInstructions: "【動態決策樹路徑】在下方調整「年齡」與「收入」兩大特徵參數，觀看決策樹內部的節點如何即時點亮，引導出最終是「購買」或「不購買」的分類預測結果！",
+            },
+            {
+                id: "random_forest",
+                name: "隨機森林",
+                english: "Random Forest",
+                icon: "fa-tree",
+                paradigm: "有監督學習 · 整合Bagging",
+                tagColor: "bg-teal-500/10 text-teal-400 border-teal-500/20",
+                formula: "ŷ = Mode(T₁(x), T₂(x), ..., T_M(x))",
+                description: "構建多棵獨立決策樹。每次建樹隨機抽取樣本子集（Bootstrap）與特徵子集，最終透過多數決投票或求平均值輸出，大幅降低方差。",
+                pros: ["擁有極強的抗過擬合能力，準確度極高", "能產出「特徵重要性評估」作為降維依據"],
+                cons: ["多樹堆疊下，模型變得像黑箱，失去單棵樹的直觀解釋性"],
+                application: "客戶流失風險預測、生醫大數據特徵篩選、股價趨勢預估。",
+                labInstructions: "【群樹投票機制動態演練】輸入一個任意測試特徵。右邊將呈現五棵獨立樹（Forest Members）各自在不完全信息下的投票判斷，並輸出最終的票選百分比！",
+            },
+            {
+                id: "gbdt",
+                name: "梯度提升樹",
+                english: "Gradient Boosting Trees",
+                icon: "fa-arrow-trend-up",
+                paradigm: "有監督學習 · 整合Boosting",
+                tagColor: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+                formula: "F_m(x) = F_{m-1}(x) + γ_m * h_m(x)",
+                description: "序列式建樹。每一棵新樹都在擬合當前集成模型損失函數的負梯度（殘差），將多個弱分類器精準累積為一個強分類器。",
+                pros: ["幾乎是結構化數據預測能力最強的演算法，競賽常勝軍", "精準度極限逼近物理邊界"],
+                cons: ["訓練是串行的，難以高度並行化；敏感於噪聲與過擬合"],
+                application: "搜尋引擎召回重排、推薦系統排序、金融風控超高維預測。",
+                labInstructions: "【殘差遞減修正圖表】拖動「集成樹棵數（Boosting Steps）」滑桿。觀察隨著弱樹不斷疊加，右側綜合擬合曲線是如何將極其複雜甚至帶有噪聲的邊界完美描繪出來。",
+            },
+            {
+                id: "svm",
+                name: "支持向量機",
+                english: "Support Vector Machine",
+                icon: "fa-arrows-split-up-and-left",
+                paradigm: "有監督學習 · 二分類",
+                tagColor: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+                formula: "K(x, y) = exp(-γ ||x - y||²)",
+                description: "尋找幾何邊界最大的超平面。面對線性不可分，利用核技巧（Kernel Trick）將特徵映射到高維空間使其線性可分。",
+                pros: ["在中小型高維稀疏資料集上表現極其強健", "僅依賴少數支持向量，泛化界限優雅"],
+                cons: ["大數據規模下計算複雜度過高，對核函數與參數敏感"],
+                application: "圖像人臉識別、癌症病理基因篩選、高維文本分類。",
+                labInstructions: "【RBF非線性超平面模擬】在下方2D空間點擊。系統模擬 RBF 高斯核函數，自動為您繪製出包裹特定類別的「環狀非線性決策邊界」，完美詮釋高維映射！",
+            },
+            {
+                id: "knn",
+                name: "K-近鄰演算法",
+                english: "K-Nearest Neighbors",
+                icon: "fa-people-arrows",
+                paradigm: "有監督學習 · 惰性學習",
+                tagColor: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+                formula: "D(x, y) = √{ ∑_{i=1}ⁿ (x_i - y_i)² }",
+                description: "基於空間距離度量。當前輸入樣本分類由距離其最近的 $K$ 個鄰居的多數表決票數決定。無需顯式建模與訓練階段。",
+                pros: ["邏輯極其簡單，完全無需訓練，天生支持多分類"],
+                cons: ["預測時需要掃描全數據，計算與儲存開銷極大；易受維度災難影響"],
+                application: "即時推薦、缺失值估算、模式識別過濾器。",
+                labInstructions: "【K-NN 即時鄰居連線】在下方的 2D 散點圖中隨意移動滑鼠。黃色發光圈為您的測試點，系統會即時追蹤並連線到最近的 $K$ 個點，並宣告判定分類！",
+            },
+            {
+                id: "kmeans",
+                name: "K-平均分群",
+                english: "K-Means Clustering",
+                icon: "fa-chart-simple",
+                paradigm: "非監督學習 · 分群",
+                tagColor: "bg-pink-500/10 text-pink-400 border-pink-500/20",
+                formula: "J = ∑_{j=1}ᴷ ∑_{x ∈ C_j} ||x - μ_j||²",
+                description: "通過交替進行「指派（E步）」和「更新質心（M步）」，將無標記數據點劃分為相鄰的 $K$ 個不相交簇，使各簇內變異量最小。",
+                pros: ["演算法易於理解、收斂速度快，對海量數據分群非常高效"],
+                cons: ["需要預先人為指定 K 值；對初始質心極其敏感，易陷入局部最優"],
+                application: "市場客戶細分、圖像顏色降維壓縮、安全日誌異常值提取。",
+                labInstructions: "【K-Means 迭代演練器】點擊「初始化點與質心」後，每次點擊「迭代下一輪(Step)」，您將目睹多個質心如何自主移動、最終實現自動完美聚類！",
+            },
+            {
+                id: "pca",
+                name: "主成分分析",
+                english: "Principal Component Analysis",
+                icon: "fa-minimize",
+                paradigm: "無監督學習 · 特徵降維",
+                tagColor: "bg-violet-500/10 text-violet-400 border-violet-500/20",
+                formula: "Σ = (1/m) XᵀX",
+                description: "尋找方差保留最大的投影軸。將互相關聯的高維特徵投影至正交的主成分方向，在最大程度保留原始信息的前提下完成降維。",
+                pros: ["消除特徵之間的共線性（Collinearity），消除低方差噪聲"],
+                cons: ["投影出的新主成分通常難以找到對應的實際物理或業務含義"],
+                application: "高維圖像壓縮、特徵預處理去噪、二維/三維數據可視化降維。",
+                labInstructions: "【主成分投影旋轉】拉動下方的投影角度。觀察數據點投影到新軸線上的方差變化。當方差達到最大時，該正交軸即為第一主成分 PC1！",
+            },
+            {
+                id: "ann",
+                name: "人工神經網路 / 深度學習",
+                english: "Artificial Neural Networks",
+                icon: "fa-network-wired",
+                paradigm: "多層感知機 · 複雜學習",
+                tagColor: "bg-red-500/10 text-red-400 border-red-500/20",
+                formula: "aˡ = f( Wˡ a^{l-1} + bˡ )",
+                description: "模擬大腦神經元結構，由輸入、隱藏和輸出層組成。利用反向傳播與鏈式法則計算各層權重梯度，配合 Adam 等優化器不斷迭代更新參數。",
+                pros: ["特徵提取能力極度強大，能擬合物理界任何複雜非線性映射"],
+                cons: ["參數極多需要海量數據支援，訓練昂貴，黑盒特徵無法解釋"],
+                application: "大型語言模型、電腦視覺目標檢測、全自動駕駛系統。",
+                labInstructions: "【前向傳播動畫演示】點擊「發射前向傳播訊號」，觀看輸入特徵值如何通過隱藏層神經元權重加成、經非線性激活後最終流向輸出端的動態光效！",
+            }
+        ];
+
+        let activeAlgoId = "linear_regression";
+
+        // 動態生成左側菜單
+        function renderMenu() {
+            const listContainer = document.getElementById("algorithm-list");
+            listContainer.innerHTML = "";
+            algorithms.forEach(algo => {
+                const btn = document.createElement("button");
+                btn.className = `w-full text-left px-4 py-3 rounded-xl transition flex items-center justify-between group ${algo.id === activeAlgoId ? 'active-tab shadow-lg shadow-indigo-950/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'}`;
+                btn.onclick = () => switchAlgorithm(algo.id);
+                btn.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-lg ${algo.id === activeAlgoId ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 group-hover:bg-slate-700/60'} flex items-center justify-center transition">
+                            <i class="fa-solid ${algo.icon}"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-sm text-slate-100">${algo.name}</div>
+                            <div class="text-[10px] text-slate-500 group-hover:text-slate-400 transition">${algo.english}</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs opacity-0 group-hover:opacity-100 transition duration-300"></i>
+                `;
+                listContainer.appendChild(btn);
+            });
+        }
+
+        // 切換演算法
+        function switchAlgorithm(id) {
+            activeAlgoId = id;
+            renderMenu();
+            renderContent();
+            initExperiment();
+        }
+
+        // 動態注入主內容
+        function renderContent() {
+            const algo = algorithms.find(a => a.id === activeAlgoId);
+            const contentCard = document.getElementById("algorithm-content-card");
+            
+            contentCard.innerHTML = `
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5 mb-6">
+                    <div>
+                        <div class="flex items-center gap-3">
+                            <span class="px-2.5 py-1 text-xs font-semibold rounded-md border ${algo.tagColor}">${algo.paradigm}</span>
+                        </div>
+                        <h2 class="text-2xl md:text-3xl font-black text-white mt-2">${algo.name} <span class="text-slate-500 font-normal text-lg md:text-xl">(${algo.english})</span></h2>
+                    </div>
+                    <div class="bg-slate-950/60 border border-slate-800 px-4 py-3 rounded-xl max-w-sm">
+                        <div class="text-[10px] font-mono text-indigo-400 uppercase tracking-widest mb-1"><i class="fa-solid fa-square-root-variable"></i> 核心數學表達式</div>
+                        <code class="text-sm font-mono text-emerald-400 break-all">${algo.formula}</code>
+                    </div>
+                </div>
+
+                <p class="text-slate-300 text-sm md:text-base leading-relaxed mb-6"><i class="fa-solid fa-quote-left text-slate-600 mr-2 text-lg"></i>${algo.description}</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                        <h4 class="font-bold text-sm text-emerald-400 mb-2 flex items-center gap-2"><i class="fa-regular fa-circle-check"></i> 優勢與特色 (Pros)</h4>
+                        <ul class="space-y-1.5 text-xs text-slate-400">
+                            ${algo.pros.map(p => `<li class="flex items-start gap-1.5"><span class="text-emerald-500">•</span>${p}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="p-4 rounded-xl bg-red-500/5 border border-red-500/10">
+                        <h4 class="font-bold text-sm text-red-400 mb-2 flex items-center gap-2"><i class="fa-regular fa-circle-xmark"></i> 限制與挑戰 (Cons)</h4>
+                        <ul class="space-y-1.5 text-xs text-slate-400">
+                            ${algo.cons.map(c => `<li class="flex items-start gap-1.5"><span class="text-red-400">•</span>${c}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-xl bg-slate-950/40 border border-slate-800 flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0"><i class="fa-solid fa-industry"></i></div>
+                    <div>
+                        <h4 class="font-bold text-sm text-slate-200">典型工業落地場景</h4>
+                        <p class="text-xs text-slate-400 mt-1 leading-relaxed">${algo.application}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ----------------------------------------------------
+        // 互動模擬實驗室邏輯
+        // ----------------------------------------------------
+        
+        let canvas, ctx;
+        let animationFrameId = null;
+
+        // 重設所有實驗數據（回到當前實驗初始狀態）
+        function resetAllExperiments() {
+            initExperiment();
+        }
+
+        function initExperiment() {
+            // 清理舊的動畫
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+
+            const playground = document.getElementById("experiment-playground");
+            const controls = document.getElementById("lab-controls");
+            const algo = algorithms.find(a => a.id === activeAlgoId);
+            
+            // 寫入提示與操作指引
+            playground.innerHTML = `
+                <div class="w-full text-center text-xs text-slate-400 mb-3 bg-slate-900/60 py-1.5 px-3 rounded-lg flex items-center justify-center gap-2 border border-slate-800">
+                    <i class="fa-solid fa-circle-info text-indigo-400"></i> ${algo.labInstructions}
+                </div>
+                <div id="canvas-wrapper" class="w-full max-w-[500px] h-[300px] rounded-xl overflow-hidden canvas-container shadow-2xl">
+                    <!-- 畫布或互動組件將被動態塞入 -->
+                </div>
+            `;
+            controls.innerHTML = "";
+
+            const wrapper = document.getElementById("canvas-wrapper");
+
+            switch (activeAlgoId) {
+                case "linear_regression":
+                    setupLinearRegression(wrapper, controls);
+                    break;
+                case "logistic_regression":
+                    setupLogisticRegression(wrapper, controls);
+                    break;
+                case "decision_tree":
+                    setupDecisionTree(wrapper, controls);
+                    break;
+                case "random_forest":
+                    setupRandomForest(wrapper, controls);
+                    break;
+                case "gbdt":
+                    setupGBDT(wrapper, controls);
+                    break;
+                case "svm":
+                    setupSVM(wrapper, controls);
+                    break;
+                case "knn":
+                    setupKNN(wrapper, controls);
+                    break;
+                case "kmeans":
+                    setupKMeans(wrapper, controls);
+                    break;
+                case "pca":
+                    setupPCA(wrapper, controls);
+                    break;
+                case "ann":
+                    setupANN(wrapper, controls);
+                    break;
+            }
+        }
+
+        // 1. 線性回歸實驗
+        function setupLinearRegression(wrapper, controls) {
+            const cv = document.createElement("canvas");
+            cv.width = 500;
+            cv.height = 300;
+            cv.className = "cursor-crosshair w-full h-full block";
+            wrapper.appendChild(cv);
+            const cx = cv.getContext("2d");
+
+            let points = [
+                {x: 100, y: 220}, {x: 180, y: 190}, {x: 250, y: 160}, {x: 350, y: 120}, {x: 420, y: 90}
+            ];
+
+            function draw() {
+                cx.clearRect(0, 0, 500, 300);
+                
+                // 畫格線
+                cx.strokeStyle = "rgba(0,0,0,0.04)";
+                cx.lineWidth = 1;
+                for (let i = 0; i < 500; i += 20) {
+                    cx.beginPath(); cx.moveTo(i, 0); cx.lineTo(i, 300); cx.stroke();
+                }
+                for (let j = 0; j < 300; j += 20) {
+                    cx.beginPath(); cx.moveTo(0, j); cx.lineTo(500, j); cx.stroke();
+                }
+
+                // 計算最小二乘法 OLS
+                if (points.length >= 2) {
+                    let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+                    points.forEach(p => {
+                        sumX += p.x; sumY += p.y;
+                        sumXY += p.x * p.y;
+                        sumXX += p.x * p.x;
+                    });
+                    const n = points.length;
+                    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+                    const intercept = (sumY - slope * sumX) / n;
+
+                    // 繪製回歸線
+                    cx.beginPath();
+                    cx.strokeStyle = "#3b82f6";
+                    cx.lineWidth = 3;
+                    cx.shadowColor = "#3b82f6";
+                    cx.shadowBlur = 10;
+                    
+                    const x1 = 0; const y1 = slope * x1 + intercept;
+                    const x2 = 500; const y2 = slope * x2 + intercept;
+                    cx.moveTo(x1, y1);
+                    cx.lineTo(x2, y2);
+                    cx.stroke();
+                    cx.shadowBlur = 0; // 重置陰影
+
+                    // 繪製殘差線
+                    cx.strokeStyle = "rgba(244, 63, 94, 0.65)";
+                    cx.lineWidth = 1;
+                    cx.setLineDash([4, 4]);
+                    points.forEach(p => {
+                        const predY = slope * p.x + intercept;
+                        cx.beginPath();
+                        cx.moveTo(p.x, p.y);
+                        cx.lineTo(p.x, predY);
+                        cx.stroke();
+                    });
+                    cx.setLineDash([]);
+                }
+
+                // 畫點
+                points.forEach(p => {
+                    cx.beginPath();
+                    cx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+                    cx.fillStyle = "#10b981";
+                    cx.shadowColor = "#10b981";
+                    cx.shadowBlur = 8;
+                    cx.fill();
+                    cx.shadowBlur = 0;
+                });
+            }
+
+            cv.addEventListener("click", (e) => {
+                const rect = cv.getBoundingClientRect();
+                const x = (e.clientX - rect.left) * (500 / rect.width);
+                const y = (e.clientY - rect.top) * (300 / rect.height);
+                points.push({x, y});
+                draw();
+            });
+
+            // 控制項：清除點
+            const btnClear = document.createElement("button");
+            btnClear.className = "px-3 py-1 bg-rose-500/20 hover:bg-rose-500/35 border border-rose-500/30 text-rose-300 rounded-lg text-xs font-semibold transition";
+            btnClear.innerText = "清除全部點";
+            btnClear.onclick = () => { points = []; draw(); };
+            controls.appendChild(btnClear);
+
+            draw();
+        }
+
+        // 2. 邏輯回歸實驗
+        function setupLogisticRegression(wrapper, controls) {
+            // 使用 DOM 構建交互
+            wrapper.className = "w-full max-w-[500px] bg-slate-950/80 p-6 flex flex-col items-center justify-center rounded-xl border border-slate-800";
+            wrapper.innerHTML = `
+                <div class="w-full flex justify-between text-xs text-slate-400 mb-2">
+                    <span>X < 0 (類別 A：不購買)</span>
+                    <span>X > 0 (類別 B：購買)</span>
+                </div>
+                <div class="relative w-full h-[120px] bg-slate-900 border border-slate-800 rounded-lg overflow-hidden flex items-center">
+                    <!-- 分類邊界線 -->
+                    <div id="logistic-boundary" class="absolute top-0 bottom-0 w-1 bg-indigo-500 shadow-lg shadow-indigo-500/50 transition-all duration-100" style="left: 50%;"></div>
+                    <!-- 生成樣本點 -->
+                    <div id="logistic-points-container" class="absolute inset-0"></div>
+                </div>
+                <div class="w-full mt-6">
+                    <label class="block text-xs font-semibold text-slate-300 mb-2 flex justify-between">
+                        <span>分類決策閾值 (Classification Threshold)</span>
+                        <span id="threshold-val" class="text-indigo-400 font-mono">0.50</span>
+                    </label>
+                    <input type="range" id="threshold-slider" min="0.1" max="0.9" step="0.05" value="0.5" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                </div>
+            `;
+
+            const slider = document.getElementById("threshold-slider");
+            const boundary = document.getElementById("logistic-boundary");
+            const container = document.getElementById("logistic-points-container");
+            const label = document.getElementById("threshold-val");
+
+            // 預置點
+            const rawPoints = [
+                {x: 10, val: 0.05}, {x: 25, val: 0.12}, {x: 38, val: 0.22}, {x: 45, val: 0.35},
+                {x: 52, val: 0.61}, {x: 65, val: 0.78}, {x: 78, val: 0.88}, {x: 90, val: 0.96}
+            ];
+
+            function update() {
+                const threshold = parseFloat(slider.value);
+                label.innerText = threshold.toFixed(2);
+                
+                // 閥值對應的位置 (百分比)
+                const boundaryPercent = threshold * 100;
+                boundary.style.left = `${boundaryPercent}%`;
+
+                container.innerHTML = "";
+                rawPoints.forEach(p => {
+                    const el = document.createElement("div");
+                    el.className = "absolute w-5 h-5 rounded-full border-2 flex items-center justify-center font-bold text-[9px] transition-all duration-300 transform -translate-y-1/2";
+                    el.style.top = "50%";
+                    el.style.left = `${p.x}%`;
+                    
+                    // 根據當前大於小於閾值判斷顏色
+                    if (p.val >= threshold) {
+                        el.className += " bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-md shadow-emerald-500/10";
+                        el.innerText = "B";
+                    } else {
+                        el.className += " bg-rose-500/20 border-rose-500 text-rose-400 shadow-md shadow-rose-500/10";
+                        el.innerText = "A";
+                    }
+                    container.appendChild(el);
+                });
+            }
+
+            slider.addEventListener("input", update);
+            update();
+        }
+
+        // 3. 決策樹實驗
+        function setupDecisionTree(wrapper, controls) {
+            wrapper.className = "w-full max-w-[500px] bg-slate-950/80 p-6 flex flex-col items-center justify-center rounded-xl border border-slate-800";
+            wrapper.innerHTML = `
+                <div class="grid grid-cols-2 gap-4 w-full mb-6">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">特徵一：年齡 (Age)</label>
+                        <select id="dt-age" class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1.5 text-xs text-slate-200">
+                            <option value="young">青年 (&lt; 30)</option>
+                            <option value="middle">中年 (30 - 50)</option>
+                            <option value="old">老年 (&gt; 50)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">特徵二：高收入 (High Income)</label>
+                        <select id="dt-income" class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1.5 text-xs text-slate-200">
+                            <option value="no">否</option>
+                            <option value="yes">是</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 模擬樹狀節點結構 -->
+                <div class="flex flex-col items-center space-y-4 w-full">
+                    <!-- 根節點 -->
+                    <div id="node-root" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-xs font-bold transition">
+                        [根節點] 是否中年或老年？
+                    </div>
+                    <div class="w-2/3 h-4 border-l border-r border-slate-700 flex justify-between relative">
+                        <span class="absolute left-4 -top-3 text-[10px] text-slate-500">否</span>
+                        <span class="absolute right-4 -top-3 text-[10px] text-slate-500">是</span>
+                    </div>
+                    <!-- 第二層 -->
+                    <div class="flex justify-between w-full">
+                        <div id="node-left" class="w-[45%] text-center px-2 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-xs font-bold transition">
+                            [青年] 收入高？
+                        </div>
+                        <div id="node-right" class="w-[45%] text-center px-2 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-xs font-bold transition">
+                            [中老年] 購買機率高
+                        </div>
+                    </div>
+                    <!-- 葉節點 -->
+                    <div class="w-full flex justify-between">
+                        <div class="w-[45%] flex justify-between">
+                            <div id="leaf-1" class="px-2 py-1.5 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-bold w-[45%] transition">
+                                不購買
+                            </div>
+                            <div id="leaf-2" class="px-2 py-1.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold w-[45%] transition">
+                                購買
+                            </div>
+                        </div>
+                        <div class="w-[45%] flex justify-center">
+                            <div id="leaf-3" class="px-3 py-1.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition">
+                                直接通過
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const ageSelect = document.getElementById("dt-age");
+            const incomeSelect = document.getElementById("dt-income");
+
+            const nodeRoot = document.getElementById("node-root");
+            const nodeLeft = document.getElementById("node-left");
+            const nodeRight = document.getElementById("node-right");
+            const leaf1 = document.getElementById("leaf-1");
+            const leaf2 = document.getElementById("leaf-2");
+            const leaf3 = document.getElementById("leaf-3");
+
+            function updateTree() {
+                const age = ageSelect.value;
+                const income = incomeSelect.value;
+
+                // 重置所有節點顏色
+                [nodeRoot, nodeLeft, nodeRight, leaf1, leaf2, leaf3].forEach(n => {
+                    n.classList.remove("bg-indigo-600", "border-indigo-500", "scale-105");
+                    n.classList.add("bg-slate-800", "border-slate-700");
+                });
+
+                // 點亮根節點
+                nodeRoot.classList.add("bg-indigo-600", "border-indigo-500", "scale-105");
+
+                if (age === "young") {
+                    // 走左子樹
+                    setTimeout(() => {
+                        nodeLeft.classList.add("bg-indigo-600", "border-indigo-500", "scale-105");
+                        if (income === "yes") {
+                            setTimeout(() => leaf2.classList.add("bg-indigo-600", "border-indigo-500", "scale-105"), 100);
+                        } else {
+                            setTimeout(() => leaf1.classList.add("bg-indigo-600", "border-indigo-500", "scale-105"), 100);
+                        }
+                    }, 100);
+                } else {
+                    // 中老年走右子樹
+                    setTimeout(() => {
+                        nodeRight.classList.add("bg-indigo-600", "border-indigo-500", "scale-105");
+                        setTimeout(() => leaf3.classList.add("bg-indigo-600", "border-indigo-500", "scale-105"), 100);
+                    }, 100);
+                }
+            }
+
+            ageSelect.addEventListener("change", updateTree);
+            incomeSelect.addEventListener("change", updateTree);
+            updateTree();
+        }
+
+        // 4. 隨機森林實驗
+        function setupRandomForest(wrapper, controls) {
+            wrapper.className = "w-full max-w-[500px] bg-slate-950/80 p-5 flex flex-col items-center justify-center rounded-xl border border-slate-800";
+            wrapper.innerHTML = `
+                <div class="text-xs text-slate-400 mb-4 text-center">給定一個測試樣本，觀看五棵互不相同的決策樹隨機投票決策。</div>
+                <div class="flex justify-around w-full gap-2 mb-6">
+                    <div class="flex flex-col items-center bg-slate-900/60 p-2 border border-slate-800/80 rounded">
+                        <span class="text-[10px] text-slate-500">樹一</span>
+                        <div id="tree-1" class="text-xs font-bold mt-1 text-slate-400">思考中</div>
+                    </div>
+                    <div class="flex flex-col items-center bg-slate-900/60 p-2 border border-slate-800/80 rounded">
+                        <span class="text-[10px] text-slate-500">樹二</span>
+                        <div id="tree-2" class="text-xs font-bold mt-1 text-slate-400">思考中</div>
+                    </div>
+                    <div class="flex flex-col items-center bg-slate-900/60 p-2 border border-slate-800/80 rounded">
+                        <span class="text-[10px] text-slate-500">樹三</span>
+                        <div id="tree-3" class="text-xs font-bold mt-1 text-slate-400">思考中</div>
+                    </div>
+                    <div class="flex flex-col items-center bg-slate-900/60 p-2 border border-slate-800/80 rounded">
+                        <span class="text-[10px] text-slate-500">樹四</span>
+                        <div id="tree-4" class="text-xs font-bold mt-1 text-slate-400">思考中</div>
+                    </div>
+                    <div class="flex flex-col items-center bg-slate-900/60 p-2 border border-slate-800/80 rounded">
+                        <span class="text-[10px] text-slate-500">樹五</span>
+                        <div id="tree-5" class="text-xs font-bold mt-1 text-slate-400">思考中</div>
+                    </div>
+                </div>
+
+                <div class="w-full bg-slate-900/40 border border-slate-800 p-3 rounded-lg flex items-center justify-between">
+                    <div>
+                        <div class="text-xs font-semibold">隨機投票總體結果</div>
+                        <div class="text-slate-500 text-[10px] mt-0.5">多數決定：<span id="rf-outcome" class="font-bold text-white">-</span></div>
+                    </div>
+                    <button id="btn-vote" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold rounded transition">啟動隨機投票</button>
+                </div>
+            `;
+
+            const btn = document.getElementById("btn-vote");
+            const treeEls = [
+                document.getElementById("tree-1"),
+                document.getElementById("tree-2"),
+                document.getElementById("tree-3"),
+                document.getElementById("tree-4"),
+                document.getElementById("tree-5")
+            ];
+            const outcomeEl = document.getElementById("rf-outcome");
+
+            btn.onclick = () => {
+                let yesVotes = 0;
+                treeEls.forEach((el, index) => {
+                    el.className = "text-xs font-bold mt-1 text-slate-500 animate-pulse";
+                    el.innerText = "分析中";
+                    
+                    setTimeout(() => {
+                        const isYes = Math.random() > 0.4;
+                        if (isYes) yesVotes++;
+                        el.innerText = isYes ? "購買" : "不買";
+                        el.className = `text-xs font-bold mt-1 ${isYes ? 'text-emerald-400' : 'text-rose-400'}`;
+                    }, (index + 1) * 150);
+                });
+
+                setTimeout(() => {
+                    if (yesVotes >= 3) {
+                        outcomeEl.innerText = "【購買】 (多數決)";
+                        outcomeEl.className = "font-bold text-emerald-400";
+                    } else {
+                        outcomeEl.innerText = "【不買】 (多數決)";
+                        outcomeEl.className = "font-bold text-rose-400";
+                    }
+                }, 1000);
+            };
+        }
+
+        // 5. GBDT (梯度提升樹) 模擬
+        function setupGBDT(wrapper, controls) {
+            const cv = document.createElement("canvas");
+            cv.width = 500;
+            cv.height = 300;
+            cv.className = "w-full h-full block";
+            wrapper.appendChild(cv);
+            const cx = cv.getContext("2d");
+
+            // 特徵控制項
+            controls.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-400">提升步數 (弱學習器數量):</span>
+                    <input type="range" id="gbdt-steps" min="1" max="15" step="1" value="3" class="w-24 accent-indigo-500">
+                    <span id="gbdt-steps-val" class="text-xs text-indigo-400 font-bold font-mono">3</span>
+                </div>
+            `;
+
+            const slider = document.getElementById("gbdt-steps");
+            const label = document.getElementById("gbdt-steps-val");
+
+            // 生成帶有雜訊的複雜曲線點
+            const dataPoints = [];
+            for (let i = 20; i < 480; i += 12) {
+                // 真實函數 + 隨機擾動
+                const targetY = 150 + 70 * Math.sin(i * 0.02) + 20 * Math.cos(i * 0.05);
+                dataPoints.push({ x: i, y: targetY });
+            }
+
+            function draw() {
+                cx.clearRect(0, 0, 500, 300);
+                const steps = parseInt(slider.value);
+                label.innerText = steps;
+
+                // 畫點
+                cx.fillStyle = "rgba(71, 85, 105, 0.45)";
+                dataPoints.forEach(p => {
+                    cx.beginPath();
+                    cx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                    cx.fill();
+                });
+
+                // 模擬 GBDT 的強擬合曲線
+                cx.beginPath();
+                cx.strokeStyle = "#06b6d4";
+                cx.lineWidth = 3;
+                cx.shadowColor = "#06b6d4";
+                cx.shadowBlur = 8;
+
+                // 使用階梯函數逼近 (提升樹多為階梯回歸樹)
+                const segmentWidth = 500 / (steps * 2);
+                for (let x = 0; x < 500; x++) {
+                    // 根據當前階數，模擬逼近
+                    const stepIndex = Math.floor(x / segmentWidth);
+                    // 利用偽隨機公式逼近正弦線
+                    const y = 150 + 70 * Math.sin(stepIndex * segmentWidth * 0.02) + (10 / steps) * Math.sin(x * 0.2);
+                    if (x === 0) cx.moveTo(x, y);
+                    else cx.lineTo(x, y);
+                }
+                cx.stroke();
+                cx.shadowBlur = 0;
+            }
+
+            slider.addEventListener("input", draw);
+            draw();
+        }
+
+        // 6. 支持向量機 SVM 實驗
+        function setupSVM(wrapper, controls) {
+            const cv = document.createElement("canvas");
+            cv.width = 500;
+            cv.height = 300;
+            cv.className = "cursor-pointer w-full h-full block";
+            wrapper.appendChild(cv);
+            const cx = cv.getContext("2d");
+
+            // 控制器
+            controls.innerHTML = `
+                <div class="flex gap-2">
+                    <button id="svm-red" class="px-2.5 py-1 text-xs bg-rose-500/20 border border-rose-500 text-rose-300 rounded-lg font-bold transition">放置 A 類點</button>
+                    <button id="svm-blue" class="px-2.5 py-1 text-xs bg-blue-500/20 border border-blue-500 text-blue-300 rounded-lg font-bold transition">放置 B 類點</button>
+                </div>
+            `;
+
+            let currentClass = 'A';
+            const btnRed = document.getElementById("svm-red");
+            const btnBlue = document.getElementById("svm-blue");
+
+            btnRed.onclick = () => { currentClass = 'A'; selectBtn(btnRed, btnBlue); };
+            btnBlue.onclick = () => { currentClass = 'B'; selectBtn(btnBlue, btnRed); };
+
+            function selectBtn(active, inactive) {
+                active.classList.add("bg-opacity-40");
+                inactive.classList.remove("bg-opacity-40");
+            }
+
+            // 初始化一些樣本點
+            const points = [
+                {x: 100, y: 100, class: 'A'}, {x: 150, y: 80, class: 'A'}, {x: 120, y: 150, class: 'A'},
+                {x: 350, y: 220, class: 'B'}, {x: 400, y: 180, class: 'B'}, {x: 380, y: 250, class: 'B'}
+            ];
+
+            function draw() {
+                cx.clearRect(0, 0, 500, 300);
+
+                // 計算兩類幾何中心，繪製簡單的SVM線性超平面
+                const ptsA = points.filter(p => p.class === 'A');
+                const ptsB = points.filter(p => p.class === 'B');
+
+                if (ptsA.length && ptsB.length) {
+                    let cAx = 0, cAy = 0, cBx = 0, cBy = 0;
+                    ptsA.forEach(p => { cAx += p.x; cAy += p.y; });
+                    ptsB.forEach(p => { cBx += p.x; cBy += p.y; });
+                    cAx /= ptsA.length; cAy /= ptsA.length;
+                    cBx /= ptsB.length; cBy /= ptsB.length;
+
+                    // 中心連線中點
+                    const midX = (cAx + cBx) / 2;
+                    const midY = (cAy + cBy) / 2;
+
+                    // 斜率
+                    const dx = cBx - cAx;
+                    const dy = cBy - cAy;
+                    const normalSlope = -dx / (dy || 0.001); // 垂直法線斜率
+
+                    // 畫幾何最大間隔超平面
+                    cx.beginPath();
+                    cx.strokeStyle = "#a855f7";
+                    cx.lineWidth = 3;
+                    cx.shadowColor = "#a855f7";
+                    cx.shadowBlur = 8;
+                    cx.moveTo(midX - 250, midY - 250 * normalSlope);
+                    cx.lineTo(midX + 250, midY + 250 * normalSlope);
+                    cx.stroke();
+                    cx.shadowBlur = 0;
+
+                    // 劃出最大間隔虛線
+                    cx.strokeStyle = "rgba(168, 85, 247, 0.35)";
+                    cx.setLineDash([5, 5]);
+                    cx.lineWidth = 1.5;
+                    
+                    // SVM 邊界 A
+                    cx.beginPath();
+                    cx.moveTo(midX - 250, (midY - 25) - 250 * normalSlope);
+                    cx.lineTo(midX + 250, (midY - 25) + 250 * normalSlope);
+                    cx.stroke();
+
+                    // SVM 邊界 B
+                    cx.beginPath();
+                    cx.moveTo(midX - 250, (midY + 25) - 250 * normalSlope);
+                    cx.lineTo(midX + 250, (midY + 25) + 250 * normalSlope);
+                    cx.stroke();
+
+                    cx.setLineDash([]);
+                }
+
+                // 畫點
+                points.forEach(p => {
+                    cx.beginPath();
+                    cx.arc(p.x, p.y, 7, 0, Math.PI * 2);
+                    cx.fillStyle = p.class === 'A' ? "#f43f5e" : "#3b82f6";
+                    cx.fill();
+                    cx.strokeStyle = "white";
+                    cx.lineWidth = 1.5;
+                    cx.stroke();
+                });
+            }
+
+            cv.addEventListener("click", (e) => {
+                const rect = cv.getBoundingClientRect();
+                const x = (e.clientX - rect.left) * (500 / rect.width);
+                const y = (e.clientY - rect.top) * (300 / rect.height);
+                points.push({x, y, class: currentClass});
+                draw();
+            });
+
+            // 清除點
+            const btnClear = document.createElement("button");
+            btnClear.className = "px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition border border-slate-700";
+            btnClear.innerText = "清除全部";
+            btnClear.onclick = () => { points.length = 0; draw(); };
+            controls.appendChild(btnClear);
+
+            selectBtn(btnRed, btnBlue);
+            draw();
+        }
+
+        // 7. KNN 實驗
+        function setupKNN(wrapper, controls) {
+            const cv = document.createElement("canvas");
+            cv.width = 500;
+            cv.height = 300;
+            cv.className = "cursor-crosshair w-full h-full block";
+            wrapper.appendChild(cv);
+            const cx = cv.getContext("2d");
+
+            controls.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-400">K 值 (鄰居數):</span>
+                    <input type="range" id="knn-k" min="1" max="9" step="2" value="3" class="w-20 accent-indigo-500">
+                    <span id="knn-k-val" class="text-xs text-indigo-400 font-bold font-mono">3</span>
+                </div>
+            `;
+
+            const slider = document.getElementById("knn-k");
+            const label = document.getElementById("knn-k-val");
+
+            // 生成兩類聚落
+            const points = [];
+            // A類 (紅色)
+            for (let i = 0; i < 15; i++) {
+                points.push({ x: 100 + Math.random() * 120, y: 80 + Math.random() * 120, class: 'A' });
+            }
+            // B類 (藍色)
+            for (let i = 0; i < 15; i++) {
+                points.push({ x: 280 + Math.random() * 120, y: 100 + Math.random() * 120, class: 'B' });
+            }
+
+            let mousePos = { x: 250, y: 150 };
+
+            function getDistance(p1, p2) {
+                return Math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2);
+            }
+
+            function draw() {
+                cx.clearRect(0, 0, 500, 300);
+                const k = parseInt(slider.value);
+                label.innerText = k;
+
+                // 畫現有數據點
+                points.forEach(p => {
+                    cx.beginPath();
+                    cx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+                    cx.fillStyle = p.class === 'A' ? "#f43f5e" : "#3b82f6";
+                    cx.fill();
+                });
+
+                // 計算所有點到滑鼠的距離
+                const distances = points.map(p => ({
+                    point: p,
+                    dist: getDistance(p, mousePos)
+                })).sort((a, b) => a.dist - b.dist);
+
+                const kNearest = distances.slice(0, k);
+
+                // 畫 K-NN 連線與判定
+                let countA = 0;
+                kNearest.forEach(n => {
+                    cx.beginPath();
+                    cx.strokeStyle = "rgba(100, 116, 139, 0.4)";
+                    cx.lineWidth = 1;
+                    cx.moveTo(mousePos.x, mousePos.y);
+                    cx.lineTo(n.point.x, n.point.y);
+                    cx.stroke();
+
+                    if (n.point.class === 'A') countA++;
+                });
+
+                const resultClass = countA > (k / 2) ? 'A' : 'B';
+
+                // 畫測試點 (滑鼠位置)
+                cx.beginPath();
+                cx.arc(mousePos.x, mousePos.y, 8, 0, Math.PI * 2);
+                cx.fillStyle = "#eab308"; // 黃色
+                cx.shadowColor = "#eab308";
+                cx.shadowBlur = 12;
+                cx.fill();
+                cx.shadowBlur = 0;
+
+                // 外側光圈代表判定類別
+                cx.beginPath();
+                cx.arc(mousePos.x, mousePos.y, 16, 0, Math.PI * 2);
+                cx.strokeStyle = resultClass === 'A' ? "rgba(244, 63, 94, 0.6)" : "rgba(59, 130, 246, 0.6)";
+                cx.lineWidth = 2;
+                cx.stroke();
+            }
+
+            cv.addEventListener("mousemove", (e) => {
+                const rect = cv.getBoundingClientRect();
+                mousePos.x = (e.clientX - rect.left) * (500 / rect.width);
+                mousePos.y = (e.clientY - rect.top) * (300 / rect.height);
+                draw();
+            });
+
+            slider.addEventListener("input", draw);
+            draw();
+        }
+
+        // 8. K-Means 聚類實驗
+        function setupKMeans(wrapper, controls) {
+            const cv = document.createElement("canvas");
+            cv.width = 500;
+            cv.height = 300;
+            cv.className = "w-full h-full block";
+            wrapper.appendChild(cv);
+            const cx = cv.getContext("2d");
+
+            // 控制項：手動迭代
+            controls.innerHTML = `
+                <div class="flex gap-2">
+                    <button id="kmeans-init" class="px-2.5 py-1 text-xs bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-300 rounded font-semibold transition">重新隨機點</button>
+                    <button id="kmeans-step" class="px-2.5 py-1 text-xs bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold transition">迭代下一步 (Step)</button>
+                </div>
+            `;
+
+            const btnInit = document.getElementById("kmeans-init");
+            const btnStep = document.getElementById("kmeans-step");
+
+            let points = [];
+            let centroids = [];
+            const k = 3;
+            const colors = ["#f43f5e", "#3b82f6", "#10b981"];
+
+            function initData() {
+                points = [];
+                centroids = [];
+                // 產生3個不均勻的分佈群
+                for (let i = 0; i < 45; i++) {
+                    const cluster = i % 3;
+                    let rx, ry;
+                    if (cluster === 0) { rx = 100 + Math.random() * 80; ry = 80 + Math.random() * 80; }
+                    else if (cluster === 1) { rx = 320 + Math.random() * 80; ry = 80 + Math.random() * 80; }
+                    else { rx = 210 + Math.random() * 100; ry = 180 + Math.random() * 80; }
+                    points.push({ x: rx, y: ry, cluster: -1 });
+                }
+
+                // 隨機選3個點作為初始質心
+                for (let i = 0; i < k; i++) {
+                    centroids.push({ x: 50 + Math.random() * 400, y: 50 + Math.random() * 200, color: colors[i] });
+                }
+                draw();
+            }
+
+            function distance(p1, p2) {
+                return Math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2);
+            }
+
+            // 迭代一步
+            function step() {
+                // 1. Assign: 指派點給最近的中心
+                points.forEach(p => {
+                    let minDist = Infinity;
+                    let bestCluster = -1;
+                    centroids.forEach((c, idx) => {
+                        const d = distance(p, c);
+                        if (d < minDist) {
+                            minDist = d;
+                            bestCluster = idx;
+                        }
+                    });
+                    p.cluster = bestCluster;
+                });
+
+                // 2. Update: 重新計算各中心點
+                for (let idx = 0; idx < k; idx++) {
+                    const clusterPoints = points.filter(p => p.cluster === idx);
+                    if (clusterPoints.length > 0) {
+                        let sumX = 0, sumY = 0;
+                        clusterPoints.forEach(p => { sumX += p.x; sumY += p.y; });
+                        centroids[idx].x = sumX / clusterPoints.length;
+                        centroids[idx].y = sumY / clusterPoints.length;
+                    }
+                }
+                draw();
+            }
+
+            function draw() {
+                cx.clearRect(0, 0, 500, 300);
+
+                // 劃出數據點
+                points.forEach(p => {
+                    cx.beginPath();
+                    cx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+                    cx.fillStyle = p.cluster !== -1 ? colors[p.cluster] : "#94a3b8";
+                    cx.fill();
+                    cx.strokeStyle = "rgba(0,0,0,0.5)";
+                    cx.lineWidth = 1;
+                    cx.stroke();
+                });
+
+                // 劃出質心 (大型 X 符號)
+                centroids.forEach(c => {
+                    cx.beginPath();
+                    cx.arc(c.x, c.y, 10, 0, Math.PI * 2);
+                    cx.fillStyle = c.color;
+                    cx.shadowColor = c.color;
+                    cx.shadowBlur = 10;
+                    cx.fill();
+                    cx.shadowBlur = 0;
+                    
+                    cx.strokeStyle = "white";
+                    cx.lineWidth = 2.5;
+                    cx.stroke();
+                });
+            }
+
+            btnInit.onclick = initData;
+            btnStep.onclick = step;
+
+            initData();
+        }
+
+        // 9. PCA 降維實驗
+        function setupPCA(wrapper, controls) {
+            const cv = document.createElement("canvas");
+            cv.width = 500;
+            cv.height = 300;
+            cv.className = "w-full h-full block";
+            wrapper.appendChild(cv);
+            const cx = cv.getContext("2d");
+
+            controls.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-400">投影軸旋轉角度:</span>
+                    <input type="range" id="pca-angle" min="0" max="180" step="1" value="30" class="w-32 accent-indigo-500">
+                    <span id="pca-angle-val" class="text-xs text-indigo-400 font-bold font-mono">30°</span>
+                </div>
+            `;
+
+            const slider = document.getElementById("pca-angle");
+            const label = document.getElementById("pca-angle-val");
+
+            // 生成具有明顯對角共線性特徵的二維數據
+            const points = [];
+            for (let i = 0; i < 40; i++) {
+                const u = (i - 20) * 10;
+                // y = 0.5x + 隨機擾動
+                const x = 250 + u + (Math.random() - 0.5) * 30;
+                const y = 150 + u * 0.5 + (Math.random() - 0.5) * 30;
+                points.push({ x, y });
+            }
+
+            function draw() {
+                cx.clearRect(0, 0, 500, 300);
+                const angleDeg = parseInt(slider.value);
+                label.innerText = angleDeg + "°";
+                const angleRad = (angleDeg * Math.PI) / 180;
+
+                // 畫中心參考軸與旋轉的投影軸
+                cx.beginPath();
+                cx.strokeStyle = "#eab308";
+                cx.lineWidth = 2;
+                const cosA = Math.cos(angleRad);
+                const sinA = Math.sin(angleRad);
+                cx.moveTo(250 - 200 * cosA, 150 - 200 * sinA);
+                cx.lineTo(250 + 200 * cosA, 150 + 200 * sinA);
+                cx.stroke();
+
+                // 畫數據點及其在新投影軸上的投影投影垂線
+                points.forEach(p => {
+                    // 相對中心 (250, 150) 的座標偏移
+                    const dx = p.x - 250;
+                    const dy = p.y - 150;
+
+                    // 計算在旋轉向量 [cosA, sinA] 上的標量投影
+                    const projLen = dx * cosA + dy * sinA;
+                    
+                    // 投影回畫布絕對座標
+                    const projX = 250 + projLen * cosA;
+                    const projY = 150 + projLen * sinA;
+
+                    // 畫投影垂線
+                    cx.beginPath();
+                    cx.strokeStyle = "rgba(100, 116, 139, 0.25)";
+                    cx.lineWidth = 1;
+                    cx.moveTo(p.x, p.y);
+                    cx.lineTo(projX, projY);
+                    cx.stroke();
+
+                    // 畫原始點 (藍灰色)
+                    cx.beginPath();
+                    cx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                    cx.fillStyle = "#64748b";
+                    cx.fill();
+
+                    // 畫在主成分投影軸上的點 (紫色高亮)
+                    cx.beginPath();
+                    cx.arc(projX, projY, 3.5, 0, Math.PI * 2);
+                    cx.fillStyle = "#a855f7";
+                    cx.fill();
+                });
+            }
+
+            slider.addEventListener("input", draw);
+            draw();
+        }
+
+        // 10. ANN 深度學習實驗
+        function setupANN(wrapper, controls) {
+            const cv = document.createElement("canvas");
+            cv.width = 500;
+            cv.height = 300;
+            cv.className = "w-full h-full block";
+            wrapper.appendChild(cv);
+            const cx = cv.getContext("2d");
+
+            controls.innerHTML = `
+                <button id="ann-fire" class="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded font-bold text-xs transition flex items-center gap-1">
+                    <i class="fa-solid fa-bolt"></i> 發射前向傳播訊號
+                </button>
+            `;
+
+            const btnFire = document.getElementById("ann-fire");
+
+            // 定義神經網路節點座標
+            const layers = [
+                [ {x: 100, y: 70}, {x: 100, y: 150}, {x: 100, y: 230} ], // 輸入層
+                [ {x: 250, y: 50}, {x: 250, y: 110}, {x: 250, y: 170}, {x: 250, y: 230} ], // 隱藏層
+                [ {x: 400, y: 100}, {x: 400, y: 200} ] // 輸出層
+            ];
+
+            let animProgress = -1; // -1 代表無動畫狀態
+
+            function draw(t = 0) {
+                cx.clearRect(0, 0, 500, 300);
+
+                // 畫連接權重線
+                cx.lineWidth = 1;
+                for (let l = 0; l < layers.length - 1; l++) {
+                    const fromLayer = layers[l];
+                    const toLayer = layers[l+1];
+                    fromLayer.forEach(fromNode => {
+                        toLayer.forEach(toNode => {
+                            cx.strokeStyle = "rgba(100, 116, 139, 0.12)";
+                            cx.beginPath();
+                            cx.moveTo(fromNode.x, fromNode.y);
+                            cx.lineTo(toNode.x, toNode.y);
+                            cx.stroke();
+
+                            // 繪製前向傳播光點動畫
+                            if (animProgress >= 0) {
+                                // 判斷光點所在段落
+                                const layerPart = Math.floor(animProgress); // 0：第一層->第二層, 1：第二層->第三層
+                                const progress = animProgress % 1;
+                                
+                                if (layerPart === l) {
+                                    const dotX = fromNode.x + (toNode.x - fromNode.x) * progress;
+                                    const dotY = fromNode.y + (toNode.y - fromNode.y) * progress;
+                                    cx.beginPath();
+                                    cx.arc(dotX, dotY, 2.5, 0, Math.PI * 2);
+                                    cx.fillStyle = "#ef4444";
+                                    cx.fill();
+                                }
+                            }
+                        });
+                    });
+                }
+
+                // 畫神經元節點
+                layers.forEach((layer, layerIdx) => {
+                    layer.forEach(node => {
+                        cx.beginPath();
+                        cx.arc(node.x, node.y, 10, 0, Math.PI * 2);
+                        
+                        // 當前傳播波段點亮節點
+                        let isLit = false;
+                        if (animProgress >= 0) {
+                            const layerPart = Math.floor(animProgress);
+                            if (layerIdx === layerPart || (layerIdx === 2 && animProgress >= 1.9)) {
+                                isLit = true;
+                            }
+                        }
+
+                        cx.fillStyle = isLit ? "#ef4444" : "#1e293b";
+                        cx.shadowColor = "#ef4444";
+                        cx.shadowBlur = isLit ? 10 : 0;
+                        cx.fill();
+                        cx.shadowBlur = 0;
+
+                        cx.strokeStyle = isLit ? "#f87171" : "#475569";
+                        cx.lineWidth = 1.5;
+                        cx.stroke();
+                    });
+                });
+            }
+
+            function animate() {
+                if (animProgress >= 2) {
+                    animProgress = -1;
+                    draw();
+                    return;
+                }
+                animProgress += 0.04;
+                draw();
+                animationFrameId = requestAnimationFrame(animate);
+            }
+
+            btnFire.onclick = () => {
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                animProgress = 0;
+                animate();
+            };
+
+            draw();
+        }
+
+        // 初始化
+        window.onload = function() {
+            renderMenu();
+            renderContent();
+            initExperiment();
+        }
+    </script>
+</body>
+</html>
