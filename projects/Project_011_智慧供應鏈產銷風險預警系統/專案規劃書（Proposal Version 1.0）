@@ -1,0 +1,565 @@
+# AI智慧庫存控制塔暨供應風險預警系統
+
+## AI Inventory Control Tower & Supply Risk Early Warning System
+
+### 專案規劃書（Proposal Version 1.0）
+
+---
+
+# 一、專案背景
+
+近年全球供應鏈受到地緣政治、晶片缺貨、戰爭、關稅政策、匯率波動及供應商經營風險影響，企業面臨下列挑戰：
+
+1. 關鍵零組件交期延長，導致停線風險增加。
+2. 庫存水位過高，造成資金積壓。
+3. 呆滯料無法及時處理，影響財務績效。
+4. 採購人員需人工查閱大量 SOP、合約與替代料資料。
+5. 缺乏預警能力，只能在風險發生後被動處理。
+
+因此，本專案擬建置：
+
+**AI智慧庫存控制塔暨供應風險預警系統**
+
+透過：
+
+* BI戰情室（Power BI）
+* RAG知識庫
+* AI Multi-Agent
+* 預測模型
+* 供應風險分析
+
+建立企業智慧決策平台。
+
+---
+
+# 二、專案目標
+
+建立一套以庫存控制為核心的 AI 平台，達成：
+
+### 1. 即時庫存監控
+
+監控：
+
+* 原料庫存
+* 半成品
+* 成品
+* 安全庫存
+* 庫存天數
+* 呆滯料
+
+---
+
+### 2. 缺料風險預警
+
+系統自動分析：
+
+* 庫存剩餘天數
+* 供應商交期
+* 安全庫存
+* 需求預測
+
+提前預警：
+
+* High Risk
+* Medium Risk
+* Low Risk
+
+---
+
+### 3. AI Agent 智慧決策
+
+自動：
+
+* 分析缺料原因
+* 查詢供應商合約
+* 搜尋替代料
+* 模擬成本
+* 提出採購建議
+* 自動產生Email草稿
+
+---
+
+### 4. 降低企業成本
+
+預期效益：
+
+* 庫存降低 10~20%
+* 呆滯料降低 20~40%
+* 採購分析時間下降 90%
+* 降低停線風險
+
+---
+
+# 三、專案範圍
+
+## Module 1
+
+### Inventory Control
+
+功能：
+
+* 即時庫存
+* 安全庫存
+* 庫存週轉天數
+* ABC Analysis
+* Inventory Aging
+* Inventory Turnover
+
+KPI：
+
+* Inventory Days
+* Turnover Rate
+* Inventory Amount
+* Safety Stock
+
+---
+
+## Module 2
+
+### Dead Stock Management
+
+管理：
+
+* 90~180天
+* 180~365天
+* 365天以上
+
+系統提供：
+
+* 呆滯料列表
+* 呆滯金額
+* 最後使用日期
+* 建議處理方式
+
+例如：
+
+* 折讓出售
+* 轉料
+* 退供應商
+* 報廢
+
+---
+
+## Module 3
+
+### Shortage Early Warning
+
+每日計算：
+
+Safety Stock
+
+Average Demand
+
+Lead Time
+
+Shortage Days
+
+當：
+
+Lead Time > Inventory Days
+
+系統：
+
+High Risk Alert
+
+並通知：
+
+* 採購
+* 倉管
+* 生管
+
+---
+
+## Module 4
+
+### Supplier Risk Management
+
+監控：
+
+* OTD（On Time Delivery）
+* Lead Time
+* Cost
+* Quality
+* ESG
+* 財務風險
+
+建立：
+
+Supplier Risk Score
+
+分數：
+
+0~100
+
+風險等級：
+
+A / B / C
+
+---
+
+## Module 5
+
+### Contract RAG
+
+匯入：
+
+* PDF
+* Word
+* Excel
+
+內容：
+
+* 採購合約
+* 延遲罰則
+* 付款條件
+* MOQ
+* 安全庫存協議
+
+AI 可直接查詢：
+
+例如：
+
+「A供應商交期延誤超過14天，有沒有罰則？」
+
+系統直接回答。
+
+---
+
+## Module 6
+
+### Alternate Part Knowledge Base
+
+建立：
+
+替代料資料庫
+
+例如：
+
+| Original  | Alternate |
+| --------- | --------- |
+| STM32F103 | GD32F103  |
+| ESP32     | RTL8720   |
+| TPS5430   | MP1584    |
+
+AI分析：
+
+* 規格
+* Pin to Pin
+* 成本
+* Lead Time
+
+並推薦：
+
+最佳替代方案。
+
+---
+
+# 四、AI Multi-Agent 設計
+
+建立：
+
+### Inventory Agent
+
+分析：
+
+* 庫存異常
+* 庫存增加原因
+* 安全庫存不足
+
+---
+
+### Dead Stock Agent
+
+分析：
+
+* 呆滯料
+* 呆滯金額
+* 呆滯週期
+
+提供：
+
+處理建議
+
+---
+
+### Shortage Agent
+
+預測：
+
+* 缺料時間
+* 停線風險
+
+建議：
+
+* 催料
+* 調貨
+* 替代料
+
+---
+
+### Supplier Agent
+
+分析：
+
+* OTD
+* Lead Time
+* Cost
+* Supplier Risk
+
+---
+
+### Contract Agent
+
+查詢：
+
+* 合約
+* 違約條款
+* 罰則
+
+---
+
+### Alternate Part Agent
+
+搜尋：
+
+* 替代料
+* 規格比對
+* 成本分析
+
+---
+
+### Procurement Agent
+
+產生：
+
+* 採購建議
+* 調度建議
+* Email草稿
+* 管理報告
+
+---
+
+# 五、系統架構
+
+```text
+ERP / Excel / MES / WMS
+        │
+        ▼
+
+Data Warehouse
+(PostgreSQL)
+
+        │
+        ▼
+
+Inventory Control Engine
+
+- Inventory Days
+- Safety Stock
+- Dead Stock
+- ABC Analysis
+- Forecast
+- Shortage Risk
+
+        │
+        ▼
+
+Power BI Control Tower
+
+        │
+        ▼
+
+AI Multi-Agent
+
+Inventory Agent
+
+Dead Stock Agent
+
+Shortage Agent
+
+Supplier Agent
+
+Contract Agent
+
+Alternate Part Agent
+
+Procurement Agent
+
+Forecast Agent
+
+        │
+        ▼
+
+RAG Knowledge Base
+
+SOP
+
+Contract
+
+Alternate Parts
+
+Historical Cases
+```
+
+---
+
+# 六、BI戰情室
+
+首頁顯示：
+
+### KPI
+
+1. Inventory Amount
+2. Inventory Days
+3. Dead Stock
+4. Shortage Risk
+5. Supplier Risk
+6. Procurement Cost
+
+---
+
+### Risk Heatmap
+
+分類：
+
+* IC
+* PCB
+* Connector
+* Passive
+* Mechanical
+
+顯示：
+
+高風險
+
+中風險
+
+低風險
+
+---
+
+### Supplier Dashboard
+
+顯示：
+
+* OTD
+* Lead Time
+* Cost
+* Risk Score
+
+---
+
+# 七、RAG知識庫
+
+文件來源：
+
+### SOP
+
+* 採購流程
+* 缺料流程
+* 呆滯料處理
+* 安全庫存管理
+
+---
+
+### Contract
+
+* Delivery
+* Penalty
+* MOQ
+* Price
+* Payment Term
+
+---
+
+### Alternate Parts
+
+* Spec
+* Pin to Pin
+* Cost
+* Supplier
+
+---
+
+### Historical Cases
+
+收錄：
+
+* 缺料案例
+* 採購案例
+* 替代料成功案例
+
+供 AI 學習與引用。
+
+---
+
+# 八、專案時程
+
+## Phase 1（2個月）
+
+Inventory Dashboard
+
+* 庫存管理
+* Dead Stock
+* Supplier Dashboard
+
+---
+
+## Phase 2（2個月）
+
+RAG Knowledge Base
+
+* SOP
+* Contract
+* Alternate Parts
+
+---
+
+## Phase 3（2個月）
+
+AI Multi-Agent
+
+* Shortage Agent
+* Procurement Agent
+* Contract Agent
+
+---
+
+## Phase 4（1個月）
+
+Forecast
+
+* Demand Forecast
+* Inventory Forecast
+* Risk Forecast
+
+---
+
+# 九、預期效益
+
+| 指標      |    導入前 |     導入後 |
+| ------- | -----: | ------: |
+| 庫存週轉天數  |   120天 |     85天 |
+| 呆滯料     | 3,000萬 |  1,800萬 |
+| 缺料事件    |  12次/年 |    3次/年 |
+| 採購分析時間  |    8小時 |    15分鐘 |
+| Email撰寫 |     人工 | Agent自動 |
+
+---
+
+# 十、專案願景
+
+本系統將由傳統 ERP 查詢模式，升級成：
+
+**AI Inventory Control Tower**
+
+讓 AI Agent 成為：
+
+* AI庫存分析師
+* AI採購專家
+* AI供應鏈顧問
+* AI風險預警員
+
+協助企業：
+
+**降低庫存、降低風險、提升供應鏈韌性，打造新一代智慧庫存決策平台。**
