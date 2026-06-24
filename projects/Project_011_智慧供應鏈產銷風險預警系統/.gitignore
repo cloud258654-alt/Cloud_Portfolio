@@ -1,8 +1,8 @@
 # Dependency directories
 node_modules/
 
-# Production build
-dist/
+# Production build is allowed for GitHub Pages hosting
+# dist/
 
 # Logs
 npm-debug.log*
