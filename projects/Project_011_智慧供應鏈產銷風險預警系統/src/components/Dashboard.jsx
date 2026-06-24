@@ -29,15 +29,16 @@ function Dashboard({ onTriggerScenario }) {
             className="btn btn-secondary" 
             onClick={() => setShowWeeklyReport(true)}
             style={{ 
-              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0.05) 100%)',
-              border: '1px solid var(--color-primary)',
-              color: '#fff',
+              background: '#F4EFE7',
+              border: '1px solid var(--border-focus)',
+              color: 'var(--color-primary)',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px'
+              gap: '8px',
+              fontWeight: 600
             }}
           >
-            <FileText size={16} style={{ color: '#818cf8' }} />
+            <FileText size={16} style={{ color: 'var(--color-primary)' }} />
             <span>查看本週 AI 智慧分析週報</span>
           </button>
           <span className="badge success" style={{ padding: '8px 12px', fontSize: '0.8rem' }}>
@@ -225,11 +226,11 @@ function Dashboard({ onTriggerScenario }) {
                 {filteredInventory.map(item => (
                   <tr key={item.id}>
                     <td>
-                      <div style={{ fontWeight: 700, color: '#fff', fontSize: '0.85rem' }}>{item.partNumber}</div>
+                      <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.85rem' }}>{item.partNumber}</div>
                       <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginTop: '2px' }}>{item.description}</div>
                     </td>
                     <td>
-                      <span style={{ fontSize: '0.75rem', padding: '2px 6px', background: 'rgba(255,255,255,0.04)', borderRadius: '4px', border: '1px solid var(--border-light)' }}>
+                      <span style={{ fontSize: '0.75rem', padding: '2px 6px', background: 'var(--bg-card-hover)', borderRadius: '4px', border: '1px solid var(--border-light)', color: 'var(--text-secondary)', fontWeight: 600 }}>
                         {item.category}
                       </span>
                     </td>
@@ -327,7 +328,7 @@ function Dashboard({ onTriggerScenario }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
               <div className="chart-container" style={{ width: '120px', height: '120px' }}>
                 <svg width="100%" height="100%" viewBox="0 0 42 42" className="donut-chart">
-                  <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="rgba(255,255,255,0.03)" strokeWidth="4.5"></circle>
+                  <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="rgba(0,0,0,0.04)" strokeWidth="4.5"></circle>
                   
                   {/* ICs: 75% (Indigo) */}
                   <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="var(--color-primary)" strokeWidth="4.5" 
@@ -445,7 +446,7 @@ function Dashboard({ onTriggerScenario }) {
             <tbody>
               {supplierPerformance.map(sup => (
                 <tr key={sup.id}>
-                  <td style={{ fontWeight: 700, color: '#fff' }}>{sup.name}</td>
+                  <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{sup.name}</td>
                   <td>
                     <span style={{ color: sup.otd < 80 ? 'var(--risk-high)' : sup.otd < 90 ? 'var(--risk-medium)' : 'var(--risk-low)' }}>
                       {sup.otd}%
@@ -489,7 +490,7 @@ function Dashboard({ onTriggerScenario }) {
         >
           <div 
             className="glass-card action-report-card" 
-            style={{ width: '800px', border: '1px solid var(--color-primary)' }}
+            style={{ width: '800px', border: '1.5px solid var(--border-focus)', background: '#FFFFFF', boxShadow: '0 12px 48px rgba(0,0,0,0.08)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="card-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '16px' }}>
@@ -512,30 +513,30 @@ function Dashboard({ onTriggerScenario }) {
               </div>
 
               {/* Summary Section */}
-              <div style={{ padding: '16px', background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)', borderRadius: '12px' }}>
-                <h3 style={{ fontSize: '0.9rem', color: '#fff', fontWeight: 700, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ padding: '16px', background: 'rgba(123, 94, 69, 0.04)', border: '1px solid rgba(123, 94, 69, 0.15)', borderRadius: '12px' }}>
+                <h3 style={{ fontSize: '0.9rem', color: 'var(--color-primary)', fontWeight: 700, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <CheckCircle2 size={16} style={{ color: 'var(--risk-low)' }} />
                   本週產銷大綱
                 </h3>
-                <p style={{ fontSize: '0.85rem', lineHeight: 1.6, color: '#d1d5db' }}>{weeklyAiReport.summary}</p>
+                <p style={{ fontSize: '0.85rem', lineHeight: 1.6, color: 'var(--text-secondary)' }}>{weeklyAiReport.summary}</p>
               </div>
 
               {/* Anomalies Section */}
               <div>
-                <h3 style={{ fontSize: '0.9rem', color: '#fff', fontWeight: 700, marginBottom: '12px' }}>⚠️ 庫存異常根因分析 (Root Cause Analysis)</h3>
+                <h3 style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 700, marginBottom: '12px' }}>⚠️ 庫存異常根因分析 (Root Cause Analysis)</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {weeklyAiReport.anomalies.map((anom, idx) => (
                     <div 
                       key={idx} 
                       style={{ 
                         padding: '14px', 
-                        background: 'rgba(255,255,255,0.02)', 
+                        background: '#FDFBF7', 
                         border: '1px solid var(--border-light)', 
                         borderRadius: '10px',
                         borderLeft: `4px solid ${anom.type === 'spikes' ? 'var(--risk-medium)' : 'var(--risk-high)'}` 
                       }}
                     >
-                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', marginBottom: '4px' }}>{anom.title}</div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>{anom.title}</div>
                       <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{anom.desc}</p>
                     </div>
                   ))}
@@ -544,11 +545,11 @@ function Dashboard({ onTriggerScenario }) {
 
               {/* Recommendations Section */}
               <div>
-                <h3 style={{ fontSize: '0.9rem', color: '#fff', fontWeight: 700, marginBottom: '10px' }}>🎯 建議執行決策 (Proactive Recommendations)</h3>
+                <h3 style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 700, marginBottom: '10px' }}>🎯 建議執行決策 (Proactive Recommendations)</h3>
                 <ul style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                   {weeklyAiReport.recommendations.map((rec, idx) => (
                     <li key={idx} style={{ lineHeight: 1.5 }}>
-                      <strong style={{ color: '#fff' }}>方案 {idx + 1}：</strong>
+                      <strong style={{ color: 'var(--text-primary)' }}>方案 {idx + 1}：</strong>
                       {rec}
                     </li>
                   ))}

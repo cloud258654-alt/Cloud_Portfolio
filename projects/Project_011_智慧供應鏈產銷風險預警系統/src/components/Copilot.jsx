@@ -70,11 +70,11 @@ function Copilot() {
 
       // Headers (e.g., ### title)
       if (line.startsWith('###')) {
-        elements.push(<h3 key={`h3-${i}`} style={{ color: '#fff', marginTop: '16px', marginBottom: '8px', fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}><Sparkles size={14} style={{ color: 'var(--color-secondary)' }} /> {line.replace('###', '').trim()}</h3>);
+        elements.push(<h3 key={`h3-${i}`} style={{ color: 'var(--text-primary)', marginTop: '16px', marginBottom: '8px', fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}><Sparkles size={14} style={{ color: 'var(--color-primary)' }} /> {line.replace('###', '').trim()}</h3>);
         continue;
       }
       if (line.startsWith('####')) {
-        elements.push(<h4 key={`h4-${i}`} style={{ color: '#fff', marginTop: '12px', marginBottom: '6px', fontSize: '0.85rem', fontWeight: 700 }}>{line.replace('####', '').trim()}</h4>);
+        elements.push(<h4 key={`h4-${i}`} style={{ color: 'var(--text-primary)', marginTop: '12px', marginBottom: '6px', fontSize: '0.85rem', fontWeight: 700 }}>{line.replace('####', '').trim()}</h4>);
         continue;
       }
 
@@ -89,7 +89,7 @@ function Copilot() {
           renderedText = (
             <span>
               {cleanLine.split('**')[0]}
-              <strong style={{ color: '#fff' }}>{boldMatch[1]}</strong>
+              <strong style={{ color: 'var(--text-primary)' }}>{boldMatch[1]}</strong>
               {cleanLine.split('**')[2]}
             </span>
           );
@@ -125,7 +125,7 @@ function Copilot() {
       if (!line.startsWith('|') && inTable) {
         elements.push(
           <div key={`table-wrapper-${i}`} className="table-container" style={{ margin: '16px 0' }}>
-            <table className="premium-table" style={{ fontSize: '0.75rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+            <table className="premium-table" style={{ fontSize: '0.75rem', background: '#FFFFFF', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
               <thead>
                 <tr>
                   {tableHeaders.map((h, idx) => <th key={`th-${idx}`} style={{ padding: '8px 10px' }}>{h}</th>)}
@@ -157,11 +157,11 @@ function Copilot() {
         if (line.includes('**')) {
           const parts = line.split('**');
           formattedLine = parts.map((part, index) => 
-            index % 2 === 1 ? <strong key={index} style={{ color: '#fff' }}>{part}</strong> : part
+             index % 2 === 1 ? <strong key={index} style={{ color: 'var(--text-primary)' }}>{part}</strong> : part
           );
         }
 
-        elements.push(<p key={`p-${i}`} style={{ fontSize: '0.85rem', lineHeight: 1.6, margin: '8px 0', color: '#d1d5db' }}>{formattedLine}</p>);
+        elements.push(<p key={`p-${i}`} style={{ fontSize: '0.85rem', lineHeight: 1.6, margin: '8px 0', color: 'var(--text-secondary)' }}>{formattedLine}</p>);
       }
     }
 
@@ -193,15 +193,15 @@ function Copilot() {
                 onClick={() => handleSendMessage(qa.question)}
                 style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px' }}
               >
-                <HelpCircle size={18} style={{ color: 'var(--color-secondary)', flexShrink: 0 }} />
-                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#fff', lineHeight: 1.4 }}>
+                <HelpCircle size={18} style={{ color: 'var(--color-primary)', flexShrink: 0 }} />
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.4 }}>
                   {qa.question}
                 </span>
               </div>
             ))}
           </div>
 
-          <div style={{ marginTop: 'auto', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-light)', borderRadius: '12px', padding: '14px' }}>
+          <div style={{ marginTop: 'auto', background: '#FDFBF7', border: '1.5px solid var(--border-focus)', borderRadius: '12px', padding: '14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', marginBottom: '6px' }}>
               <Sparkles size={12} />
               <span>全球風險告警推播</span>
@@ -215,14 +215,14 @@ function Copilot() {
         {/* Right Side: Chat Window */}
         <div className="chat-window">
           {/* Chat Messages */}
-          <div className="chat-messages" style={{ background: 'rgba(7, 8, 14, 0.2)' }}>
+          <div className="chat-messages" style={{ background: '#F6F4EF' }}>
             {messages.map((msg, index) => (
               <div 
                 key={index}
                 className={`message-wrapper ${msg.sender === 'user' ? 'user' : 'agent'}`}
                 style={{ maxWidth: '90%' }}
               >
-                <div className="message-avatar" style={{ background: msg.sender === 'user' ? 'var(--color-primary)' : '#202538' }}>
+                <div className="message-avatar" style={{ background: msg.sender === 'user' ? 'var(--color-primary)' : '#EFE5DA' }}>
                   {msg.avatar}
                 </div>
                 <div className="message-bubble-container">
@@ -233,8 +233,9 @@ function Copilot() {
                     className="message-bubble"
                     style={{
                       background: msg.sender === 'user' ? 'var(--color-primary)' : 'var(--bg-card)',
-                      border: msg.sender === 'user' ? '1px solid rgba(99, 102, 241, 0.2)' : '1px solid var(--border-light)',
-                      padding: '16px 20px'
+                      border: msg.sender === 'user' ? '1px solid rgba(123, 94, 69, 0.2)' : '1px solid var(--border-light)',
+                      padding: '16px 20px',
+                      color: msg.sender === 'user' ? '#ffffff' : 'var(--text-primary)'
                     }}
                   >
                     {msg.sender === 'user' ? msg.text : formatMarkdownText(msg.text)}
@@ -245,12 +246,12 @@ function Copilot() {
 
             {isTyping && (
               <div className="message-wrapper agent">
-                <div className="message-avatar" style={{ background: '#202538', animation: 'pulse-icon 1.5s infinite' }}>
+                <div className="message-avatar" style={{ background: '#EFE5DA', animation: 'pulse-icon 1.5s infinite' }}>
                   🤖
                 </div>
                 <div className="message-bubble-container">
                   <span className="message-sender-name">AI Copilot 正在深度解析中...</span>
-                  <div className="message-bubble" style={{ padding: '8px 16px' }}>
+                  <div className="message-bubble" style={{ padding: '8px 16px', background: 'var(--bg-card)', border: '1px solid var(--border-light)', color: 'var(--text-primary)' }}>
                     <div className="typing-indicator">
                       <span className="typing-dot"></span>
                       <span className="typing-dot"></span>
@@ -271,7 +272,7 @@ function Copilot() {
             }}
             style={{
               padding: '16px 24px',
-              background: 'rgba(11, 13, 22, 0.8)',
+              background: '#FFFFFF',
               borderTop: '1px solid var(--border-light)',
               display: 'flex',
               gap: '12px'

@@ -99,14 +99,14 @@ function DataWarehouse() {
                 key={tableName}
                 onClick={() => setActiveTable(tableName)}
                 style={{
-                  background: activeTable === tableName ? 'linear-gradient(135deg, rgba(6,182,212,0.2) 0%, rgba(6,182,212,0.05) 100%)' : 'rgba(255,255,255,0.02)',
-                  border: activeTable === tableName ? '1px solid var(--color-secondary)' : '1px solid var(--border-light)',
-                  color: activeTable === tableName ? '#fff' : 'var(--text-secondary)',
+                  background: activeTable === tableName ? '#F4EFE7' : '#FFFFFF',
+                  border: activeTable === tableName ? '1.5px solid var(--border-focus)' : '1px solid var(--border-light)',
+                  color: activeTable === tableName ? 'var(--color-primary)' : 'var(--text-secondary)',
                   padding: '8px 14px',
                   borderRadius: '8px',
                   fontSize: '0.8rem',
                   cursor: 'pointer',
-                  fontWeight: 600,
+                  fontWeight: activeTable === tableName ? 700 : 600,
                   whiteSpace: 'nowrap',
                   transition: 'all 0.15s ease'
                 }}
@@ -123,7 +123,7 @@ function DataWarehouse() {
               <thead>
                 <tr>
                   {selectedTableData.columns.map(col => (
-                    <th key={col} style={{ background: 'rgba(7,8,14,0.3)', padding: '10px 12px' }}>{col}</th>
+                    <th key={col} style={{ background: '#F6F4EF', padding: '10px 12px', color: 'var(--text-secondary)' }}>{col}</th>
                   ))}
                 </tr>
               </thead>
@@ -167,7 +167,7 @@ function DataWarehouse() {
               style={{
                 width: '100%',
                 justifyContent: 'center',
-                background: isRunningEngine ? 'rgba(99,102,241,0.2)' : 'var(--color-primary)',
+                background: isRunningEngine ? 'rgba(123, 94, 69, 0.2)' : 'var(--color-primary)',
                 cursor: isRunningEngine ? 'not-allowed' : 'pointer'
               }}
             >

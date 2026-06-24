@@ -27,7 +27,7 @@ function App() {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <ShieldAlert size={28} style={{ color: '#818cf8' }} />
+          <ShieldAlert size={28} style={{ color: 'var(--color-primary)' }} />
           <span className="sidebar-logo-text">AI BRAIN TOWER</span>
         </div>
         
@@ -117,6 +117,8 @@ function App() {
             <span className="status-dot pulsing"></span>
             <span>AI 員工數量: 7位 (正常)</span>
           </div>
+          {/* Ver 2.1 Calm Tech Wood Shelf Decor */}
+          <div className="japanese-wood-shelf-decor"></div>
         </div>
       </aside>
 
@@ -153,6 +155,8 @@ function App() {
           <DataWarehouse />
         )}
       </main>
+      {/* Ver 2.1 Calm Tech Pampas Grass Decor */}
+      <div className="japanese-pampas-decor"></div>
     </div>
   );
 }

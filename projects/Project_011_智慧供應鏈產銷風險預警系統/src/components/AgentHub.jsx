@@ -120,7 +120,7 @@ function AgentHub() {
                       width: '36px', 
                       height: '36px', 
                       borderRadius: '50%', 
-                      background: isActive ? 'var(--color-primary-glow)' : 'rgba(255,255,255,0.03)', 
+                      background: isActive ? 'var(--color-primary-glow)' : 'var(--bg-card-hover)', 
                       display: 'flex', 
                       justifyContent: 'center', 
                       alignItems: 'center',
@@ -130,7 +130,7 @@ function AgentHub() {
                       {agent.avatar}
                     </div>
                     <div>
-                      <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>{agent.name}</h3>
+                      <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>{agent.name}</h3>
                       <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{agent.role}</span>
                     </div>
                   </div>
@@ -145,7 +145,7 @@ function AgentHub() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '4px', color: 'var(--text-secondary)' }}>
                     <span>決策準確率</span>
-                    <span style={{ fontWeight: 600, color: '#fff' }}>{agent.accuracy}%</span>
+                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{agent.accuracy}%</span>
                   </div>
                   <div className="custom-progress-bar">
                     <div className="custom-progress-fill low" style={{ width: `${agent.accuracy}%`, background: 'var(--color-primary)' }}></div>
@@ -162,20 +162,20 @@ function AgentHub() {
                 {isExpanded && (
                   <div 
                     style={{ 
-                      background: '#020408', 
+                      background: '#F5EFE6', /* Soft warm-paper background from specs */
                       borderRadius: '8px', 
                       padding: '12px', 
                       fontFamily: 'monospace', 
                       fontSize: '0.7rem', 
-                      color: 'var(--color-secondary)',
-                      lineHeight: 1.4,
-                      border: '1px solid #1f2937',
+                      color: 'var(--text-primary)',
+                      lineHeight: 1.45,
+                      border: '1.5px solid var(--border-focus)', /* Natural oak border */
                       animation: 'slide-down 0.2s ease',
                       whiteSpace: 'pre-wrap'
                     }}
                     onClick={(e) => e.stopPropagation()} // Prevent closing when clicking log
                   >
-                    <div style={{ color: 'var(--text-muted)', fontWeight: 700, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <div style={{ color: 'var(--color-primary)', fontWeight: 700, marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px dashed #D8C0A8', paddingBottom: '4px' }}>
                       ⚡ 實時運算活動日誌 (Console Output)
                     </div>
                     {agent.log}

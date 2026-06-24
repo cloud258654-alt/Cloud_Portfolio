@@ -96,7 +96,7 @@ function WarRoom() {
                 </div>
               </div>
               <div className="metric-value-container">
-                <span className="metric-value" style={{ fontSize: '1.05rem', fontWeight: 800, color: '#fff' }}>
+                <span className="metric-value" style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                   {selectedScenario.affectedProducts}
                 </span>
               </div>
@@ -111,7 +111,7 @@ function WarRoom() {
                 </div>
               </div>
               <div className="metric-value-container">
-                <span className="metric-value" style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff' }}>
+                <span className="metric-value" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>
                   {selectedScenario.affectedCustomers}
                 </span>
               </div>
@@ -132,7 +132,7 @@ function WarRoom() {
               知識圖譜串聯了我司 **供應商、零件、倉庫、調撥採購、受波及產品、以及合約客戶** 的多維關係鏈，能精準追蹤一個點的斷裂如何向上波及營收與客戶。
             </p>
 
-            <div style={{ background: 'rgba(7,8,14,0.3)', borderRadius: '12px', padding: '20px 12px', border: '1px solid var(--border-light)' }}>
+            <div style={{ background: '#F6F4EF', borderRadius: '12px', padding: '20px 12px', border: '1px solid var(--border-light)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', overflowX: 'auto', gap: '8px' }}>
                 {selectedScenario.graphNodes.map((node, idx) => (
                   <React.Fragment key={node.id}>
@@ -141,17 +141,17 @@ function WarRoom() {
                       flexDirection: 'column', 
                       alignItems: 'center', 
                       gap: '6px',
-                      background: 'rgba(18,22,35,0.75)',
-                      border: `1px solid ${getNodeColor(node.status)}`,
+                      background: '#FFFFFF',
+                      border: `1.5px solid ${getNodeColor(node.status)}`,
                       borderRadius: '8px',
                       padding: '8px 10px',
                       width: '120px',
                       textAlign: 'center',
-                      boxShadow: node.status === 'Critical' ? '0 0 10px rgba(244,63,94,0.15)' : 'none',
+                      boxShadow: node.status === 'Critical' ? '0 0 10px rgba(214,107,93,0.15)' : '0 2px 6px rgba(0,0,0,0.02)',
                       flexShrink: 0
                     }}>
                       <span style={{ fontSize: '0.6rem', fontWeight: 800, color: 'var(--text-muted)' }}>{node.type}</span>
-                      <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>{node.label}</span>
+                      <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>{node.label}</span>
                     </div>
                     {idx < selectedScenario.graphNodes.length - 1 && (
                       <ArrowRight size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
@@ -173,18 +173,18 @@ function WarRoom() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {/* Rec Plan */}
-              <div style={{ padding: '16px', background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)', borderRadius: '12px' }}>
+              <div style={{ padding: '16px', background: 'rgba(123, 94, 69, 0.04)', border: '1px solid rgba(123, 94, 69, 0.15)', borderRadius: '12px' }}>
                 <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', color: 'var(--color-primary)', fontWeight: 700, marginBottom: '6px', letterSpacing: '0.05em' }}>
                   💡 數位分身評估最優減災應變預案
                 </div>
-                <div style={{ fontSize: '0.85rem', color: '#fff', fontWeight: 500, lineHeight: 1.5 }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 600, lineHeight: 1.5 }}>
                   {selectedScenario.optimalPlan}
                 </div>
               </div>
 
               {/* Evidence Chains */}
               <div>
-                <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff', marginBottom: '10px' }}>
+                <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '10px' }}>
                   📊 決策客觀證據鏈 (Factual Evidence Chains - 拒絕黑盒決策)
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
@@ -193,15 +193,15 @@ function WarRoom() {
                       key={idx} 
                       style={{ 
                         padding: '12px 14px', 
-                        background: 'rgba(255,255,255,0.01)', 
-                        border: '1px solid var(--border-light)', 
+                        background: '#FDFBF7', 
+                        border: '1.5px solid var(--border-light)', 
                         borderRadius: '8px', 
                         fontSize: '0.75rem', 
                         lineHeight: 1.5,
                         color: 'var(--text-secondary)'
                       }}
                     >
-                      <strong style={{ color: '#fff', display: 'block', marginBottom: '4px' }}>
+                      <strong style={{ color: 'var(--color-primary)', display: 'block', marginBottom: '4px' }}>
                         證據 {idx + 1}：{ev.split('：')[0]}
                       </strong>
                       {ev.split('：')[1]}
@@ -229,7 +229,7 @@ function WarRoom() {
                   {approved ? <Check size={18} /> : <AlertTriangle size={18} className="pulsing" />}
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#fff' }}>
+                  <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                     {approved ? '✓ 內控審核已核准 (ERP 指令已下達)' : '⚠️ 上市公司內控 - 待主管簽核核准 (Pending Approval)'}
                   </h3>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
@@ -260,15 +260,15 @@ function WarRoom() {
 
             {/* Approved status tracking timeline */}
             {approved && (
-              <div style={{ marginTop: '20px', background: 'rgba(0,0,0,0.15)', borderRadius: '8px', padding: '16px', animation: 'slide-down 0.3s ease' }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--risk-low)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ marginTop: '20px', background: '#F4EFE7', borderRadius: '8px', padding: '16px', animation: 'slide-down 0.3s ease', border: '1px solid var(--border-focus)' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Sparkles size={12} />
                   <span>AI Employee 閉環執行中 - 進度追蹤 (Closed-loop Tracking)：</span>
                 </div>
                 <div style={{ display: 'flex', gap: '16px', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-                  <span style={{ color: 'var(--risk-low)', fontWeight: 600 }}>✓ PO 自動建立 (Complete)</span>
-                  <span style={{ color: 'var(--risk-low)', fontWeight: 600 }}>✓ 急單 Email 自動寄發 (Complete)</span>
-                  <span className="pulsing" style={{ color: 'var(--color-secondary)', fontWeight: 600 }}>● 物流軌跡主動追蹤中 (Active Tracking)</span>
+                  <span style={{ color: 'var(--risk-low)', fontWeight: 700 }}>✓ PO 自動建立 (Complete)</span>
+                  <span style={{ color: 'var(--risk-low)', fontWeight: 700 }}>✓ 急單 Email 自動寄發 (Complete)</span>
+                  <span className="pulsing" style={{ color: 'var(--color-primary)', fontWeight: 700 }}>● 物流軌跡主動追蹤中 (Active Tracking)</span>
                 </div>
               </div>
             )}
