@@ -73,6 +73,46 @@
             </div>
         </section>
 
+        <!-- Ver 2.0 Market Intelligence Dashboard -->
+        <section id="market-dashboard" class="market-dashboard glass-card">
+            <div class="section-heading">
+                <div>
+                    <span class="eyebrow">MARKET PULSE 2.0</span>
+                    <h2><i class="fa-solid fa-chart-simple"></i> 台股市場總覽</h2>
+                </div>
+                <span id="market-update-time" class="data-freshness">資料更新中</span>
+            </div>
+
+            <div id="market-index-grid" class="market-index-grid"></div>
+
+            <div class="market-lower-grid">
+                <div class="market-module">
+                    <div class="module-title">
+                        <i class="fa-solid fa-layer-group"></i>
+                        產業強弱
+                    </div>
+                    <div id="sector-strength-list" class="sector-strength-list"></div>
+                </div>
+
+                <div class="market-module">
+                    <div class="module-title">
+                        <i class="fa-solid fa-filter"></i>
+                        智能選股條件
+                    </div>
+                    <div id="screener-chip-list" class="screener-chip-list"></div>
+                </div>
+
+                <div class="market-module">
+                    <div class="module-title">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        最近搜尋 / 自選股
+                    </div>
+                    <div id="recent-search-list" class="mini-stock-list empty-state">尚無最近搜尋</div>
+                    <div id="watchlist-list" class="mini-stock-list empty-state">尚無自選股</div>
+                </div>
+            </div>
+        </section>
+
         <!-- Home Stock Recommendation Section (Visible on home state) -->
         <section id="recommendation-panel" class="recommendation-panel">
             <div class="rec-grid">
@@ -264,6 +304,27 @@
                     <i class="fa-solid fa-file-excel"></i> 匯出 Excel 報表
                 </button>
             </div>
+
+            <!-- Ver 2.0 Confidence & Source Layer -->
+            <section class="report-block confidence-block glass-card">
+                <div class="section-heading compact">
+                    <div>
+                        <span class="eyebrow">SIGNAL EXPLAINABILITY</span>
+                        <h3 class="block-title"><i class="fa-solid fa-fingerprint"></i> AI 決策可信度與資料來源</h3>
+                    </div>
+                    <span id="confidence-update-time" class="data-freshness">待分析</span>
+                </div>
+
+                <div class="confidence-grid">
+                    <div class="confidence-score-box">
+                        <span class="confidence-label">AI 信心分數</span>
+                        <strong id="confidence-score">--</strong>
+                        <span id="confidence-level">等待資料</span>
+                    </div>
+                    <div class="factor-stack" id="factor-stack"></div>
+                    <div class="source-list" id="source-list"></div>
+                </div>
+            </section>
 
             <!-- Section 1: Expert Views Summary Table -->
             <section class="report-block glass-card">

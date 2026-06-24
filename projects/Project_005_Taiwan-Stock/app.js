@@ -111,6 +111,39 @@ const sellRecommendations = [
     { symbol: "2618", name: "長榮航", price: "34.50", change: "-1.20%", rating: "觀望偏中立", badge: "neutral" }
 ];
 
+// Ver 2.0 static market intelligence data. Replace these objects with API payloads later.
+const marketOverview = {
+    indices: [
+        { name: "加權指數", value: 46043.60, change: -1057.05, percent: -2.24, amount: "15,390 億", note: "集中市場成交金額" },
+        { name: "櫃買指數", value: 442.09, change: 1.28, percent: 0.29, amount: "2,413 億", note: "上櫃市場成交金額" },
+        { name: "電子類股", value: 2614.82, change: -82.33, percent: -3.05, amount: "成交比重 68%", note: "高權值族群承壓" },
+        { name: "金融保險", value: 2316.44, change: 12.18, percent: 0.53, amount: "資金避風港", note: "防禦型買盤" }
+    ],
+    sectors: [
+        { name: "油電燃氣", strength: 82, change: "+4.72%" },
+        { name: "塑膠", strength: 72, change: "+3.68%" },
+        { name: "數位雲端", strength: 63, change: "+2.77%" },
+        { name: "半導體", strength: 38, change: "-3.43%" },
+        { name: "電子零組件", strength: 44, change: "-1.45%" }
+    ],
+    screeners: [
+        { label: "法人連買 + 營收成長", query: "2330" },
+        { label: "高殖利率 + 低本益比", query: "2881" },
+        { label: "成交量異常放大", query: "2382" },
+        { label: "AI 供應鏈強勢股", query: "2317" },
+        { label: "融資下降 + 股價轉強", query: "2454" }
+    ],
+    sources: ["TWSE 市場統計", "Goodinfo 公開資訊", "MOPS 重大訊息", "TradingView 篩選維度"]
+};
+
+const signalWeights = [
+    { label: "技術面", value: 24 },
+    { label: "基本面", value: 28 },
+    { label: "籌碼面", value: 21 },
+    { label: "總經面", value: 14 },
+    { label: "新聞事件", value: 13 }
+];
+
 // 3. Helper function: Generate sequential historical prices for K-line & MAs
 function generateHistoricalKLine(basePrice, days = 30, trend = "up") {
     const data = [];
@@ -1344,6 +1377,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Initial load: render recommendations
+    renderMarketDashboard();
+    renderPersonalLists();
     renderRecommendations();
     startMarketSimulation(); // 啟動自動更新
     initMasterTabs();
@@ -1553,6 +1588,160 @@ function initFinanceCanvasListeners() {
     });
 }
 
+// Ver 2.0 Market Dashboard, Watchlist and Confidence Layer
+function formatSigned(value, suffix = "") {
+    const numeric = Number(value);
+    const prefix = numeric > 0 ? "+" : "";
+    return `${prefix}${numeric.toLocaleString(undefined, { maximumFractionDigits: 2 })}${suffix}`;
+}
+
+function getStoredList(key) {
+    try {
+        return JSON.parse(localStorage.getItem(key) || "[]");
+    } catch (error) {
+        return [];
+    }
+}
+
+function setStoredList(key, value) {
+    localStorage.setItem(key, JSON.stringify(value.slice(0, 8)));
+}
+
+function recordStockSearch(symbol, name) {
+    if (!symbol && !name) return;
+    const item = { symbol: symbol || "自訂股", name: name || symbol || "自訂股", time: Date.now() };
+    const next = [item, ...getStoredList("ags_recent_searches").filter(stock => stock.symbol !== item.symbol)];
+    setStoredList("ags_recent_searches", next);
+    renderPersonalLists();
+}
+
+function addToWatchlist(symbol, name) {
+    const item = { symbol, name };
+    const next = [item, ...getStoredList("ags_watchlist").filter(stock => stock.symbol !== symbol)];
+    setStoredList("ags_watchlist", next);
+    renderPersonalLists();
+}
+
+function renderMarketDashboard() {
+    const grid = document.getElementById("market-index-grid");
+    const sectorList = document.getElementById("sector-strength-list");
+    const screenerList = document.getElementById("screener-chip-list");
+    const updateTime = document.getElementById("market-update-time");
+    if (!grid || !sectorList || !screenerList) return;
+
+    const now = new Date();
+    updateTime.textContent = `模擬資料 ${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+
+    grid.innerHTML = marketOverview.indices.map(index => {
+        const isUp = index.percent >= 0;
+        return `
+            <div class="market-index-card">
+                <span class="market-index-name">${index.name}</span>
+                <strong class="market-index-value">${index.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}</strong>
+                <div class="market-index-meta">
+                    <span class="${isUp ? "val-buy" : "val-sell"}">${formatSigned(index.change)}</span>
+                    <span class="${isUp ? "val-buy" : "val-sell"}">${formatSigned(index.percent, "%")}</span>
+                </div>
+                <div class="market-index-note">${index.amount}｜${index.note}</div>
+            </div>
+        `;
+    }).join("");
+
+    sectorList.innerHTML = marketOverview.sectors.map(sector => `
+        <div class="sector-row">
+            <div>
+                <strong>${sector.name}</strong>
+                <div class="sector-bar"><span style="width:${sector.strength}%"></span></div>
+            </div>
+            <span class="${sector.change.startsWith("+") ? "val-buy" : "val-sell"}">${sector.change}</span>
+        </div>
+    `).join("");
+
+    screenerList.innerHTML = marketOverview.screeners.map(item => `
+        <button class="screener-chip" data-query="${item.query}">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> ${item.label}
+        </button>
+    `).join("");
+
+    screenerList.querySelectorAll(".screener-chip").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const query = btn.getAttribute("data-query");
+            const stockInput = document.getElementById("stock-input");
+            if (stockInput) stockInput.value = query;
+            runPipeline(query);
+        });
+    });
+}
+
+function renderPersonalLists() {
+    const recentEl = document.getElementById("recent-search-list");
+    const watchEl = document.getElementById("watchlist-list");
+    if (!recentEl || !watchEl) return;
+
+    const recent = getStoredList("ags_recent_searches");
+    const watchlist = getStoredList("ags_watchlist");
+
+    recentEl.classList.toggle("empty-state", recent.length === 0);
+    recentEl.innerHTML = recent.length ? recent.slice(0, 4).map(item => `
+        <div class="mini-stock-item">
+            <button data-run="${item.symbol}">${item.symbol} ${item.name}</button>
+            <button data-watch="${item.symbol}" data-name="${item.name}" title="加入自選"><i class="fa-solid fa-star"></i></button>
+        </div>
+    `).join("") : "尚無最近搜尋";
+
+    watchEl.classList.toggle("empty-state", watchlist.length === 0);
+    watchEl.innerHTML = watchlist.length ? watchlist.slice(0, 4).map(item => `
+        <div class="mini-stock-item">
+            <button data-run="${item.symbol}">${item.symbol} ${item.name}</button>
+            <span><i class="fa-solid fa-check"></i></span>
+        </div>
+    `).join("") : "尚無自選股";
+
+    document.querySelectorAll("[data-run]").forEach(btn => {
+        btn.addEventListener("click", () => runPipeline(btn.getAttribute("data-run")));
+    });
+    document.querySelectorAll("[data-watch]").forEach(btn => {
+        btn.addEventListener("click", () => addToWatchlist(btn.getAttribute("data-watch"), btn.getAttribute("data-name")));
+    });
+}
+
+function renderConfidencePanel(data) {
+    const scoreEl = document.getElementById("confidence-score");
+    const levelEl = document.getElementById("confidence-level");
+    const factorEl = document.getElementById("factor-stack");
+    const sourceEl = document.getElementById("source-list");
+    const timeEl = document.getElementById("confidence-update-time");
+    if (!scoreEl || !factorEl || !sourceEl) return;
+
+    const badgeText = String(data.rating || "");
+    const baseScore = badgeText.includes("強") ? 86 : badgeText.includes("買") ? 78 : badgeText.includes("賣") ? 42 : 64;
+    const confidence = Math.max(35, Math.min(92, baseScore + Math.round((data.expertViews?.length || 5) * 1.5)));
+
+    scoreEl.textContent = `${confidence}`;
+    levelEl.textContent = confidence >= 80 ? "高可信度訊號" : confidence >= 65 ? "中高可信度訊號" : "需保守驗證";
+    if (timeEl) timeEl.textContent = `產出時間 ${data.time || new Date().toLocaleDateString("zh-TW")}`;
+
+    factorEl.innerHTML = signalWeights.map(factor => `
+        <div class="factor-row">
+            <span>${factor.label}</span>
+            <div class="factor-meter"><span style="width:${factor.value * 3}%"></span></div>
+            <strong>${factor.value}%</strong>
+        </div>
+    `).join("");
+
+    sourceEl.innerHTML = marketOverview.sources.map(source => `
+        <div class="source-item">
+            <i class="fa-solid fa-database"></i>
+            <span>${source}</span>
+        </div>
+    `).join("") + `
+        <div class="source-item">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>目前為靜態模擬資料，Ver 2.1 可接正式行情與財報 API。</span>
+        </div>
+    `;
+}
+
 // 7. Render Top 10 Buy/Sell Panels on Home Load
 function renderRecommendations() {
     const buyBody = document.getElementById("buy-rec-body");
@@ -1634,6 +1823,7 @@ function resetToHome() {
     const agentStage = document.getElementById("agent-stage");
     const reportSection = document.getElementById("report-section");
     const recPanel = document.getElementById("recommendation-panel");
+    const marketDashboard = document.getElementById("market-dashboard");
 
     // Clear input
     stockInput.value = "";
@@ -1643,6 +1833,7 @@ function resetToHome() {
     reportSection.classList.add("hidden");
 
     // Show home recommendations
+    if (marketDashboard) marketDashboard.classList.remove("hidden");
     recPanel.classList.remove("hidden");
     recPanel.scrollIntoView({ behavior: "smooth" });
 
@@ -1698,15 +1889,18 @@ function runPipeline(query) {
     }
 
     currentAnalysisData = resolvedData;
+    recordStockSearch(resolvedData.symbol || symbol, resolvedData.name || name);
 
     const agentStage = document.getElementById("agent-stage");
     const reportSection = document.getElementById("report-section");
     const debateFlow = document.getElementById("debate-flow");
     const timerDisplay = document.getElementById("stage-timer");
     const recPanel = document.getElementById("recommendation-panel");
+    const marketDashboard = document.getElementById("market-dashboard");
 
     // Hide Home Panel & Report, show stage
     recPanel.classList.add("hidden");
+    if (marketDashboard) marketDashboard.classList.add("hidden");
     reportSection.classList.add("hidden");
     agentStage.classList.remove("hidden");
 
@@ -1830,8 +2024,10 @@ function runMacroOnlyPipeline() {
     const debateFlow = document.getElementById("debate-flow");
     const timerDisplay = document.getElementById("stage-timer");
     const recPanel = document.getElementById("recommendation-panel");
+    const marketDashboard = document.getElementById("market-dashboard");
 
     recPanel.classList.add("hidden");
+    if (marketDashboard) marketDashboard.classList.add("hidden");
     reportSection.classList.add("hidden");
     agentStage.classList.remove("hidden");
     debateFlow.innerHTML = '<div class="debate-placeholder">準備啟動全球總經診斷...</div>';
@@ -1988,6 +2184,7 @@ function renderReport(data) {
 
     document.getElementById("strategy-suggestion").textContent = data.suggestion;
     document.getElementById("strategy-stoploss").textContent = data.stoploss;
+    renderConfidencePanel(data);
 
     // 預設渲染第一個高手 (歐尼爾)
     renderMasterContent('graham');
