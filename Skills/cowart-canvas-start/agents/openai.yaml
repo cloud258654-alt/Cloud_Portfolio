@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cowart Canvas Start"
+  short_description: "Start Cowart canvas for the current Codex project."
+  default_prompt: "Use $cowart-canvas-start to open the Cowart canvas for this project."
