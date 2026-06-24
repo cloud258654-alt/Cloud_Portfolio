@@ -144,6 +144,44 @@ const signalWeights = [
     { label: "新聞事件", value: 13 }
 ];
 
+const globalToolkitData = {
+    heatmap: [
+        { name: "半導體", symbol: "2330", change: -3.43, weight: "large", turnover: "45.0%" },
+        { name: "AI 伺服器", symbol: "2382", change: 2.18, weight: "medium", turnover: "16.6%" },
+        { name: "金融", symbol: "2881", change: 0.84, weight: "medium", turnover: "10.1%" },
+        { name: "航運", symbol: "2603", change: -1.76, weight: "", turnover: "4.7%" },
+        { name: "塑化", symbol: "1301", change: 3.68, weight: "", turnover: "3.9%" },
+        { name: "電零組", symbol: "2308", change: -1.45, weight: "", turnover: "6.2%" },
+        { name: "生技", symbol: "4147", change: 1.22, weight: "", turnover: "2.5%" },
+        { name: "雲端", symbol: "6689", change: 2.77, weight: "", turnover: "1.8%" }
+    ],
+    screenerResults: [
+        { symbol: "2330", name: "台積電", score: 91, tags: ["EPS YoY", "高 ROE", "外資回補"] },
+        { symbol: "2382", name: "廣達", score: 86, tags: ["量能放大", "AI 伺服器", "營收成長"] },
+        { symbol: "2317", name: "鴻海", score: 82, tags: ["低估值", "主力集中", "題材擴散"] },
+        { symbol: "2454", name: "聯發科", score: 79, tags: ["股利穩定", "毛利率", "法人連買"] }
+    ],
+    comparisons: [
+        { symbol: "2330", name: "台積電", pe: "31.2", roe: "27.8%", revenue: "+18.4%", chip: "外資轉買", ai: 91 },
+        { symbol: "2382", name: "廣達", pe: "24.6", roe: "22.1%", revenue: "+31.7%", chip: "投信偏多", ai: 86 },
+        { symbol: "2317", name: "鴻海", pe: "16.8", roe: "12.9%", revenue: "+9.6%", chip: "主力集中", ai: 82 }
+    ],
+    portfolioHealth: {
+        score: 78,
+        rows: [
+            { label: "產業集中度", value: "電子 72%", meter: 72 },
+            { label: "波動風險", value: "中高", meter: 64 },
+            { label: "股利穩定度", value: "良好", meter: 81 },
+            { label: "AI 平均評分", value: "84 / 100", meter: 84 }
+        ]
+    },
+    alerts: [
+        { icon: "fa-bell", title: "價格警示", detail: "2330 跌破 MA20 或突破前高時提醒" },
+        { icon: "fa-wave-square", title: "訊號警示", detail: "法人連 3 買、量增突破、AI 評分升降級" },
+        { icon: "fa-clock-rotate-left", title: "策略回測", detail: "模擬 AI 訊號、停損停利、最大回撤與勝率" }
+    ]
+};
+
 // 3. Helper function: Generate sequential historical prices for K-line & MAs
 function generateHistoricalKLine(basePrice, days = 30, trend = "up") {
     const data = [];
@@ -1378,6 +1416,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initial load: render recommendations
     renderMarketDashboard();
+    renderGlobalToolkit();
     renderPersonalLists();
     renderRecommendations();
     startMarketSimulation(); // 啟動自動更新
@@ -1742,6 +1781,101 @@ function renderConfidencePanel(data) {
     `;
 }
 
+function heatmapColor(change) {
+    const intensity = Math.min(Math.abs(change) / 5, 1);
+    if (change >= 0) {
+        return `rgba(16, 185, 129, ${0.18 + intensity * 0.5})`;
+    }
+    return `rgba(239, 68, 68, ${0.18 + intensity * 0.5})`;
+}
+
+function renderGlobalToolkit() {
+    const heatmapEl = document.getElementById("market-heatmap");
+    const screenerEl = document.getElementById("advanced-screener-list");
+    const compareEl = document.getElementById("comparison-table");
+    const healthEl = document.getElementById("portfolio-health");
+    const alertEl = document.getElementById("alert-backtest-list");
+    if (!heatmapEl || !screenerEl || !compareEl || !healthEl || !alertEl) return;
+
+    heatmapEl.innerHTML = globalToolkitData.heatmap.map(item => `
+        <button class="heatmap-tile ${item.weight}" data-symbol="${item.symbol}" style="background:${heatmapColor(item.change)}">
+            <span class="heatmap-name">${item.name}</span>
+            <span class="heatmap-meta">
+                <strong class="${item.change >= 0 ? "val-buy" : "val-sell"}">${formatSigned(item.change, "%")}</strong>
+                <span>${item.turnover}</span>
+            </span>
+        </button>
+    `).join("");
+
+    screenerEl.innerHTML = globalToolkitData.screenerResults.map((item, index) => `
+        <div class="screener-result">
+            <span class="screener-rank">${index + 1}</span>
+            <div>
+                <button data-run="${item.symbol}"><strong>${item.symbol}</strong> ${item.name}</button>
+                <div class="screener-tags">${item.tags.map(tag => `<span class="mini-tag">${tag}</span>`).join("")}</div>
+            </div>
+            <span class="badge ${item.score >= 85 ? "strong-buy" : "buy"}">${item.score}</span>
+        </div>
+    `).join("");
+
+    compareEl.innerHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>股票</th>
+                    <th>P/E</th>
+                    <th>ROE</th>
+                    <th>營收 YoY</th>
+                    <th>籌碼</th>
+                    <th>AI</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${globalToolkitData.comparisons.map(item => `
+                    <tr>
+                        <td><button data-run="${item.symbol}"><strong>${item.symbol}</strong> ${item.name}</button></td>
+                        <td>${item.pe}</td>
+                        <td>${item.roe}</td>
+                        <td class="${item.revenue.startsWith("+") ? "val-buy" : "val-sell"}">${item.revenue}</td>
+                        <td>${item.chip}</td>
+                        <td><span class="badge ${item.ai >= 85 ? "strong-buy" : "buy"}">${item.ai}</span></td>
+                    </tr>
+                `).join("")}
+            </tbody>
+        </table>
+    `;
+
+    healthEl.innerHTML = `
+        <div class="health-score">
+            <strong>${globalToolkitData.portfolioHealth.score}</strong>
+            <span>Portfolio Health</span>
+        </div>
+        ${globalToolkitData.portfolioHealth.rows.map(row => `
+            <div class="health-row">
+                <div><strong>${row.label}</strong> <span>${row.value}</span></div>
+                <div class="health-meter"><span style="width:${row.meter}%"></span></div>
+            </div>
+        `).join("")}
+    `;
+
+    alertEl.innerHTML = globalToolkitData.alerts.map(item => `
+        <div class="alert-row">
+            <i class="fa-solid ${item.icon}"></i>
+            <div>
+                <strong>${item.title}</strong>
+                <span>${item.detail}</span>
+            </div>
+        </div>
+    `).join("");
+
+    document.querySelectorAll("[data-symbol]").forEach(btn => {
+        btn.addEventListener("click", () => runPipeline(btn.getAttribute("data-symbol")));
+    });
+    document.querySelectorAll("[data-run]").forEach(btn => {
+        btn.addEventListener("click", () => runPipeline(btn.getAttribute("data-run")));
+    });
+}
+
 // 7. Render Top 10 Buy/Sell Panels on Home Load
 function renderRecommendations() {
     const buyBody = document.getElementById("buy-rec-body");
@@ -1824,6 +1958,7 @@ function resetToHome() {
     const reportSection = document.getElementById("report-section");
     const recPanel = document.getElementById("recommendation-panel");
     const marketDashboard = document.getElementById("market-dashboard");
+    const globalToolkit = document.getElementById("global-toolkit");
 
     // Clear input
     stockInput.value = "";
@@ -1834,6 +1969,7 @@ function resetToHome() {
 
     // Show home recommendations
     if (marketDashboard) marketDashboard.classList.remove("hidden");
+    if (globalToolkit) globalToolkit.classList.remove("hidden");
     recPanel.classList.remove("hidden");
     recPanel.scrollIntoView({ behavior: "smooth" });
 
@@ -1897,10 +2033,12 @@ function runPipeline(query) {
     const timerDisplay = document.getElementById("stage-timer");
     const recPanel = document.getElementById("recommendation-panel");
     const marketDashboard = document.getElementById("market-dashboard");
+    const globalToolkit = document.getElementById("global-toolkit");
 
     // Hide Home Panel & Report, show stage
     recPanel.classList.add("hidden");
     if (marketDashboard) marketDashboard.classList.add("hidden");
+    if (globalToolkit) globalToolkit.classList.add("hidden");
     reportSection.classList.add("hidden");
     agentStage.classList.remove("hidden");
 
@@ -2025,9 +2163,11 @@ function runMacroOnlyPipeline() {
     const timerDisplay = document.getElementById("stage-timer");
     const recPanel = document.getElementById("recommendation-panel");
     const marketDashboard = document.getElementById("market-dashboard");
+    const globalToolkit = document.getElementById("global-toolkit");
 
     recPanel.classList.add("hidden");
     if (marketDashboard) marketDashboard.classList.add("hidden");
+    if (globalToolkit) globalToolkit.classList.add("hidden");
     reportSection.classList.add("hidden");
     agentStage.classList.remove("hidden");
     debateFlow.innerHTML = '<div class="debate-placeholder">準備啟動全球總經診斷...</div>';
