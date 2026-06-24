@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>神話海域 3D</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="game-shell">
+    <canvas id="gameCanvas" aria-label="神話海域 3D 遊戲畫面"></canvas>
+
+    <section class="hud top-left">
+      <h1>神話海域</h1>
+      <p id="islandLine">日耀環礁</p>
+      <div class="bar"><div class="bar-fill hp" id="hpBar"></div></div>
+      <p id="hpText">生命 120 / 120</p>
+      <div class="bar"><div class="bar-fill exp" id="expBar"></div></div>
+      <p id="expText">等級 1 經驗 0 / 102</p>
+    </section>
+
+    <section class="hud target-panel" id="targetPanel">
+      <strong id="targetName">尚未鎖定</strong>
+      <span id="targetLevel">靠近敵人或點擊敵人</span>
+      <div class="bar"><div class="bar-fill enemy" id="enemyHp"></div></div>
+      <p id="enemyHpText">-</p>
+    </section>
+
+    <section class="hud right-panel">
+      <div class="level-row">
+        <strong id="coins">0 金幣</strong>
+        <span id="points">0 點數</span>
+      </div>
+      <button id="attackBtn" class="primary">攻擊</button>
+      <button id="coreBtn">神話核心</button>
+      <button id="questBtn">任務</button>
+      <label>
+        核心
+        <select id="coreSelect"></select>
+      </label>
+      <label>
+        武器
+        <select id="weaponSelect"></select>
+      </label>
+    </section>
+
+    <section class="hud quest-panel">
+      <strong>任務</strong>
+      <p id="questText">與萊拉船長對話</p>
+    </section>
+
+    <section class="hud controls-panel">
+      <span>WASD 移動</span>
+      <span>滑鼠拖曳旋轉鏡頭</span>
+      <span>Space 跳躍</span>
+      <span>點擊敵人鎖定目標</span>
+    </section>
+
+    <div class="center-note" id="centerNote">靠近敵人並開始攻擊</div>
+    <div class="log" id="log"></div>
+  </main>
+
+  <script type="module" src="./game.js"></script>
+</body>
+</html>

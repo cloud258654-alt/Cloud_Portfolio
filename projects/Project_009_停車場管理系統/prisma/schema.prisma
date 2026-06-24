@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("admins")
+}
+
+model ParkingLot {
+  id              Int      @id @default(1)
+  name            String
+  capacity        Int
+  usedSpaces      Int      @default(0) @map("used_spaces")
+  availableSpaces Int      @map("available_spaces")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("parking_lots")
+}
+
+model RateSetting {
+  id               Int      @id @default(autoincrement())
+  freeMinutes      Int      @default(30) @map("free_minutes")
+  hourlyRate       Int      @default(40) @map("hourly_rate")
+  dailyMaxFee      Int      @default(300) @map("daily_max_fee")
+  exitGraceMinutes Int      @default(10) @map("exit_grace_minutes")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("rate_settings")
+}
+
+model Blacklist {
+  id          Int      @id @default(autoincrement())
+  plateNumber String   @unique @map("plate_number")
+  reason      String
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("blacklist")
+}
+
+model MonthlyCar {
+  id          Int      @id @default(autoincrement())
+  plateNumber String   @unique @map("plate_number")
+  ownerName   String   @map("owner_name")
+  phone       String
+  startDate   DateTime @map("start_date")
+  endDate     DateTime @map("end_date")
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("monthly_cars")
+}
+
+model ParkingRecord {
+  id          Int       @id @default(autoincrement())
+  plateNumber String    @map("plate_number")
+  vehicleType String    @map("vehicle_type")
+  entryTime   DateTime  @default(now()) @map("entry_time")
+  exitTime    DateTime? @map("exit_time")
+  fee         Int?
+  paid        Boolean   @default(false)
+  status      String    @default("IN_PARKING")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  payments    Payment[]
+
+  @@index([plateNumber, status])
+  @@index([entryTime])
+  @@map("parking_records")
+}
+
+model Payment {
+  id              Int           @id @default(autoincrement())
+  parkingRecordId Int           @map("parking_record_id")
+  plateNumber     String        @map("plate_number")
+  amount          Int
+  originalAmount  Int           @default(0) @map("original_amount")
+  discountAmount  Int           @default(0) @map("discount_amount")
+  discountCode    String?       @map("discount_code")
+  paymentMethod   String        @default("SIMULATED") @map("payment_method")
+  paidAt          DateTime      @default(now()) @map("paid_at")
+  status          String        @default("PAID")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  parkingRecord   ParkingRecord @relation(fields: [parkingRecordId], references: [id])
+
+  @@index([parkingRecordId])
+  @@map("payments")
+}
+
+model Reservation {
+  id          Int      @id @default(autoincrement())
+  plateNumber String   @map("plate_number")
+  driverName  String   @map("driver_name")
+  phone       String
+  startTime   DateTime @map("start_time")
+  endTime     DateTime @map("end_time")
+  status      String   @default("RESERVED")
+  note        String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([plateNumber, status])
+  @@map("reservations")
+}
+
+model DiscountCode {
+  id            Int      @id @default(autoincrement())
+  code          String   @unique
+  name          String
+  discountType  String   @default("AMOUNT") @map("discount_type")
+  discountValue Int      @map("discount_value")
+  status        String   @default("ACTIVE")
+  startDate     DateTime @map("start_date")
+  endDate       DateTime @map("end_date")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("discount_codes")
+}
+
+model LprScan {
+  id           Int      @id @default(autoincrement())
+  plateNumber  String   @map("plate_number")
+  direction    String
+  confidence   Int
+  resultStatus String   @map("result_status")
+  message      String
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("lpr_scans")
+}
+
+model ExceptionEvent {
+  id          Int       @id @default(autoincrement())
+  occurredAt  DateTime  @default(now()) @map("occurred_at")
+  plateNumber String?   @map("plate_number")
+  eventType   String    @map("event_type")
+  description String
+  operator    String
+  ipAddress   String    @map("ip_address")
+  status      String    @default("OPEN")
+  handledBy   String?   @map("handled_by")
+  handledAt   DateTime? @map("handled_at")
+  note        String?
+
+  @@index([occurredAt])
+  @@map("exception_events")
+}
