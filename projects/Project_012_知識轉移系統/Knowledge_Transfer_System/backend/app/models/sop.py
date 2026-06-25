@@ -12,7 +12,11 @@ class SOPTemplate(Base):
     __tablename__ = "sop_templates"
     __table_args__ = {"schema": "knowledge"}
 
-    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid4()))
+    id: Mapped[str] = mapped_column(
+        UUID(as_uuid=False),
+        primary_key=True,
+        default=lambda: str(uuid4()),
+    )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     template_type: Mapped[str] = mapped_column(String(100), default="standard")
@@ -30,9 +34,21 @@ class SOP(Base):
     __tablename__ = "sops"
     __table_args__ = {"schema": "knowledge"}
 
-    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid4()))
-    template_id: Mapped[str | None] = mapped_column(UUID(as_uuid=False), ForeignKey("knowledge.sop_templates.id"), nullable=True)
-    department_id: Mapped[str | None] = mapped_column(UUID(as_uuid=False), ForeignKey("org.departments.id"), nullable=True)
+    id: Mapped[str] = mapped_column(
+        UUID(as_uuid=False),
+        primary_key=True,
+        default=lambda: str(uuid4()),
+    )
+    template_id: Mapped[str | None] = mapped_column(
+        UUID(as_uuid=False),
+        ForeignKey("knowledge.sop_templates.id"),
+        nullable=True,
+    )
+    department_id: Mapped[str | None] = mapped_column(
+        UUID(as_uuid=False),
+        ForeignKey("org.departments.id"),
+        nullable=True,
+    )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     sop_type: Mapped[str | None] = mapped_column(String(100))
     purpose: Mapped[str | None] = mapped_column(Text)
@@ -48,8 +64,16 @@ class SOP(Base):
     status: Mapped[str] = mapped_column(String(50), default="draft")
     source_metadata: Mapped[dict] = mapped_column(JSONB, default=dict)
     sop_metadata: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
-    created_by: Mapped[str | None] = mapped_column(UUID(as_uuid=False), ForeignKey("auth.users.id"), nullable=True)
-    approved_by: Mapped[str | None] = mapped_column(UUID(as_uuid=False), ForeignKey("auth.users.id"), nullable=True)
+    created_by: Mapped[str | None] = mapped_column(
+        UUID(as_uuid=False),
+        ForeignKey("auth.users.id"),
+        nullable=True,
+    )
+    approved_by: Mapped[str | None] = mapped_column(
+        UUID(as_uuid=False),
+        ForeignKey("auth.users.id"),
+        nullable=True,
+    )
     approved_at: Mapped[datetime | None] = mapped_column(DateTime)
     published_at: Mapped[datetime | None] = mapped_column(DateTime)
     created_at: Mapped[datetime | None] = mapped_column(DateTime)
@@ -70,13 +94,25 @@ class SOPVersion(Base):
         {"schema": "knowledge"},
     )
 
-    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid4()))
-    sop_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("knowledge.sops.id"), nullable=False)
+    id: Mapped[str] = mapped_column(
+        UUID(as_uuid=False),
+        primary_key=True,
+        default=lambda: str(uuid4()),
+    )
+    sop_id: Mapped[str] = mapped_column(
+        UUID(as_uuid=False),
+        ForeignKey("knowledge.sops.id"),
+        nullable=False,
+    )
     version_no: Mapped[str] = mapped_column(String(50), nullable=False)
     content: Mapped[dict] = mapped_column(JSONB, default=dict)
     mermaid_flowchart: Mapped[str | None] = mapped_column(Text)
     change_note: Mapped[str | None] = mapped_column(Text)
-    created_by: Mapped[str | None] = mapped_column(UUID(as_uuid=False), ForeignKey("auth.users.id"), nullable=True)
+    created_by: Mapped[str | None] = mapped_column(
+        UUID(as_uuid=False),
+        ForeignKey("auth.users.id"),
+        nullable=True,
+    )
     version_metadata: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
     created_at: Mapped[datetime | None] = mapped_column(DateTime)
 
@@ -93,9 +129,21 @@ class SOPStep(Base):
         {"schema": "knowledge"},
     )
 
-    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid4()))
-    sop_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("knowledge.sops.id"), nullable=False)
-    sop_version_id: Mapped[str | None] = mapped_column(UUID(as_uuid=False), ForeignKey("knowledge.sop_versions.id"), nullable=True)
+    id: Mapped[str] = mapped_column(
+        UUID(as_uuid=False),
+        primary_key=True,
+        default=lambda: str(uuid4()),
+    )
+    sop_id: Mapped[str] = mapped_column(
+        UUID(as_uuid=False),
+        ForeignKey("knowledge.sops.id"),
+        nullable=False,
+    )
+    sop_version_id: Mapped[str | None] = mapped_column(
+        UUID(as_uuid=False),
+        ForeignKey("knowledge.sop_versions.id"),
+        nullable=True,
+    )
     step_no: Mapped[int] = mapped_column(Integer, nullable=False)
     title: Mapped[str | None] = mapped_column(String(255))
     action: Mapped[str] = mapped_column(Text, nullable=False)
@@ -116,10 +164,26 @@ class SOPReview(Base):
     __tablename__ = "sop_reviews"
     __table_args__ = {"schema": "knowledge"}
 
-    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid4()))
-    sop_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("knowledge.sops.id"), nullable=False)
-    sop_version_id: Mapped[str | None] = mapped_column(UUID(as_uuid=False), ForeignKey("knowledge.sop_versions.id"), nullable=True)
-    reviewer_id: Mapped[str | None] = mapped_column(UUID(as_uuid=False), ForeignKey("auth.users.id"), nullable=True)
+    id: Mapped[str] = mapped_column(
+        UUID(as_uuid=False),
+        primary_key=True,
+        default=lambda: str(uuid4()),
+    )
+    sop_id: Mapped[str] = mapped_column(
+        UUID(as_uuid=False),
+        ForeignKey("knowledge.sops.id"),
+        nullable=False,
+    )
+    sop_version_id: Mapped[str | None] = mapped_column(
+        UUID(as_uuid=False),
+        ForeignKey("knowledge.sop_versions.id"),
+        nullable=True,
+    )
+    reviewer_id: Mapped[str | None] = mapped_column(
+        UUID(as_uuid=False),
+        ForeignKey("auth.users.id"),
+        nullable=True,
+    )
     review_status: Mapped[str] = mapped_column(String(50), default="pending")
     review_comment: Mapped[str | None] = mapped_column(Text)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime)
@@ -134,9 +198,21 @@ class SOPAttachment(Base):
     __tablename__ = "sop_attachments"
     __table_args__ = {"schema": "knowledge"}
 
-    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=lambda: str(uuid4()))
-    sop_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("knowledge.sops.id"), nullable=False)
-    sop_version_id: Mapped[str | None] = mapped_column(UUID(as_uuid=False), ForeignKey("knowledge.sop_versions.id"), nullable=True)
+    id: Mapped[str] = mapped_column(
+        UUID(as_uuid=False),
+        primary_key=True,
+        default=lambda: str(uuid4()),
+    )
+    sop_id: Mapped[str] = mapped_column(
+        UUID(as_uuid=False),
+        ForeignKey("knowledge.sops.id"),
+        nullable=False,
+    )
+    sop_version_id: Mapped[str | None] = mapped_column(
+        UUID(as_uuid=False),
+        ForeignKey("knowledge.sop_versions.id"),
+        nullable=True,
+    )
     attachment_type: Mapped[str] = mapped_column(String(100), nullable=False)
     title: Mapped[str | None] = mapped_column(String(255))
     storage_path: Mapped[str] = mapped_column(Text, nullable=False)

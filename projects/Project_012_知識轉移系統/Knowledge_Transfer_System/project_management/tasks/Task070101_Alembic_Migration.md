@@ -71,3 +71,5 @@ No tests are added
 ## Execution Notes
 
 This task is intentionally small. Execute only this task and stop.
+
+This migration was revised to stay compatible with existing tables by using `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`, which is the correct approach for the current database state.
