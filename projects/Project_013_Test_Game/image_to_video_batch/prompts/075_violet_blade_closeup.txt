@@ -1,0 +1,12 @@
+IMAGE: renamed_input/blade_close/075_violet_blade_closeup.png
+SUGGESTED_OUTPUT: output/075_violet_blade_closeup.mp4
+DURATION: 8 seconds or the closest Flow setting under 8 seconds
+
+PROMPT:
+Google Flow image-to-video. Keep the uploaded image as the visual anchor and preserve the character identity, costume, pose, palette, and composition. Cinematic fantasy trailer quality, premium anime-realistic rendering, high dynamic range, shallow depth of field, smooth natural motion. Purple-eyed swordswoman holding a glowing blade close to her face. Use an extreme close-up on the lightning, rack focus to the eyes, and keep the shot intense and precise. Use a trailer rhythm: opening detail, character close-up, then a clean final hero frame.
+
+NEGATIVE PROMPT:
+Do not change the character identity, face, outfit, weapon, hairstyle, or body proportions. No extra limbs, no extra fingers, no warped hands, no distorted eyes, no melting face, no broken weapon, no text, no subtitles, no logos, no watermark, no low quality, no sudden style change, no excessive camera shake.
+
+FLOW NOTES:
+Use image-to-video with a single reference frame. Prefer medium motion, stable anatomy, no identity drift, and no sudden style changes.

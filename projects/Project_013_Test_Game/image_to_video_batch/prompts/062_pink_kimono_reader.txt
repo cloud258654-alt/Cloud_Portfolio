@@ -1,0 +1,12 @@
+IMAGE: renamed_input/sakura_reader/062_pink_kimono_reader.png
+SUGGESTED_OUTPUT: output/062_pink_kimono_reader.mp4
+DURATION: 8 seconds or the closest Flow setting under 8 seconds
+
+PROMPT:
+Google Flow image-to-video. Keep the uploaded image as the visual anchor and preserve the character identity, costume, pose, palette, and composition. Cinematic fantasy trailer quality, premium anime-realistic rendering, high dynamic range, shallow depth of field, smooth natural motion. Pink-haired kimono girl reading under cherry blossoms. Keep the shot graceful and quiet, with a slow page-turn and drifting petals bridging the frame. Use a trailer rhythm: opening detail, character close-up, then a clean final hero frame.
+
+NEGATIVE PROMPT:
+Do not change the character identity, face, outfit, weapon, hairstyle, or body proportions. No extra limbs, no extra fingers, no warped hands, no distorted eyes, no melting face, no broken weapon, no text, no subtitles, no logos, no watermark, no low quality, no sudden style change, no excessive camera shake.
+
+FLOW NOTES:
+Use image-to-video with a single reference frame. Prefer medium motion, stable anatomy, no identity drift, and no sudden style changes.

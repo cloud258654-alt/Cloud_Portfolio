@@ -1,0 +1,5 @@
+node_modules/
+videos/
+image_to_video_batch/output/
+.git/
+.agents/

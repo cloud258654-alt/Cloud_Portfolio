@@ -1,0 +1,95 @@
+sequence,id,category,transition_after,cut_note
+1,1,fire_intro,fade_in,Cut on spark flare.
+2,2,sakura_mystic,soft_dissolve,Cut on petals or gaze.
+3,3,sakura_mystic,soft_dissolve,Cut on petals or gaze.
+4,4,sakura_mystic,soft_dissolve,Cut on petals or gaze.
+5,5,study_scene,soft_dissolve,Cut on book turn or hand movement.
+6,6,sword_hero,soft_dissolve,Cut on blade motion.
+7,7,sword_hero,soft_dissolve,Cut on blade motion.
+8,8,battle_dark,soft_dissolve,Cut on lightning or weapon flash.
+9,9,sakura_mystic,soft_dissolve,Cut on petals or gaze.
+10,10,parasol_night,soft_dissolve,Cut on umbrella silhouette.
+11,11,forest_spirit,soft_dissolve,Cut on leaf drift or animal gaze.
+12,12,forest_spirit,soft_dissolve,Cut on leaf drift or animal gaze.
+13,13,forest_spirit,soft_dissolve,Cut on leaf drift or animal gaze.
+14,14,forest_spirit,soft_dissolve,Cut on leaf drift or animal gaze.
+15,15,study_scene,soft_dissolve,Cut on book turn or hand movement.
+16,16,water_magic,soft_dissolve,Cut on water circle or bubble burst.
+17,17,night_city,soft_dissolve,Cut on skyline glow.
+18,18,ice_magic,soft_dissolve,Cut on crystal shimmer.
+19,19,parasol_samurai,match_cut,Cut on parasol rotation.
+20,20,dream_throne,match_cut,Cut on a soft breath or gaze.
+21,21,nature_maiden,match_cut,Cut on ornament motion.
+22,22,water_magic,match_cut,Cut on water circle or bubble burst.
+23,23,moon_queen,match_cut,Cut on moonlight or posture shift.
+24,24,winged_spirit,match_cut,Cut on wing movement.
+25,25,battle_dark,match_cut,Cut on lightning or weapon flash.
+26,26,parasol_night,match_cut,Cut on umbrella silhouette.
+27,27,male_hero,match_cut,Cut on shoulder turn or weapon edge.
+28,28,male_hero,match_cut,Cut on shoulder turn or weapon edge.
+29,29,male_hero,match_cut,Cut on shoulder turn or weapon edge.
+30,30,male_hero,match_cut,Cut on shoulder turn or weapon edge.
+31,31,cute_pink_room,match_cut,Cut on a blink or plush detail.
+32,32,cute_pink_room,match_cut,Cut on a blink or plush detail.
+33,33,cute_pink_room,match_cut,Cut on a blink or plush detail.
+34,34,playful_pink,match_cut,Cut on a cup or smile.
+35,35,festival_sword,match_cut,Cut on the sword line.
+36,36,festival_pose,match_cut,Cut on fabric sweep.
+37,37,festival_pose,match_cut,Cut on fabric sweep.
+38,38,indoor_pose,match_cut,Cut on the light sweep.
+39,39,sunset_pose,match_cut,Cut on sunset color change.
+40,40,duo_scene,match_cut,Cut on the shared color beat.
+41,41,tea_room,rhythmic_cut,Cut on the teacup or pastry.
+42,42,festival_dance,rhythmic_cut,Cut on fan or fabric sweep.
+43,43,sakura_duelist,rhythmic_cut,Cut on the draw slash.
+44,44,fire_action,rhythmic_cut,Cut on ember impact.
+45,45,cozy_room,rhythmic_cut,Cut on a calm glance.
+46,46,fireworks_rider,rhythmic_cut,Cut on the fireworks burst.
+47,47,fox_tail,rhythmic_cut,Cut on tail ribbon motion.
+48,48,leap_white,rhythmic_cut,Cut on the jump apex.
+49,49,sakura_miko,rhythmic_cut,Cut on petals or page turn.
+50,50,sakura_miko,rhythmic_cut,Cut on petals or page turn.
+51,51,void_action,rhythmic_cut,Cut on spear flash.
+52,52,holy_light,rhythmic_cut,Cut on radiant glow.
+53,53,forest_spirit,rhythmic_cut,Cut on leaf drift or animal gaze.
+54,54,water_magic,rhythmic_cut,Cut on water circle or bubble burst.
+55,55,water_magic,rhythmic_cut,Cut on water circle or bubble burst.
+56,56,royal_drama,rhythmic_cut,Cut on a regal pose.
+57,57,tea_room,rhythmic_cut,Cut on the teacup or pastry.
+58,58,palace_knight,rhythmic_cut,Cut on armor glint.
+59,59,blue_swordsman,rhythmic_cut,Cut on the blue blade edge.
+60,60,dark_swordsman,rhythmic_cut,Cut on red-black energy.
+61,61,crimson_queen,rhythmic_cut,Cut on embers or throne glow.
+62,62,sakura_reader,rhythmic_cut,Cut on the page turn.
+63,63,ice_magic,rhythmic_cut,Cut on crystal shimmer.
+64,64,fire_action,rhythmic_cut,Cut on ember impact.
+65,65,forest_guardian,tighten_cut,Cut on cat movement.
+66,66,forest_cat,tighten_cut,Cut on the cat blink.
+67,67,holy_light,tighten_cut,Cut on radiant glow.
+68,68,water_magic,tighten_cut,Cut on water circle or bubble burst.
+69,69,parasol_samurai,tighten_cut,Cut on parasol rotation.
+70,70,scholar_magic,tighten_cut,Cut on telescope or page detail.
+71,71,crystal_holy,tighten_cut,Cut on crystal shimmer.
+72,72,water_action,tighten_cut,Cut on blade trail or splash.
+73,73,void_empress,tighten_cut,Cut on sigil pulse.
+74,74,lightning_kneel,tighten_cut,Cut on thunder flash.
+75,75,blade_close,tighten_cut,Cut on the blade glint.
+76,76,parasol_night,tighten_cut,Cut on umbrella silhouette.
+77,77,lantern_dance,tighten_cut,Cut on lantern swing.
+78,78,sunset_ocean,tighten_cut,Cut on water spray.
+79,79,cloud_maiden,tighten_cut,Cut on the cloud glow.
+80,80,sakura_reader_alt,tighten_cut,Cut on petals or gaze.
+81,81,void_action,tighten_cut,Cut on spear flash.
+82,82,forest_spirit,tighten_cut,Cut on leaf drift or animal gaze.
+83,83,night_magic,hard_cut,Cut on motion or light change.
+84,84,steampunk_gold,hard_cut,Cut on gear rotation.
+85,85,steampunk_gold,hard_cut,Cut on gear rotation.
+86,86,steampunk_gold,hard_cut,Cut on gear rotation.
+87,87,ice_magic,hard_cut,Cut on crystal shimmer.
+88,88,ice_closeup,hard_cut,Cut on frost sparkle.
+89,89,dessert_palace,hard_cut,Cut on sweets or glass shine.
+90,90,water_dancer,hard_cut,Cut on the water ring.
+91,91,tea_noble,hard_cut,Cut on the cup or macarons.
+92,92,festival_dancer_gold,hard_cut,Cut on the fan sweep.
+93,93,sakura_duelist,hard_cut,Cut on the draw slash.
+94,94,fire_action,hard_cut,Cut on ember impact.
