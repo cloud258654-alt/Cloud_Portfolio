@@ -1,0 +1,902 @@
+openapi: 3.1.0
+info:
+  title: AI Knowledge Transfer System API
+  version: 1.0.0
+  description: Enterprise AI Platform REST API contract.
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    DocumentId:
+      name: document_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    ApiResponse:
+      type: object
+      required: [success, message]
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          additionalProperties: true
+        message:
+          type: string
+    ErrorResponse:
+      type: object
+      required: [success, error]
+      properties:
+        success:
+          type: boolean
+          const: false
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    AskRequest:
+      type: object
+      required: [question]
+      properties:
+        question:
+          type: string
+        conversation_id:
+          type: string
+          format: uuid
+          nullable: true
+        department_id:
+          type: string
+          format: uuid
+        top_k:
+          type: integer
+          default: 5
+        model:
+          type: string
+          default: default
+        answer_mode:
+          type: string
+          enum: [grounded, summary, step_by_step]
+          default: grounded
+    SearchRequest:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+        department_id:
+          type: string
+          format: uuid
+        top_k:
+          type: integer
+          default: 5
+        filters:
+          type: object
+          additionalProperties: true
+    FeedbackRequest:
+      type: object
+      required: [message_id, rating, feedback_type]
+      properties:
+        message_id:
+          type: string
+          format: uuid
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        feedback_type:
+          type: string
+          enum: [helpful, wrong, incomplete, unsafe]
+        comment:
+          type: string
+    ModelConfig:
+      type: object
+      required: [provider, model_name, task_type, tier]
+      properties:
+        id:
+          type: string
+          format: uuid
+        provider:
+          type: string
+          example: cloud_llm
+        model_name:
+          type: string
+          example: standard_llm_model
+        task_type:
+          type: string
+          example: ai_qa
+        tier:
+          type: string
+          enum: [high_reasoning, standard, low_cost, embedding, reranker, ocr, stt, vision_video]
+        temperature:
+          type: number
+          format: float
+          default: 0.2
+        max_tokens:
+          type: integer
+          default: 4096
+        is_active:
+          type: boolean
+          default: true
+        fallback_model:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: true
+    ModelRouterRequest:
+      type: object
+      required: [task_type]
+      properties:
+        task_type:
+          type: string
+          example: sop_generation
+        risk_level:
+          type: string
+          enum: [low, medium, high]
+          default: low
+        language:
+          type: string
+          example: zh-TW
+        context_length:
+          type: integer
+          default: 0
+        need_reasoning:
+          type: boolean
+          default: false
+        need_citation:
+          type: boolean
+          default: false
+    ModelRouterResponse:
+      type: object
+      required: [provider, model, temperature, max_tokens]
+      properties:
+        provider:
+          type: string
+        model:
+          type: string
+        tier:
+          type: string
+        temperature:
+          type: number
+          format: float
+        max_tokens:
+          type: integer
+        fallback_model:
+          type: string
+          nullable: true
+    PromptTemplate:
+      type: object
+      required: [prompt_key, name, category, task_type]
+      properties:
+        id:
+          type: string
+          format: uuid
+        prompt_key:
+          type: string
+          example: task.qa_grounded.v1
+        name:
+          type: string
+        category:
+          type: string
+          enum: [system, task, agent, template, test, version]
+        task_type:
+          type: string
+        owner:
+          type: string
+        status:
+          type: string
+          enum: [draft, review, approved, published, deprecated, archived]
+        citation_required:
+          type: boolean
+        output_format:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+    PromptVersion:
+      type: object
+      required: [version_no, prompt_path]
+      properties:
+        id:
+          type: string
+          format: uuid
+        version_no:
+          type: string
+          example: v1.0.0
+        prompt_path:
+          type: string
+        prompt_body:
+          type: string
+        change_note:
+          type: string
+        status:
+          type: string
+          enum: [draft, review, approved, published, deprecated, archived]
+    PromptEvaluation:
+      type: object
+      required: [prompt_version_id, test_case_id]
+      properties:
+        prompt_version_id:
+          type: string
+          format: uuid
+        test_case_id:
+          type: string
+        input_payload:
+          type: object
+          additionalProperties: true
+        expected_behavior:
+          type: string
+        actual_output:
+          type: string
+        score:
+          type: number
+          format: float
+        passed:
+          type: boolean
+paths:
+  /auth/login:
+    post:
+      security: []
+      tags: [Auth]
+      summary: Login and issue JWT tokens.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /auth/refresh:
+    post:
+      security: []
+      tags: [Auth]
+      summary: Refresh access token.
+      responses:
+        '200':
+          description: Token refreshed.
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout current session.
+      responses:
+        '200':
+          description: Logout success.
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current user profile.
+      responses:
+        '200':
+          description: Current user profile.
+  /users:
+    get:
+      tags: [Users]
+      summary: List users.
+      parameters:
+        - name: department_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: role
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User list.
+    post:
+      tags: [Users]
+      summary: Create user.
+      responses:
+        '201':
+          description: User created.
+  /users/{user_id}:
+    get:
+      tags: [Users]
+      summary: Get user detail.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User detail.
+    put:
+      tags: [Users]
+      summary: Update user.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User updated.
+    delete:
+      tags: [Users]
+      summary: Disable user.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User disabled.
+  /departments:
+    get:
+      tags: [Departments]
+      summary: List departments.
+      responses:
+        '200':
+          description: Department list.
+    post:
+      tags: [Departments]
+      summary: Create department.
+      responses:
+        '201':
+          description: Department created.
+  /departments/{department_id}:
+    put:
+      tags: [Departments]
+      summary: Update department.
+      parameters:
+        - name: department_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Department updated.
+  /documents/upload:
+    post:
+      tags: [Documents]
+      summary: Upload document and create processing job.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, title, department_id, permission_scope]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                title:
+                  type: string
+                description:
+                  type: string
+                department_id:
+                  type: string
+                  format: uuid
+                permission_scope:
+                  type: string
+                  enum: [public, department, private, confidential, admin_only]
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Document uploaded.
+  /documents:
+    get:
+      tags: [Documents]
+      summary: List documents.
+      responses:
+        '200':
+          description: Document list.
+  /documents/{document_id}:
+    get:
+      tags: [Documents]
+      summary: Get document detail.
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '200':
+          description: Document detail.
+    put:
+      tags: [Documents]
+      summary: Update document metadata.
+      parameters:
+        - name: document_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Document updated.
+    delete:
+      tags: [Documents]
+      summary: Delete or archive document.
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '200':
+          description: Document deleted.
+  /documents/{document_id}/publish:
+    post:
+      tags: [Documents]
+      summary: Publish document.
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '200':
+          description: Document published.
+  /documents/{document_id}/archive:
+    post:
+      tags: [Documents]
+      summary: Archive document.
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '200':
+          description: Document archived.
+  /documents/{document_id}/versions:
+    get:
+      tags: [Document Versions]
+      summary: List document versions.
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '200':
+          description: Version list.
+    post:
+      tags: [Document Versions]
+      summary: Upload new document version.
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '201':
+          description: Version uploaded.
+  /ingestion/documents/{document_id}/start:
+    post:
+      tags: [Ingestion]
+      summary: Start document ingestion.
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '202':
+          description: Ingestion queued.
+  /ingestion/jobs/{job_id}:
+    get:
+      tags: [Ingestion]
+      summary: Get ingestion job status.
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Ingestion job status.
+  /ingestion/documents/{document_id}/rebuild:
+    post:
+      tags: [Ingestion]
+      summary: Rebuild document index.
+      parameters:
+        - $ref: '#/components/parameters/DocumentId'
+      responses:
+        '202':
+          description: Rebuild queued.
+  /search/keyword:
+    get:
+      tags: [Search]
+      summary: Keyword search.
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Keyword results.
+  /search/vector:
+    post:
+      tags: [Search]
+      summary: Vector search.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+      responses:
+        '200':
+          description: Vector results.
+  /search/hybrid:
+    post:
+      tags: [Search]
+      summary: Hybrid keyword and vector search.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+      responses:
+        '200':
+          description: Hybrid results.
+  /ai/ask:
+    post:
+      tags: [AI QA]
+      summary: Ask AI with enterprise RAG support.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AskRequest'
+      responses:
+        '200':
+          description: AI answer with citations.
+  /ai/conversations:
+    get:
+      tags: [AI QA]
+      summary: List conversations.
+      responses:
+        '200':
+          description: Conversation list.
+  /ai/conversations/{conversation_id}:
+    get:
+      tags: [AI QA]
+      summary: Get conversation detail.
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Conversation detail.
+    delete:
+      tags: [AI QA]
+      summary: Delete conversation.
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Conversation deleted.
+  /feedback:
+    post:
+      tags: [Feedback]
+      summary: Create AI answer feedback.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+      responses:
+        '201':
+          description: Feedback created.
+    get:
+      tags: [Feedback]
+      summary: List feedback.
+      responses:
+        '200':
+          description: Feedback list.
+  /audit-logs:
+    get:
+      tags: [Audit]
+      summary: List audit logs.
+      responses:
+        '200':
+          description: Audit log list.
+  /admin/health:
+    get:
+      tags: [Admin]
+      summary: System health.
+      responses:
+        '200':
+          description: Health status.
+  /admin/metrics:
+    get:
+      tags: [Admin]
+      summary: System metrics.
+      responses:
+        '200':
+          description: Metrics.
+  /admin/ai-settings:
+    get:
+      tags: [Admin]
+      summary: Get AI settings.
+      responses:
+        '200':
+          description: AI settings.
+    put:
+      tags: [Admin]
+      summary: Update AI settings.
+      responses:
+        '200':
+          description: AI settings updated.
+  /admin/ai-model-configs:
+    get:
+      tags: [Admin]
+      summary: List AI model routing configurations.
+      parameters:
+        - name: task_type
+          in: query
+          schema:
+            type: string
+        - name: tier
+          in: query
+          schema:
+            type: string
+        - name: is_active
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: AI model config list.
+    post:
+      tags: [Admin]
+      summary: Create AI model routing configuration.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelConfig'
+      responses:
+        '201':
+          description: AI model config created.
+  /admin/ai-model-configs/{config_id}:
+    put:
+      tags: [Admin]
+      summary: Update AI model routing configuration.
+      parameters:
+        - name: config_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelConfig'
+      responses:
+        '200':
+          description: AI model config updated.
+    delete:
+      tags: [Admin]
+      summary: Disable AI model routing configuration.
+      parameters:
+        - name: config_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: AI model config disabled.
+  /ai/router/select:
+    post:
+      tags: [AI Router]
+      summary: Select a model configuration for a task.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelRouterRequest'
+      responses:
+        '200':
+          description: Selected model route.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ModelRouterResponse'
+  /admin/prompts:
+    get:
+      tags: [Admin]
+      summary: List prompt templates.
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: task_type
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Prompt template list.
+    post:
+      tags: [Admin]
+      summary: Create prompt template.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PromptTemplate'
+      responses:
+        '201':
+          description: Prompt template created.
+  /admin/prompts/{prompt_id}/versions:
+    get:
+      tags: [Admin]
+      summary: List prompt versions.
+      parameters:
+        - name: prompt_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Prompt version list.
+    post:
+      tags: [Admin]
+      summary: Create prompt version.
+      parameters:
+        - name: prompt_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PromptVersion'
+      responses:
+        '201':
+          description: Prompt version created.
+  /admin/prompts/evaluations:
+    post:
+      tags: [Admin]
+      summary: Record prompt evaluation result.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PromptEvaluation'
+      responses:
+        '201':
+          description: Prompt evaluation recorded.
+  /experience-records:
+    get:
+      tags: [Experience]
+      summary: List experience records.
+      responses:
+        '200':
+          description: Experience record list.
+    post:
+      tags: [Experience]
+      summary: Create experience record.
+      responses:
+        '201':
+          description: Experience record created.
+  /knowledge-items:
+    get:
+      tags: [Knowledge]
+      summary: List structured knowledge items.
+      responses:
+        '200':
+          description: Knowledge item list.
+    post:
+      tags: [Knowledge]
+      summary: Create knowledge item.
+      responses:
+        '201':
+          description: Knowledge item created.
+  /training/courses:
+    get:
+      tags: [Training]
+      summary: List training courses.
+      responses:
+        '200':
+          description: Training course list.
+    post:
+      tags: [Training]
+      summary: Create training course.
+      responses:
+        '201':
+          description: Training course created.
+  /agent/tasks:
+    get:
+      tags: [Agent]
+      summary: List agent tasks.
+      responses:
+        '200':
+          description: Agent task list.
+    post:
+      tags: [Agent]
+      summary: Create agent task.
+      responses:
+        '202':
+          description: Agent task accepted.
+  /approval-workflows:
+    get:
+      tags: [Governance]
+      summary: List approval workflows.
+      responses:
+        '200':
+          description: Approval workflow list.
+    post:
+      tags: [Governance]
+      summary: Create approval workflow.
+      responses:
+        '201':
+          description: Approval workflow created.

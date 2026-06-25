@@ -1,0 +1,63 @@
+:root {
+  --kts-color-primary: #2E7D32;
+  --kts-color-primary-hover: #256A2A;
+  --kts-color-secondary: #90CAF9;
+  --kts-color-background: #FAFAF8;
+  --kts-color-surface: #FFFFFF;
+  --kts-color-surface-muted: #F3F4F6;
+  --kts-color-wood: #E9DFC9;
+  --kts-color-border: #E5E7EB;
+  --kts-color-text: #111827;
+  --kts-color-text-muted: #6B7280;
+  --kts-color-success: #4CAF50;
+  --kts-color-warning: #F9A825;
+  --kts-color-danger: #E53935;
+  --kts-color-info: #42A5F5;
+  --kts-color-focus: rgba(46, 125, 50, 0.22);
+
+  --kts-font-sans: Inter, "Noto Sans TC", "SF Pro Text", system-ui, sans-serif;
+
+  --kts-font-display: 32px;
+  --kts-font-h1: 28px;
+  --kts-font-h2: 24px;
+  --kts-font-h3: 20px;
+  --kts-font-body: 16px;
+  --kts-font-body-sm: 15px;
+  --kts-font-ui: 14px;
+  --kts-font-caption: 12px;
+
+  --kts-space-1: 4px;
+  --kts-space-2: 8px;
+  --kts-space-4: 16px;
+  --kts-space-6: 24px;
+  --kts-space-8: 32px;
+  --kts-space-10: 40px;
+  --kts-space-12: 48px;
+  --kts-space-16: 64px;
+
+  --kts-radius-sm: 6px;
+  --kts-radius-md: 8px;
+  --kts-radius-lg: 12px;
+  --kts-radius-xl: 16px;
+  --kts-radius-full: 999px;
+
+  --kts-shadow-card: 0 8px 30px rgba(0, 0, 0, 0.05);
+  --kts-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.08);
+  --kts-shadow-focus: 0 0 0 3px rgba(46, 125, 50, 0.22);
+
+  --kts-motion-fast: 150ms;
+  --kts-motion-base: 250ms;
+  --kts-motion-slow: 300ms;
+  --kts-motion-ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+[data-theme="dark"] {
+  --kts-color-background: #111827;
+  --kts-color-surface: #1F2937;
+  --kts-color-surface-muted: #273244;
+  --kts-color-border: #374151;
+  --kts-color-text: #F9FAFB;
+  --kts-color-text-muted: #CBD5E1;
+  --kts-color-primary: #66BB6A;
+  --kts-color-primary-hover: #81C784;
+}

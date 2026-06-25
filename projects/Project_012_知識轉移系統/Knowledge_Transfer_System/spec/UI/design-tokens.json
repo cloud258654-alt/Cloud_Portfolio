@@ -1,0 +1,73 @@
+{
+  "color": {
+    "primary": "#2E7D32",
+    "primaryHover": "#256A2A",
+    "secondary": "#90CAF9",
+    "background": "#FAFAF8",
+    "surface": "#FFFFFF",
+    "surfaceMuted": "#F3F4F6",
+    "wood": "#E9DFC9",
+    "border": "#E5E7EB",
+    "text": "#111827",
+    "textMuted": "#6B7280",
+    "success": "#4CAF50",
+    "warning": "#F9A825",
+    "danger": "#E53935",
+    "info": "#42A5F5",
+    "focus": "rgba(46, 125, 50, 0.22)"
+  },
+  "font": {
+    "sans": "Inter, Noto Sans TC, SF Pro Text, system-ui, sans-serif"
+  },
+  "fontSize": {
+    "display": "32px",
+    "h1": "28px",
+    "h2": "24px",
+    "h3": "20px",
+    "body": "16px",
+    "bodySm": "15px",
+    "ui": "14px",
+    "caption": "12px"
+  },
+  "spacing": {
+    "1": "4px",
+    "2": "8px",
+    "4": "16px",
+    "6": "24px",
+    "8": "32px",
+    "10": "40px",
+    "12": "48px",
+    "16": "64px"
+  },
+  "radius": {
+    "sm": "6px",
+    "md": "8px",
+    "lg": "12px",
+    "xl": "16px",
+    "full": "999px"
+  },
+  "shadow": {
+    "card": "0 8px 30px rgba(0, 0, 0, 0.05)",
+    "hover": "0 12px 40px rgba(0, 0, 0, 0.08)",
+    "focus": "0 0 0 3px rgba(46, 125, 50, 0.22)"
+  },
+  "motion": {
+    "fast": "150ms",
+    "base": "250ms",
+    "slow": "300ms",
+    "ease": "cubic-bezier(0.2, 0, 0, 1)"
+  },
+  "breakpoint": {
+    "mobile": "0px",
+    "tablet": "768px",
+    "desktop": "1024px",
+    "ultrawide": "1440px"
+  },
+  "zIndex": {
+    "dropdown": 1000,
+    "sticky": 1020,
+    "fixed": 1030,
+    "modal": 1040,
+    "toast": 1050
+  }
+}

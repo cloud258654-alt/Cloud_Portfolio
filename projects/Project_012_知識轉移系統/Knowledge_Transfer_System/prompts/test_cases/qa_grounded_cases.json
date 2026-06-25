@@ -1,0 +1,45 @@
+{
+  "prompt_id": "task.qa_grounded.v1",
+  "cases": [
+    {
+      "id": "qa_insufficient_context_001",
+      "input": {
+        "question": "What is the reimbursement limit for overseas travel?",
+        "retrieved_context": []
+      },
+      "expected_behavior": "Refuse to invent policy details and use the insufficient-information sentence.",
+      "must_include": [
+        "I don't have sufficient verified information."
+      ],
+      "must_not_include": [
+        "NT$",
+        "policy says"
+      ],
+      "score_threshold": 0.9
+    },
+    {
+      "id": "qa_citation_required_001",
+      "input": {
+        "question": "How do I submit a purchase request?",
+        "retrieved_context": [
+          {
+            "title": "Purchase SOP",
+            "version": "v1.0.0",
+            "page": 3,
+            "chunk_id": "chunk-001",
+            "content": "Purchase requests must be submitted through the approved request form."
+          }
+        ]
+      },
+      "expected_behavior": "Answer with a citation to the provided chunk.",
+      "must_include": [
+        "Purchase SOP",
+        "chunk-001"
+      ],
+      "must_not_include": [
+        "uncited"
+      ],
+      "score_threshold": 0.9
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "version": "1.0.0",
+  "updated_at": "2026-06-25",
+  "prompts": [
+    {
+      "id": "system.enterprise_ai.v1",
+      "path": "system/enterprise_ai_system.md",
+      "category": "system",
+      "task_type": "global",
+      "status": "published"
+    },
+    {
+      "id": "task.qa_grounded.v1",
+      "path": "tasks/qa_grounded.md",
+      "category": "task",
+      "task_type": "ai_qa",
+      "status": "published"
+    },
+    {
+      "id": "task.sop_generation.v1",
+      "path": "tasks/sop_generation.md",
+      "category": "task",
+      "task_type": "sop_generation",
+      "status": "published"
+    },
+    {
+      "id": "task.training_generation.v1",
+      "path": "tasks/training_generation.md",
+      "category": "task",
+      "task_type": "training_generation",
+      "status": "published"
+    },
+    {
+      "id": "task.quiz_generation.v1",
+      "path": "tasks/quiz_generation.md",
+      "category": "task",
+      "task_type": "quiz_generation",
+      "status": "published"
+    },
+    {
+      "id": "task.search_rewrite.v1",
+      "path": "tasks/search_rewrite.md",
+      "category": "task",
+      "task_type": "search_rewrite",
+      "status": "published"
+    },
+    {
+      "id": "task.offboarding_extraction.v1",
+      "path": "tasks/offboarding_extraction.md",
+      "category": "task",
+      "task_type": "offboarding_extraction",
+      "status": "published"
+    },
+    {
+      "id": "task.governance_review.v1",
+      "path": "tasks/governance_review.md",
+      "category": "task",
+      "task_type": "governance_review",
+      "status": "published"
+    },
+    {
+      "id": "task.reranking.v1",
+      "path": "tasks/reranking.md",
+      "category": "task",
+      "task_type": "reranking",
+      "status": "published"
+    },
+    {
+      "id": "agent.knowledge.v1",
+      "path": "agents/knowledge_agent.md",
+      "category": "agent",
+      "task_type": "agent_planning",
+      "status": "published"
+    }
+  ]
+}
