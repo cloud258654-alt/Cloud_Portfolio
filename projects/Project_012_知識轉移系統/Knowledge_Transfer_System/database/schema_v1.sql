@@ -112,6 +112,56 @@ CREATE TABLE IF NOT EXISTS knowledge.document_versions (
     UNIQUE(document_id, version_no)
 );
 
+CREATE TABLE IF NOT EXISTS knowledge.tags (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(100) UNIQUE NOT NULL,
+    color VARCHAR(30),
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS knowledge.document_tags (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    document_id UUID NOT NULL REFERENCES knowledge.documents(id),
+    tag_id UUID NOT NULL REFERENCES knowledge.tags(id),
+    created_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(document_id, tag_id)
+);
+
+CREATE TABLE IF NOT EXISTS knowledge.document_favorites (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    document_id UUID NOT NULL REFERENCES knowledge.documents(id),
+    user_id UUID NULL REFERENCES auth.users(id),
+    created_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(document_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS knowledge.document_activities (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    document_id UUID NOT NULL REFERENCES knowledge.documents(id),
+    user_id UUID NULL REFERENCES auth.users(id),
+    action VARCHAR(100) NOT NULL,
+    result VARCHAR(50) DEFAULT 'success',
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS knowledge.ingestion_jobs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    document_id UUID NOT NULL REFERENCES knowledge.documents(id),
+    status VARCHAR(50) DEFAULT 'queued',
+    stage VARCHAR(100) DEFAULT 'queue',
+    progress INTEGER DEFAULT 0,
+    retry_count INTEGER DEFAULT 0,
+    max_retries INTEGER DEFAULT 3,
+    error_message TEXT,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    started_at TIMESTAMP NULL,
+    completed_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS knowledge.document_chunks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     document_id UUID NOT NULL REFERENCES knowledge.documents(id),
@@ -128,6 +178,17 @@ CREATE TABLE IF NOT EXISTS knowledge.document_chunks (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS knowledge.chunk_metadata (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    chunk_id UUID NOT NULL REFERENCES knowledge.document_chunks(id),
+    language VARCHAR(50),
+    keywords JSONB DEFAULT '[]'::jsonb,
+    entities JSONB DEFAULT '[]'::jsonb,
+    summary TEXT,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS knowledge.embeddings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     source_type VARCHAR(100) NOT NULL,
@@ -137,6 +198,18 @@ CREATE TABLE IF NOT EXISTS knowledge.embeddings (
     dimension INTEGER DEFAULT 1536,
     metadata JSONB DEFAULT '{}'::jsonb,
     created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS knowledge.embedding_jobs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    document_id UUID NOT NULL REFERENCES knowledge.documents(id),
+    chunk_id UUID NULL REFERENCES knowledge.document_chunks(id),
+    status VARCHAR(50) DEFAULT 'queued',
+    provider VARCHAR(100),
+    model VARCHAR(150),
+    error_message TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS knowledge.knowledge_items (
@@ -177,6 +250,19 @@ CREATE TABLE IF NOT EXISTS knowledge.experience_records (
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     deleted_at TIMESTAMP NULL
+);
+
+CREATE TABLE IF NOT EXISTS knowledge.experience_segments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    experience_id UUID NOT NULL REFERENCES knowledge.experience_records(id),
+    segment_index INTEGER NOT NULL,
+    speaker VARCHAR(100),
+    start_time DOUBLE PRECISION,
+    end_time DOUBLE PRECISION,
+    text TEXT NOT NULL,
+    confidence DOUBLE PRECISION,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS knowledge.sops (
@@ -226,7 +312,7 @@ CREATE TABLE IF NOT EXISTS knowledge.search_logs (
 
 CREATE TABLE IF NOT EXISTS ai.conversations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES auth.users(id),
+    user_id UUID NULL REFERENCES auth.users(id),
     title VARCHAR(255),
     channel VARCHAR(50) DEFAULT 'web',
     metadata JSONB DEFAULT '{}'::jsonb,
@@ -264,7 +350,7 @@ CREATE TABLE IF NOT EXISTS ai.citations (
 CREATE TABLE IF NOT EXISTS ai.feedbacks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     message_id UUID NOT NULL REFERENCES ai.conversation_messages(id),
-    user_id UUID NOT NULL REFERENCES auth.users(id),
+    user_id UUID NULL REFERENCES auth.users(id),
     rating INTEGER,
     feedback_type VARCHAR(100),
     comment TEXT,
@@ -532,10 +618,18 @@ CREATE INDEX IF NOT EXISTS idx_documents_department_id ON knowledge.documents(de
 CREATE INDEX IF NOT EXISTS idx_documents_status ON knowledge.documents(status);
 CREATE INDEX IF NOT EXISTS idx_documents_classification ON knowledge.documents(classification);
 CREATE INDEX IF NOT EXISTS idx_document_versions_document_id ON knowledge.document_versions(document_id);
+CREATE INDEX IF NOT EXISTS idx_document_tags_document_id ON knowledge.document_tags(document_id);
+CREATE INDEX IF NOT EXISTS idx_document_favorites_user_id ON knowledge.document_favorites(user_id);
+CREATE INDEX IF NOT EXISTS idx_document_activities_document_id ON knowledge.document_activities(document_id);
+CREATE INDEX IF NOT EXISTS idx_ingestion_jobs_document_id ON knowledge.ingestion_jobs(document_id);
+CREATE INDEX IF NOT EXISTS idx_ingestion_jobs_status ON knowledge.ingestion_jobs(status);
 CREATE INDEX IF NOT EXISTS idx_document_chunks_document_id ON knowledge.document_chunks(document_id);
 CREATE INDEX IF NOT EXISTS idx_document_chunks_version_id ON knowledge.document_chunks(document_version_id);
 CREATE INDEX IF NOT EXISTS idx_document_chunks_content_trgm ON knowledge.document_chunks USING gin (content gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_chunk_metadata_chunk_id ON knowledge.chunk_metadata(chunk_id);
 CREATE INDEX IF NOT EXISTS idx_embeddings_source ON knowledge.embeddings(source_type, source_id);
+CREATE INDEX IF NOT EXISTS idx_embedding_jobs_document_id ON knowledge.embedding_jobs(document_id);
+CREATE INDEX IF NOT EXISTS idx_embedding_jobs_chunk_id ON knowledge.embedding_jobs(chunk_id);
 CREATE INDEX IF NOT EXISTS idx_knowledge_items_type ON knowledge.knowledge_items(knowledge_type);
 CREATE INDEX IF NOT EXISTS idx_knowledge_items_department_id ON knowledge.knowledge_items(department_id);
 CREATE INDEX IF NOT EXISTS idx_conversations_user_id ON ai.conversations(user_id);
@@ -551,6 +645,8 @@ CREATE INDEX IF NOT EXISTS idx_prompt_templates_task_type ON ai.prompt_templates
 CREATE INDEX IF NOT EXISTS idx_prompt_versions_template_id ON ai.prompt_versions(prompt_template_id);
 CREATE INDEX IF NOT EXISTS idx_prompt_evaluations_version_id ON ai.prompt_evaluations(prompt_version_id);
 CREATE INDEX IF NOT EXISTS idx_experience_department_id ON knowledge.experience_records(department_id);
+CREATE INDEX IF NOT EXISTS idx_experience_segments_experience_id ON knowledge.experience_segments(experience_id);
+CREATE INDEX IF NOT EXISTS idx_experience_segments_text_trgm ON knowledge.experience_segments USING gin (text gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_sops_department_id ON knowledge.sops(department_id);
 CREATE INDEX IF NOT EXISTS idx_training_progress_user ON training.progress(user_id);
 CREATE INDEX IF NOT EXISTS idx_agent_tasks_user ON agent.tasks(requested_by);

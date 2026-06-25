@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
+import "./globals.css";
 
 export const metadata = {
   title: "AI Knowledge Transfer System",
-  description: "Enterprise AI Platform"
+  description: "Enterprise AI Platform",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

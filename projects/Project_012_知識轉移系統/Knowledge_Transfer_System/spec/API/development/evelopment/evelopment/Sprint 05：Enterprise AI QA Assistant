@@ -1,0 +1,653 @@
+# Sprint_05_AI_QA
+
+AI Knowledge Transfer System
+
+Sprint Development Plan
+
+Sprint : 05
+
+Sprint Name : Enterprise AI QA Assistant
+
+Version : v1.0.0
+
+Owner : Project Manager / AI Architect
+
+Last Update : 2026-06-25
+
+---
+
+# 1. Sprint Goal
+
+建立企業級 AI QA Assistant。
+
+本 Sprint 完成後：
+
+使用者可以透過自然語言詢問：
+
+```text
+ERP SOP 怎麼做？
+
+ISO9001 文件在哪？
+
+新人教育流程？
+
+供應商請款流程？
+
+設備保養 SOP？
+```
+
+AI 必須：
+
+```text
+理解問題
+
+↓
+
+Hybrid Search
+
+↓
+
+RAG Context
+
+↓
+
+LLM
+
+↓
+
+Citation
+
+↓
+
+Answer
+```
+
+不得憑空回答。
+
+---
+
+# 2. Business Value
+
+AI QA 是整個 Knowledge Transfer Platform 的核心入口。
+
+企業使用者不需要知道：
+
+文件在哪裡。
+
+只需要：
+
+提出問題。
+
+---
+
+# 3. Scope
+
+本 Sprint 包含：
+
+```text
+Conversation
+Streaming Response
+Citation
+Conversation History
+Feedback
+Prompt Loader
+Context Builder
+Answer Validator
+Follow-up Question
+Conversation Rename
+Conversation Delete
+```
+
+---
+
+# 4. Out of Scope
+
+不包含：
+
+```text
+Multi-Agent
+
+Workflow
+
+SOP Generation
+
+Training Generation
+```
+
+---
+
+# 5. AI QA Flow
+
+```text
+User Question
+
+↓
+
+Permission Check
+
+↓
+
+Hybrid Search
+
+↓
+
+Top Chunks
+
+↓
+
+Prompt Builder
+
+↓
+
+LLM
+
+↓
+
+Citation
+
+↓
+
+Streaming
+
+↓
+
+History
+
+↓
+
+Feedback
+```
+
+---
+
+# 6. Backend Folder
+
+新增：
+
+```text
+backend/app/ai/
+
+chat_service.py
+
+conversation_service.py
+
+context_builder.py
+
+prompt_loader.py
+
+answer_validator.py
+
+citation_service.py
+
+stream_service.py
+```
+
+---
+
+# 7. Conversation
+
+Database：
+
+使用：
+
+```text
+ai.conversations
+
+ai.conversation_messages
+
+ai.citations
+
+ai.feedbacks
+```
+
+---
+
+# 8. Prompt
+
+使用：
+
+```text
+prompts/
+
+QA.md
+
+Citation_Output.md
+
+System_Base.md
+```
+
+禁止：
+
+Hard-coded Prompt。
+
+---
+
+# 9. Context Builder
+
+組合：
+
+```text
+Question
+
++
+
+Top Chunks
+
++
+
+Conversation History
+
++
+
+User Department
+
++
+
+Permission
+```
+
+Context 最大：
+
+```text
+12000 Tokens
+```
+
+---
+
+# 10. Citation
+
+每段回答：
+
+需引用：
+
+```text
+Document
+
+Version
+
+Page
+
+Chunk
+
+Score
+```
+
+Frontend：
+
+可點擊。
+
+---
+
+# 11. Streaming
+
+API：
+
+支援：
+
+```text
+Server Sent Events
+
+SSE
+```
+
+逐字輸出回答。
+
+---
+
+# 12. Conversation API
+
+建立：
+
+```http
+POST /api/v1/chat
+```
+
+建立新對話。
+
+---
+
+```http
+GET /api/v1/chat
+```
+
+取得歷史。
+
+---
+
+```http
+GET /api/v1/chat/{id}
+```
+
+取得單一 Conversation。
+
+---
+
+```http
+DELETE /api/v1/chat/{id}
+```
+
+刪除 Conversation。
+
+---
+
+```http
+PUT /api/v1/chat/{id}
+```
+
+修改標題。
+
+---
+
+# 13. Feedback
+
+API：
+
+```http
+POST /chat/{id}/feedback
+```
+
+Feedback：
+
+```text
+👍
+
+👎
+
+Comment
+```
+
+---
+
+# 14. Frontend
+
+建立：
+
+```text
+/chat
+```
+
+包含：
+
+```text
+Conversation List
+
+Chat Window
+
+Citation Panel
+
+Suggested Questions
+
+Feedback
+
+Typing Animation
+```
+
+---
+
+# 15. Chat Bubble
+
+User：
+
+右側。
+
+AI：
+
+左側。
+
+支援：
+
+```text
+Markdown
+
+Table
+
+Code
+
+List
+
+Citation
+```
+
+---
+
+# 16. Suggested Questions
+
+AI 回答後：
+
+自動產生：
+
+```text
+3 Related Questions
+```
+
+---
+
+# 17. AI Memory
+
+Conversation：
+
+最近：
+
+```text
+20 Messages
+```
+
+Context：
+
+超過：
+
+需摘要。
+
+---
+
+# 18. Answer Validation
+
+檢查：
+
+```text
+Citation
+
+Permission
+
+Hallucination
+
+Confidence
+```
+
+若：
+
+無引用：
+
+不得回答：
+
+應回：
+
+```text
+沒有足夠可信資料。
+```
+
+---
+
+# 19. Search Integration
+
+AI QA：
+
+必須：
+
+使用：
+
+```text
+Hybrid Search
+
+↓
+
+Top 10
+
+↓
+
+Reranker
+
+↓
+
+Top 5
+
+↓
+
+Context
+```
+
+不得：
+
+直接問 LLM。
+
+---
+
+# 20. Logging
+
+記錄：
+
+```text
+Question
+
+Latency
+
+Token
+
+Cost
+
+Citation Count
+
+Confidence
+```
+
+---
+
+# 21. Tests
+
+建立：
+
+```text
+test_chat.py
+
+test_context.py
+
+test_citation.py
+
+test_feedback.py
+```
+
+---
+
+# 22. Acceptance Criteria
+
+完成：
+
+```text
+AI QA 正常
+
+Citation 正常
+
+Conversation 正常
+
+History 正常
+
+Streaming 正常
+
+Feedback 正常
+
+Permission 正常
+
+Prompt 正常
+```
+
+---
+
+# 23. Definition of Done
+
+```text
+Chat 完成
+
+Streaming 完成
+
+Citation 完成
+
+Conversation 完成
+
+History 完成
+
+Feedback 完成
+
+Tests 通過
+```
+
+---
+
+# 24. Codex Execution
+
+不要開始：
+
+```text
+Training
+
+Agent
+
+Workflow
+```
+
+只完成：
+
+Enterprise AI QA Assistant。
+
+---
+
+# 25. Deliverables
+
+完成請輸出：
+
+```text
+Folder Tree
+
+API List
+
+Chat Flow
+
+Prompt Flow
+
+Citation Example
+
+Performance
+
+Tests
+
+Known Issues
+```
+
+---
+
+# 26. Next Sprint
+
+完成後進入：
+
+```text
+development/Sprint_06_Experience_Transfer.md
+```
+
+內容：
+
+```text
+Meeting Recording
+
+Audio Upload
+
+Speech to Text
+
+Experience Capture
+
+Knowledge Extraction
+
+Expert Interview
+
+Best Practice Library
+
+Experience Review
+```

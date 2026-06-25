@@ -1,0 +1,611 @@
+# Sprint_06_Experience_Transfer
+
+AI Knowledge Transfer System
+
+Sprint Development Plan
+
+Sprint : 06
+
+Sprint Name : Experience Transfer Platform
+
+Version : v1.0.0
+
+Owner : Project Manager / AI Architect
+
+Last Update : 2026-06-25
+
+---
+
+# 1. Sprint Goal
+
+建立企業級經驗轉移平台（Experience Transfer Platform）。
+
+系統需支援：
+
+* 專家訪談
+* 錄音上傳
+* 錄影上傳
+* 會議錄影
+* 螢幕錄影
+* Speech to Text
+* AI 摘要
+* 經驗萃取
+* Best Practice
+* FAQ
+* Knowledge Package
+
+完成後：
+
+企業內隱知識（Tacit Knowledge）
+
+↓
+
+可轉換為
+
+↓
+
+顯性知識（Explicit Knowledge）
+
+---
+
+# 2. Business Value
+
+企業最大的知識不是文件。
+
+而是：
+
+老師傅
+
+資深工程師
+
+主管
+
+PM
+
+顧問
+
+退休員工
+
+離職員工
+
+因此：
+
+Experience Transfer
+
+是 Knowledge Platform 的核心。
+
+---
+
+# 3. Scope
+
+本 Sprint 包含：
+
+```text
+Interview Recording
+
+Audio Upload
+
+Video Upload
+
+Speech To Text
+
+Speaker Detection
+
+AI Summary
+
+Experience Extraction
+
+Best Practice
+
+FAQ Generation
+
+Knowledge Package
+
+Experience Review
+
+Experience Approval
+```
+
+---
+
+# 4. Out of Scope
+
+不包含：
+
+```text
+SOP Generation
+
+Training
+
+Agent Workflow
+```
+
+---
+
+# 5. Experience Pipeline
+
+```text
+Interview
+
+↓
+
+Audio / Video Upload
+
+↓
+
+Speech To Text
+
+↓
+
+Speaker Segmentation
+
+↓
+
+Transcript
+
+↓
+
+AI Summary
+
+↓
+
+Experience Extraction
+
+↓
+
+Best Practice
+
+↓
+
+FAQ
+
+↓
+
+Knowledge Package
+
+↓
+
+Knowledge Center
+```
+
+---
+
+# 6. Backend Folder
+
+新增：
+
+```text
+backend/app/experience/
+
+experience_service.py
+
+speech_service.py
+
+transcript_service.py
+
+summary_service.py
+
+experience_extractor.py
+
+faq_generator.py
+
+knowledge_package.py
+```
+
+---
+
+# 7. Upload
+
+支援：
+
+```text
+mp3
+
+wav
+
+mp4
+
+mov
+
+m4a
+```
+
+---
+
+# 8. Speech To Text
+
+依：
+
+AI_Model_Strategy
+
+使用：
+
+```text
+Whisper
+```
+
+需保留：
+
+```text
+Timestamp
+
+Speaker
+
+Confidence
+```
+
+---
+
+# 9. Transcript
+
+Database：
+
+```text
+knowledge.experience_records
+
+knowledge.experience_segments
+```
+
+Segment：
+
+```text
+Speaker
+
+Start Time
+
+End Time
+
+Text
+```
+
+---
+
+# 10. AI Summary
+
+自動產生：
+
+```text
+Executive Summary
+
+Key Decisions
+
+Lessons Learned
+
+Risk
+
+Recommendation
+
+Important Quotes
+```
+
+---
+
+# 11. Experience Extraction
+
+AI 自動萃取：
+
+```text
+Best Practice
+
+Common Mistake
+
+Troubleshooting
+
+Checklist
+
+Tips
+
+Warning
+```
+
+---
+
+# 12. FAQ
+
+AI 自動建立：
+
+```text
+Question
+
+Answer
+
+Citation
+
+Confidence
+```
+
+---
+
+# 13. Knowledge Package
+
+輸出：
+
+```text
+Transcript
+
+Summary
+
+FAQ
+
+Best Practice
+
+Keyword
+
+Tags
+
+Related Documents
+```
+
+並寫入：
+
+Knowledge Center。
+
+---
+
+# 14. Experience Review
+
+主管可：
+
+```text
+Approve
+
+Reject
+
+Edit
+
+Merge
+```
+
+---
+
+# 15. Frontend
+
+建立：
+
+```text
+/experience
+
+/experience/upload
+
+/experience/{id}
+```
+
+---
+
+# 16. UI
+
+頁面：
+
+```text
+Audio Player
+
+Video Player
+
+Transcript
+
+Summary
+
+FAQ
+
+Best Practice
+
+Approval
+
+Timeline
+```
+
+---
+
+# 17. Timeline
+
+支援：
+
+```text
+Click Timeline
+
+↓
+
+Jump Video
+```
+
+---
+
+# 18. Search Integration
+
+Experience：
+
+建立 Embedding。
+
+可搜尋：
+
+```text
+Interview
+
+Meeting
+
+Experience
+```
+
+---
+
+# 19. AI QA Integration
+
+AI QA：
+
+搜尋：
+
+```text
+Documents
+
++
+
+Experience
+
++
+
+FAQ
+```
+
+共同回答。
+
+---
+
+# 20. Logging
+
+記錄：
+
+```text
+Upload
+
+Transcript
+
+Summary
+
+Approval
+
+Embedding
+
+Search
+```
+
+---
+
+# 21. Tests
+
+建立：
+
+```text
+test_transcript.py
+
+test_summary.py
+
+test_experience.py
+
+test_faq.py
+```
+
+---
+
+# 22. Acceptance Criteria
+
+完成：
+
+```text
+Audio Upload
+
+Video Upload
+
+Transcript
+
+Summary
+
+FAQ
+
+Best Practice
+
+Knowledge Package
+
+Approval
+
+Embedding
+```
+
+全部正常。
+
+---
+
+# 23. Definition of Done
+
+```text
+Speech 完成
+
+Transcript 完成
+
+Summary 完成
+
+Experience 完成
+
+FAQ 完成
+
+Knowledge Package 完成
+
+Frontend 完成
+
+Backend 完成
+
+Tests 通過
+```
+
+---
+
+# 24. Codex Execution
+
+不要開始：
+
+```text
+Training
+
+Agent
+
+Workflow
+```
+
+只完成：
+
+Experience Transfer Platform。
+
+---
+
+# 25. Deliverables
+
+完成請輸出：
+
+```text
+Folder Tree
+
+API List
+
+Pipeline
+
+Transcript Example
+
+Summary Example
+
+FAQ Example
+
+Knowledge Package Example
+
+Tests
+
+Known Issues
+```
+
+---
+
+# 26. Next Sprint
+
+完成後進入：
+
+```text
+development/Sprint_07_SOP_Generator.md
+```
+
+內容：
+
+```text
+AI SOP Generator
+
+Flowchart
+
+Mermaid
+
+Approval
+
+Version
+
+Review
+
+Publishing
+
+Change History
+```

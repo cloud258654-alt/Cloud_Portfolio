@@ -1,0 +1,731 @@
+# Sprint_07_SOP_Generator
+
+AI Knowledge Transfer System
+
+Sprint Development Plan
+
+Sprint : 07
+
+Sprint Name : Enterprise AI SOP Generator
+
+Version : v1.0.0
+
+Owner : Project Manager / AI Architect
+
+Last Update : 2026-06-25
+
+---
+
+# 1. Sprint Goal
+
+建立 Enterprise AI SOP Generator。
+
+系統可依據：
+
+* 文件
+* 經驗
+* 訪談
+* 錄影
+* 錄音
+* Meeting
+* AI QA
+
+自動產生企業 SOP。
+
+SOP 必須可：
+
+```text
+Draft
+
+↓
+
+Review
+
+↓
+
+Approve
+
+↓
+
+Publish
+
+↓
+
+Version Control
+```
+
+---
+
+# 2. Business Value
+
+很多企業：
+
+有文件
+
+沒有 SOP
+
+或者：
+
+SOP 過時
+
+Sprint 07：
+
+讓 AI 自動整理：
+
+企業知識
+
+↓
+
+標準流程
+
+↓
+
+SOP
+
+---
+
+# 3. Scope
+
+本 Sprint 包含：
+
+```text
+SOP Generation
+
+AI Rewrite
+
+Flow Detection
+
+Step Detection
+
+Screenshot Binding
+
+Flowchart
+
+Mermaid
+
+Approval
+
+Publishing
+
+Version
+
+Revision
+
+Review
+
+Export
+```
+
+---
+
+# 4. Out of Scope
+
+```text
+Training
+
+AI Agent Workflow
+
+Simulation
+```
+
+---
+
+# 5. SOP Pipeline
+
+```text
+Knowledge
+
+↓
+
+Experience
+
+↓
+
+Meeting
+
+↓
+
+AI Summary
+
+↓
+
+Step Extraction
+
+↓
+
+Flow Detection
+
+↓
+
+Mermaid
+
+↓
+
+Reviewer
+
+↓
+
+Publish
+```
+
+---
+
+# 6. Input Sources
+
+支援：
+
+```text
+PDF
+
+DOCX
+
+Experience
+
+Transcript
+
+Screen Recording
+
+Meeting
+
+AI QA History
+```
+
+---
+
+# 7. AI Extraction
+
+AI 自動辨識：
+
+```text
+Goal
+
+Prerequisite
+
+Input
+
+Output
+
+Role
+
+Step
+
+Decision
+
+Warning
+
+Checklist
+```
+
+---
+
+# 8. SOP Structure
+
+每份 SOP 包含：
+
+```text
+Title
+
+Purpose
+
+Scope
+
+Responsible
+
+Required Materials
+
+Prerequisites
+
+Workflow
+
+Step List
+
+Decision Points
+
+Risk
+
+Checklist
+
+FAQ
+
+Related SOP
+
+Attachments
+
+Version
+
+Approval
+```
+
+---
+
+# 9. Step Generator
+
+AI 自動拆解：
+
+例如：
+
+```text
+登入 ERP
+
+↓
+
+點選採購
+
+↓
+
+建立採購單
+
+↓
+
+送簽
+
+↓
+
+主管核准
+
+↓
+
+完成
+```
+
+每一步：
+
+需有：
+
+```text
+Step Number
+
+Action
+
+Description
+
+Expected Result
+
+Screenshot
+
+Warning
+
+Estimated Time
+```
+
+---
+
+# 10. Flowchart Generator
+
+自動建立：
+
+```text
+Mermaid Flowchart
+
+BPMN（預留）
+
+SVG Flow
+```
+
+Mermaid：
+
+```mermaid
+flowchart TD
+
+Start --> Login
+
+Login --> CreatePO
+
+CreatePO --> Approve
+
+Approve --> Finish
+```
+
+---
+
+# 11. Screenshot Binding
+
+若來源：
+
+Screen Recording
+
+則：
+
+AI 自動：
+
+```text
+擷取畫面
+
+↓
+
+綁定 Step
+
+↓
+
+產生 SOP
+```
+
+---
+
+# 12. SOP Editor
+
+Frontend：
+
+可編輯：
+
+```text
+Title
+
+Description
+
+Steps
+
+Screenshot
+
+Warning
+
+Checklist
+
+FAQ
+```
+
+---
+
+# 13. Review Workflow
+
+Reviewer：
+
+```text
+Approve
+
+Reject
+
+Need Revision
+```
+
+保留：
+
+```text
+Review Comment
+```
+
+---
+
+# 14. Version
+
+支援：
+
+```text
+v1.0
+
+v1.1
+
+v2.0
+```
+
+不得覆蓋。
+
+---
+
+# 15. Export
+
+支援：
+
+```text
+PDF
+
+Word
+
+Markdown
+
+HTML
+```
+
+---
+
+# 16. Backend Folder
+
+新增：
+
+```text
+backend/app/sop/
+
+generator.py
+
+step_detector.py
+
+flow_builder.py
+
+mermaid_builder.py
+
+review_service.py
+
+publisher.py
+
+exporter.py
+```
+
+---
+
+# 17. Database
+
+新增：
+
+```text
+knowledge.sops
+
+knowledge.sop_versions
+
+knowledge.sop_reviews
+
+knowledge.sop_steps
+
+knowledge.sop_attachments
+```
+
+---
+
+# 18. API
+
+建立：
+
+```http
+POST /api/v1/sop/generate
+```
+
+---
+
+```http
+GET /api/v1/sop
+```
+
+---
+
+```http
+GET /api/v1/sop/{id}
+```
+
+---
+
+```http
+PUT /api/v1/sop/{id}
+```
+
+---
+
+```http
+POST /api/v1/sop/{id}/review
+```
+
+---
+
+```http
+POST /api/v1/sop/{id}/publish
+```
+
+---
+
+```http
+GET /api/v1/sop/{id}/export
+```
+
+---
+
+# 19. Frontend
+
+新增：
+
+```text
+/sop
+
+/sop/new
+
+/sop/{id}
+
+/sop/review
+```
+
+---
+
+# 20. UI
+
+包含：
+
+```text
+Editor
+
+Preview
+
+Mermaid
+
+Flowchart
+
+Timeline
+
+Version
+
+Approval
+```
+
+---
+
+# 21. Search Integration
+
+SOP：
+
+加入：
+
+Hybrid Search。
+
+AI QA：
+
+可直接引用：
+
+SOP。
+
+---
+
+# 22. AI QA Integration
+
+AI 回答：
+
+若找到 SOP：
+
+直接：
+
+引用：
+
+```text
+Step
+
+Screenshot
+
+Warning
+```
+
+---
+
+# 23. Tests
+
+建立：
+
+```text
+test_sop_generation.py
+
+test_flow_builder.py
+
+test_mermaid.py
+
+test_review.py
+```
+
+---
+
+# 24. Acceptance Criteria
+
+完成：
+
+```text
+AI 可產生 SOP
+
+Mermaid 正常
+
+Review 正常
+
+Publish 正常
+
+Version 正常
+
+Export 正常
+
+Frontend 正常
+```
+
+---
+
+# 25. Definition of Done
+
+```text
+Generator 完成
+
+Editor 完成
+
+Mermaid 完成
+
+Review 完成
+
+Publish 完成
+
+Export 完成
+
+API 完成
+
+Frontend 完成
+
+Tests 通過
+```
+
+---
+
+# 26. Codex Execution
+
+不要開始：
+
+```text
+Training
+
+Agent
+```
+
+只完成：
+
+Enterprise AI SOP Generator。
+
+---
+
+# 27. Deliverables
+
+完成請輸出：
+
+```text
+Folder Tree
+
+API List
+
+Mermaid Example
+
+Generated SOP Example
+
+Review Flow
+
+Export Sample
+
+Tests
+
+Known Issues
+```
+
+---
+
+# 28. Next Sprint
+
+完成後進入：
+
+```text
+development/Sprint_08_Training_Center.md
+```
+
+內容：
+
+```text
+Learning Path
+
+Course Builder
+
+Lesson
+
+Quiz
+
+Certificate
+
+Progress
+
+Learning Analytics
+
+AI Mentor
+```

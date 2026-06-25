@@ -1,0 +1,356 @@
+# Sprint 08: Epic08 Enterprise Training Center
+
+AI Knowledge Transfer System
+
+Delivery Model: Epic -> Story -> Task
+
+Epic: Epic08_Enterprise_Training_Center
+
+Last Update: 2026-06-25
+
+---
+
+## 1. Delivery Rule
+
+Sprint 08 follows the project delivery model introduced in Sprint 07:
+
+```text
+Epic -> Story -> Task
+```
+
+Each Story must complete:
+
+```text
+Phase A: Implementation
+Phase B: Unit Test
+Phase C: Documentation
+Phase D: Demo & Seed Data
+```
+
+---
+
+## 2. Sprint 08 Structure
+
+```text
+Sprint08
+|
++-- Epic08_Enterprise_Training_Center
+    |
+    +-- Story0801 Course Database
+    |
+    +-- Story0802 Course CRUD
+    |
+    +-- Story0803 Lesson
+    |
+    +-- Story0804 Quiz
+    |
+    +-- Story0805 Certificate
+    |
+    +-- Story0806 AI Mentor
+    |
+    +-- Story0807 Learning Analytics
+    |
+    +-- Story0808 Frontend
+    |
+    +-- Story0809 Testing
+```
+
+---
+
+## 3. Story Breakdown
+
+### Story0801 Course Database
+
+Goal:
+
+```text
+Create the database foundation for courses, lessons, quizzes, progress, certificates, and learning analytics.
+```
+
+Tasks:
+
+```text
+Task0801A Design training tables
+Task0801B Create Alembic migration
+Task0801C Update schema_v1.sql
+Task0801D Add demo course seed data
+Task0801E Document database changes
+```
+
+Acceptance:
+
+```text
+training.courses exists
+training.lessons exists
+training.quizzes exists
+training.progress exists
+training.certificates exists
+Demo course seed data exists
+Database documentation is updated
+```
+
+### Story0802 Course CRUD
+
+Goal:
+
+```text
+Provide course management APIs for creating, updating, listing, publishing, and archiving courses.
+```
+
+Tasks:
+
+```text
+Task0802A Create course schemas
+Task0802B Create course repository
+Task0802C Create course service
+Task0802D Create course API routes
+Task0802E Document course API
+```
+
+Acceptance:
+
+```text
+Course list API works
+Course detail API works
+Course create API works
+Course update API works
+Course publish/archive actions work
+API documentation is updated
+```
+
+### Story0803 Lesson
+
+Goal:
+
+```text
+Support lesson creation, ordering, content editing, and source linkage.
+```
+
+Tasks:
+
+```text
+Task0803A Create lesson schemas
+Task0803B Create lesson service
+Task0803C Add lesson ordering
+Task0803D Link lessons to SOP/document/experience sources
+Task0803E Add demo lessons
+```
+
+Acceptance:
+
+```text
+Lessons can be created
+Lessons can be ordered
+Lessons can be updated
+Lessons can reference source knowledge
+Demo lessons exist
+```
+
+### Story0804 Quiz
+
+Goal:
+
+```text
+Generate and manage quizzes for lessons and courses.
+```
+
+Tasks:
+
+```text
+Task0804A Create quiz schemas
+Task0804B Create quiz service
+Task0804C Add question generation placeholder
+Task0804D Add quiz scoring
+Task0804E Add demo quiz data
+```
+
+Acceptance:
+
+```text
+Quiz questions can be created
+Quiz questions can be listed
+Quiz answers can be scored
+Generated quiz demo exists
+```
+
+### Story0805 Certificate
+
+Goal:
+
+```text
+Issue certificates after course completion and passing score.
+```
+
+Tasks:
+
+```text
+Task0805A Create certificate service
+Task0805B Generate certificate number
+Task0805C Add completion rules
+Task0805D Add certificate API
+Task0805E Add demo certificate
+```
+
+Acceptance:
+
+```text
+Certificate can be issued
+Certificate has unique number
+Certificate links to user and course
+Certificate demo data exists
+```
+
+### Story0806 AI Mentor
+
+Goal:
+
+```text
+Provide AI mentor assistance for learners using course, lesson, SOP, and knowledge context.
+```
+
+Tasks:
+
+```text
+Task0806A Create mentor context builder
+Task0806B Create mentor answer service
+Task0806C Link mentor to lessons
+Task0806D Add suggested learning questions
+Task0806E Document AI mentor behavior
+```
+
+Acceptance:
+
+```text
+AI mentor endpoint exists
+AI mentor uses lesson context
+AI mentor suggests follow-up learning questions
+Mentor behavior is documented
+```
+
+### Story0807 Learning Analytics
+
+Goal:
+
+```text
+Track course activity, progress, quiz scores, completion, and learning performance.
+```
+
+Tasks:
+
+```text
+Task0807A Track lesson progress
+Task0807B Track quiz score
+Task0807C Track completion rate
+Task0807D Create analytics API
+Task0807E Add demo analytics data
+```
+
+Acceptance:
+
+```text
+Progress is tracked
+Quiz score is tracked
+Completion rate is available
+Analytics API exists
+Demo analytics are available
+```
+
+### Story0808 Frontend
+
+Goal:
+
+```text
+Provide training center UI for courses, lessons, quizzes, progress, certificates, and AI mentor.
+```
+
+Tasks:
+
+```text
+Task0808A Build /training course list
+Task0808B Build /training/{id} course detail
+Task0808C Build lesson view
+Task0808D Build quiz view
+Task0808E Build certificate/progress view
+Task0808F Build AI mentor panel
+```
+
+Acceptance:
+
+```text
+Course list page is available
+Course detail page is available
+Lesson view is available
+Quiz view is available
+Progress/certificate view is available
+AI mentor panel is available
+Demo UI is usable
+```
+
+### Story0809 Testing
+
+Goal:
+
+```text
+Validate course CRUD, lessons, quizzes, certificates, mentor, analytics, and frontend flow.
+```
+
+Tasks:
+
+```text
+Task0809A Add test_course.py
+Task0809B Add test_lesson.py
+Task0809C Add test_quiz.py
+Task0809D Add test_certificate.py
+Task0809E Add test_mentor.py
+Task0809F Add test_learning_analytics.py
+Task0809G Document test limitations
+```
+
+Acceptance:
+
+```text
+Unit test files exist
+Core training functions are tested
+API test strategy is documented
+Frontend test checklist exists
+Validation result is reported
+```
+
+---
+
+## 4. Story Status
+
+| Story | Name | Phase A | Phase B | Phase C | Phase D | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| Story0801 | Course Database | Pending | Pending | Pending | Pending | Planned |
+| Story0802 | Course CRUD | Pending | Pending | Pending | Pending | Planned |
+| Story0803 | Lesson | Pending | Pending | Pending | Pending | Planned |
+| Story0804 | Quiz | Pending | Pending | Pending | Pending | Planned |
+| Story0805 | Certificate | Pending | Pending | Pending | Pending | Planned |
+| Story0806 | AI Mentor | Pending | Pending | Pending | Pending | Planned |
+| Story0807 | Learning Analytics | Pending | Pending | Pending | Pending | Planned |
+| Story0808 | Frontend | Pending | Pending | Pending | Pending | Planned |
+| Story0809 | Testing | Pending | Pending | Pending | Pending | Planned |
+
+---
+
+## 5. Execution Guardrails
+
+Out of scope for Epic08:
+
+```text
+AI Agent workflow
+Governance approval engine
+Production deployment
+```
+
+Epic08 cannot be marked complete until:
+
+```text
+All stories are complete
+All required tasks are complete
+Phase A-D are complete for every story
+Validation result is reported
+Demo data and demo screens are available
+Documentation is updated
+```

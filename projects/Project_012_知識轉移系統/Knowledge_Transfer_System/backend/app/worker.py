@@ -1,12 +1,20 @@
-from celery import Celery
-
-celery_app = Celery(
-    "kts_worker",
-    broker="redis://redis:6379/1",
-    backend="redis://redis:6379/2",
+from app.workers.celery_app import (
+    celery_app,
+    debug_task,
+    embedding_worker,
+    metadata_worker,
+    ocr_worker,
+    process_document,
+    retry_worker,
 )
 
 
-@celery_app.task(name="kts.healthcheck")
-def healthcheck() -> str:
-    return "ok"
+__all__ = [
+    "celery_app",
+    "debug_task",
+    "embedding_worker",
+    "metadata_worker",
+    "ocr_worker",
+    "process_document",
+    "retry_worker",
+]
