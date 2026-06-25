@@ -27,7 +27,8 @@ Database documentation
 
 | Task | Phase | Status | Notes |
 | --- | --- | --- | --- |
-| [Task070101](../tasks/Task070101_Alembic_Migration.md) | Alembic migration | A | Ready | Create SOP tables migration only |
+| [Task070101](../tasks/Task070101_Alembic_Migration.md) | Alembic migration | A | Done | Create SOP tables migration only |
+| [Task070102](../tasks/Task070102_SQLAlchemy_Models.md) | ORM models | A | Done | Create SOP SQLAlchemy models only |
 | Task0701A | Schema design | A | Planned | Define SOP entities and relationships |
 | Task0701C | Seed data | D | Planned | Add demo SOP records |
 | Task0701D | Documentation | C | Planned | Document schema and constraints |
