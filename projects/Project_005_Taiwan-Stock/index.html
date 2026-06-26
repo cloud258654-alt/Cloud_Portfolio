@@ -5,6 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>台股 AI 綜合分析團隊 - 跨維度多代理人協作決策系統</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="台股 AI 即時多專家分析系統 — 由 9 位 AI 專家與多代理人協作，提供技術面、基本面、籌碼面、總經面、公司與分點面之綜合分析與交叉論證報告。">
+    <meta name="keywords" content="台股,AI分析,多代理人,股市,技術分析,基本面,籌碼分析,台積電,鴻海,Antigravity">
+    <meta name="author" content="Antigravity Stock AI">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="台股 AI 綜合分析團隊 — 跨維度多代理人協作決策系統">
+    <meta property="og:description" content="由 9 位 AI 專家即時交叉論證，提供最全面的台股投資研究輔助報告。">
+    <meta property="og:type" content="website">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,49 +42,57 @@
     <div class="container">
         <!-- Header Section -->
         <header class="app-header">
-            <div class="logo" id="app-logo" title="點擊回到首頁">
-                <i class="fa-solid fa-brain-circuit brain-icon"></i>
+            <div class="logo" id="app-logo" title="點擊回到首頁" role="banner">
+                <i class="fa-solid fa-brain-circuit brain-icon" aria-hidden="true"></i>
                 <div class="logo-text">
                     <h1>Antigravity Stock AI</h1>
                     <span>台股 AI 綜合分析團隊</span>
                 </div>
             </div>
-            <nav class="header-nav">
+            <nav class="header-nav" aria-label="外部說明連結">
                 <a href="https://github.com/asia17242/0602_Taiwan-Stock/blob/main/README.md" target="_blank"><i
                         class="fa-solid fa-book"></i> 專案說明</a>
                 <a href="https://github.com/asia17242/0602_Taiwan-Stock/blob/main/PRD.md" target="_blank"><i
                         class="fa-solid fa-file-lines"></i> 規格文件</a>
             </nav>
             <div class="system-status">
-                <span class="status-dot green"></span>
-                <span class="status-text">6 代理人系統已連線</span>
+                <button id="theme-toggle-btn" class="theme-toggle-btn" aria-label="切換深淺色主題" title="切換深淺色主題">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+                <span class="status-dot green" aria-hidden="true"></span>
+                <span class="status-text">9 代理人系統已連線</span>
             </div>
         </header>
 
         <!-- Main Search Panel -->
-        <section class="search-panel glass-card">
-            <h2><i class="fa-solid fa-magnifying-glass-chart"></i> 輸入個股啟動協作分析</h2>
-            <p class="subtitle">輸入台灣上市、上櫃或興櫃的股號或股名，由五位 AI 專家為您進行交叉論證與策略產出。</p>
+        <section class="search-panel glass-card" aria-label="個股搜尋與分析啟動區">
+            <h2><i class="fa-solid fa-magnifying-glass-chart" aria-hidden="true"></i> 輸入個股啟動協作分析</h2>
+            <p class="subtitle">輸入台灣上市、上櫃或興櫃的股號或股名，由 9 位 AI 專家為您進行交叉論證與策略產出。</p>
 
             <div class="search-form-group">
                 <div class="input-wrapper">
-                    <i class="fa-solid fa-keyboard input-icon"></i>
-                    <input type="text" id="stock-input" placeholder="例如：2317 或 鴻海..." autocomplete="off">
+                    <i class="fa-solid fa-keyboard input-icon" aria-hidden="true"></i>
+                    <input type="text" id="stock-input" placeholder="例如：2317 或 鴻海..." autocomplete="off" aria-label="輸入股號或股名" aria-autocomplete="list" aria-controls="search-suggestions">
+                    <div id="search-suggestions" class="search-suggestions hidden" role="listbox" aria-label="搜尋建議"></div>
                 </div>
-                <button id="analyze-btn" class="glow-btn">
-                    <span><i class="fa-solid fa-play"></i> 啟動協作分析</span>
+                <button id="analyze-btn" class="glow-btn" aria-label="啟動協作分析">
+                    <span><i class="fa-solid fa-play" aria-hidden="true"></i> 啟動協作分析</span>
                 </button>
-                <button id="macro-analyze-btn" class="glow-btn macro-btn">
-                    <span><i class="fa-solid fa-earth-americas"></i> 全球總經診斷</span>
+                <button id="macro-analyze-btn" class="glow-btn macro-btn" aria-label="全球總經診斷">
+                    <span><i class="fa-solid fa-earth-americas" aria-hidden="true"></i> 全球總經診斷</span>
                 </button>
             </div>
 
             <div class="quick-links">
                 <span class="quick-title">熱門查詢：</span>
-                <button class="quick-chip" data-symbol="2317">2317 鴻海</button>
-                <button class="quick-chip" data-symbol="2330">2330 台積電</button>
-                <button class="quick-chip" data-symbol="2454">2454 聯發科</button>
-                <button class="quick-chip" data-symbol="2382">2382 廣達</button>
+                <button class="quick-chip" data-symbol="2317" aria-label="熱門查詢鴻海">2317 鴻海</button>
+                <button class="quick-chip" data-symbol="2330" aria-label="熱門查詢台積電">2330 台積電</button>
+                <button class="quick-chip" data-symbol="2454" aria-label="熱門查詢聯發科">2454 聯發科</button>
+                <button class="quick-chip" data-symbol="2382" aria-label="熱門查詢廣達">2382 廣達</button>
+            </div>
+
+            <div class="search-panel-disclaimer" role="note">
+                <i class="fa-solid fa-circle-info" aria-hidden="true"></i> *風險警示：本系統所有分析與數據僅供學術與研究輔助參考，不構成任何投資買賣建議。投資人應獨立評估並自負盈虧。
             </div>
         </section>
 
@@ -294,10 +317,13 @@
         </section>
 
         <!-- Multi-Agent Animation Stage (Hidden by default, shown during analysis) -->
-        <section id="agent-stage" class="agent-stage glass-card hidden">
+        <section id="agent-stage" class="agent-stage glass-card hidden" aria-label="分析管線進度區">
             <div class="stage-header">
-                <h3><i class="fa-solid fa-network-wired"></i> 多代理人協作管線中 (Multi-Agent Pipeline)</h3>
-                <div class="stage-timer" id="stage-timer">0.00s</div>
+                <h3><i class="fa-solid fa-network-wired" aria-hidden="true"></i> 多代理人協作管線中 (Multi-Agent Pipeline)</h3>
+                <div class="stage-controls">
+                    <button id="skip-animation-btn" class="skip-btn" aria-label="跳過動畫直接顯示報告"><i class="fa-solid fa-forward" aria-hidden="true"></i> 跳過動畫</button>
+                    <div class="stage-timer" id="stage-timer" aria-live="polite">0.00s</div>
+                </div>
             </div>
 
             <!-- Agents Grid -->
@@ -416,7 +442,15 @@
         </section>
 
         <!-- Final Report Section (Hidden by default, shown after analysis) -->
-        <main id="report-section" class="report-section hidden">
+        <main id="report-section" class="report-section hidden" aria-label="綜合分析報告">
+            <!-- Notice: Risk Advisory -->
+            <div class="risk-advisory-banner glass-card" role="alert">
+                <i class="fa-solid fa-triangle-exclamation advisory-icon" aria-hidden="true"></i>
+                <div class="advisory-text">
+                    <strong>合規風險警示：</strong>本報告由 AI 代理人團隊進行交叉論證產出，所載數據與觀點僅供研究與決策輔助參考。系統不輸出任何投資要約、招攬、保證獲利或立即買進/賣出之指示。市場有風險，投資需謹慎，請務必進行獨立判斷並自負盈虧。
+                </div>
+            </div>
+
             <!-- Report Title Card -->
             <div class="report-header-card glass-card">
                 <div class="report-title-wrapper">

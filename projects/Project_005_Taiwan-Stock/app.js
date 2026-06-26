@@ -1075,6 +1075,7 @@ const globalMacroData = {
 // 6. Application State & Orchestrator
 let currentAnalysisData = null;
 let timerInterval = null;
+let pipelineTimeouts = []; // Ver 2.5: 追蹤 pipeline setTimeout 以便跳過動畫
 
 // --- 技術面 K 線圖狀態與游標變數 ---
 let activeKLineData = null;
@@ -1515,6 +1516,99 @@ document.addEventListener("DOMContentLoaded", () => {
     initFinanceCanvasListeners(); // 啟動財務圖表監聽
     initFundSubTabs(); // 啟動財務子頁籤監聽
     initKLineRangeButtons(); // 啟動 K 線區間切換監聽
+
+    // --- Ver 2.5: 主題切換按鈕 ---
+    const themeToggleBtn = document.getElementById("theme-toggle-btn");
+    const savedTheme = localStorage.getItem("ags_theme");
+    if (savedTheme === "light") {
+        document.body.classList.add("light-theme");
+        if (themeToggleBtn) themeToggleBtn.querySelector("i").className = "fa-solid fa-sun";
+    }
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener("click", () => {
+            document.body.classList.toggle("light-theme");
+            const isLight = document.body.classList.contains("light-theme");
+            localStorage.setItem("ags_theme", isLight ? "light" : "dark");
+            const icon = themeToggleBtn.querySelector("i");
+            icon.className = isLight ? "fa-solid fa-sun" : "fa-solid fa-moon";
+        });
+    }
+
+    // --- Ver 2.5: 跳過動畫按鈕 ---
+    const skipAnimationBtn = document.getElementById("skip-animation-btn");
+    if (skipAnimationBtn) {
+        skipAnimationBtn.addEventListener("click", () => {
+            if (window._pendingPipelineReport) {
+                const data = window._pendingPipelineReport;
+                window._pendingPipelineReport = null;
+                clearPipelineTimeouts();
+                if (timerInterval) clearInterval(timerInterval);
+                document.getElementById("agent-stage").classList.add("hidden");
+                renderReport(data);
+                document.getElementById("report-section").classList.remove("hidden");
+                document.getElementById("report-section").scrollIntoView({ behavior: "smooth" });
+            }
+        });
+    }
+
+    // --- Ver 2.5: 搜尋自動補全 ---
+    const searchInput = document.getElementById("stock-input");
+    const searchSuggestions = document.getElementById("search-suggestions");
+    let searchDebounceTimer = null;
+    if (searchInput && searchSuggestions) {
+        searchInput.addEventListener("input", () => {
+            clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(() => {
+                const query = searchInput.value.trim();
+                if (query.length < 1) {
+                    searchSuggestions.classList.add("hidden");
+                    return;
+                }
+                const results = [];
+                for (const key in stockDB) {
+                    const stock = stockDB[key];
+                    const matchText = `${stock.symbol} ${stock.name}`;
+                    if (matchText.includes(query) || stock.symbol.includes(query) || stock.name.includes(query)) {
+                        results.push({ symbol: stock.symbol, name: stock.name, type: "個股" });
+                    }
+                }
+                for (const sym in commonStockNames) {
+                    const stockName = commonStockNames[sym];
+                    const matchText = `${sym} ${stockName}`;
+                    if (matchText.includes(query) || sym.includes(query) || stockName.includes(query)) {
+                        if (!results.some(r => r.symbol === sym)) {
+                            results.push({ symbol: sym, name: stockName, type: "個股" });
+                        }
+                    }
+                }
+                if (results.length === 0) {
+                    searchSuggestions.classList.add("hidden");
+                    return;
+                }
+                const sliced = results.slice(0, 8);
+                searchSuggestions.innerHTML = sliced.map(r =>
+                    `<button class="suggestion-item" data-symbol="${r.symbol}"><span><strong>${r.symbol}</strong> ${r.name}</span><span class="suggestion-type">${r.type}</span></button>`
+                ).join("");
+                searchSuggestions.classList.remove("hidden");
+                document.querySelectorAll(".suggestion-item").forEach(item => {
+                    item.addEventListener("click", () => {
+                        const sym = item.getAttribute("data-symbol");
+                        searchInput.value = sym;
+                        searchSuggestions.classList.add("hidden");
+                        runPipeline(sym);
+                    });
+                });
+            }, 150);
+        });
+        searchInput.addEventListener("blur", () => {
+            setTimeout(() => searchSuggestions.classList.add("hidden"), 200);
+        });
+        searchInput.addEventListener("focus", () => {
+            if (searchInput.value.trim().length >= 1 && searchSuggestions.children.length > 0) {
+                searchSuggestions.classList.remove("hidden");
+            }
+        });
+    }
 });
 
 // --- 新增：K 線區間切換監聽器 ---
@@ -2042,6 +2136,29 @@ function capConfidenceByQuality(confidence, status) {
     if (status === "unavailable" || status === "invalid") return Math.min(confidence, 55);
     if (status === "stale" || status === "source_conflict") return Math.min(confidence, 72);
     return confidence;
+}
+
+// --- Ver 2.5: Canvas HiDPI (Retina) 適配 ---
+function setupHiDPICanvas(canvas) {
+    const dpr = window.devicePixelRatio || 1;
+    if (dpr === 1) return;
+    const logicalW = canvas.width;
+    const logicalH = canvas.height;
+    canvas.setAttribute('data-logical-w', logicalW);
+    canvas.setAttribute('data-logical-h', logicalH);
+    canvas.width = logicalW * dpr;
+    canvas.height = logicalH * dpr;
+    canvas.style.width = logicalW + 'px';
+    canvas.style.height = logicalH + 'px';
+    canvas.getContext('2d').scale(dpr, dpr);
+}
+
+function getLogicalW(canvas) {
+    return +(canvas.getAttribute('data-logical-w') || canvas.width);
+}
+
+function getLogicalH(canvas) {
+    return +(canvas.getAttribute('data-logical-h') || canvas.height);
 }
 
 function buildAgentCommittee(data) {
@@ -2909,12 +3026,14 @@ function startMarketSimulation() {
         const updateData = (list) => {
             list.forEach(stock => {
                 // 模擬價格微幅震盪 (-0.5% ~ +0.5%)
-                const currentPrice = parseFloat(stock.price.replace(/,/g, ''));
+                let currentPrice = parseFloat(String(stock.price).replace(/[,，]/g, ''));
+                if (isNaN(currentPrice) || currentPrice <= 0) currentPrice = 100; // NaN 防護
                 const change = 1 + (Math.random() * 0.01 - 0.005);
                 stock.price = (currentPrice * change).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
                 // 模擬漲跌幅微調
-                const currentPercent = parseFloat(stock.change.replace(/[+%]/g, ''));
+                let currentPercent = parseFloat(String(stock.change).replace(/[+%]/g, ''));
+                if (isNaN(currentPercent)) currentPercent = 0; // NaN 防護
                 const newPercent = currentPercent + (Math.random() * 0.2 - 0.1);
                 stock.change = (newPercent >= 0 ? "+" : "") + newPercent.toFixed(2) + "%";
             });
@@ -2961,8 +3080,16 @@ function resetToHome() {
     if (timerInterval) clearInterval(timerInterval);
 }
 
+// Ver 2.5: 清除所有 pipeline setTimeout，支援跳過動畫
+function clearPipelineTimeouts() {
+    pipelineTimeouts.forEach(id => clearTimeout(id));
+    pipelineTimeouts = [];
+}
+
 // 8. Run the Multi-Agent Pipeline
 function runPipeline(query) {
+    clearPipelineTimeouts(); // 清除前次 pipeline 殘留
+    window._pendingPipelineReport = null;
     let symbol = query.replace(/[^\w\u4e00-\u9fa5]/g, "");
     let name = "";
     let resolvedData = null;
@@ -3009,6 +3136,7 @@ function runPipeline(query) {
     }
 
     currentAnalysisData = resolvedData;
+    window._pendingPipelineReport = resolvedData; // Ver 2.5: 供跳過動畫按鈕使用
     recordStockSearch(resolvedData.symbol || symbol, resolvedData.name || name);
 
     const agentStage = document.getElementById("agent-stage");
@@ -3029,8 +3157,8 @@ function runPipeline(query) {
     agentStage.classList.remove("hidden");
 
     // 全面檢查：恢復可能被「全球總經模式」隱藏的高手群組與策略區塊
-    document.querySelector(".strategy-block").classList.remove("hidden");
-    document.querySelector(".masters-block").classList.remove("hidden");
+    document.querySelector(".strategy-block")?.classList.remove("hidden");
+    document.querySelector(".masters-block")?.classList.remove("hidden");
 
     debateFlow.innerHTML = '<div class="debate-placeholder">準備啟動代理人工作流...</div>';
 
@@ -3052,95 +3180,97 @@ function runPipeline(query) {
     agentStage.scrollIntoView({ behavior: "smooth" });
 
     // Step-by-step 5 Agent loading simulation
-    setTimeout(() => {
+    pipelineTimeouts.push(setTimeout(() => {
         activateAgent("agent-tech", "獨立研究中...", 100);
         appendDebateMessage("system", "核心秘書", `「台股 AI 分析團隊」已受理 ${resolvedData.symbol} ${resolvedData.name} 的分析請求，獨立研究啟動。`);
-        setTimeout(() => {
+        pipelineTimeouts.push(setTimeout(() => {
             appendDebateMessage("tech", "技術專家", `已完成價格與量價分析：目前股價為 ${resolvedData.expertViews[0].conclusion === "中立" ? "高檔震盪" : "多頭強勢排列"}，技術指標 ${resolvedData.expertViews[0].conclusion.includes("防") ? "有短線超買訊號" : "尚屬健康"}。`);
-        }, 300);
-    }, 500);
+        }, 300));
+    }, 500));
 
-    setTimeout(() => {
+    pipelineTimeouts.push(setTimeout(() => {
         activateAgent("agent-fund", "獨立研究中...", 100);
         appendDebateMessage("fund", "基本面專家", `已拉取最新季報與月營收數據：Q1 獲利與毛利表現${resolvedData.expertViews[1].conclusion.includes("多") ? "創下佳績" : "平穩穩健"}。本益比估值區間為合理偏低。`);
-    }, 1500);
+    }, 1500));
 
-    setTimeout(() => {
+    pipelineTimeouts.push(setTimeout(() => {
         activateAgent("agent-chip", "獨立研究中...", 100);
         appendDebateMessage("chip", "籌碼專家", `正追蹤三大法人主力進出與資券餘額：千張大戶持股比率${resolvedData.expertViews[2].conclusion.includes("多") ? "維持高檔且法人持續認養" : "無顯著波動"}。`);
-    }, 2500);
+    }, 2500));
 
-    setTimeout(() => {
+    pipelineTimeouts.push(setTimeout(() => {
         activateAgent("agent-macro", "獨立研究中...", 100);
         appendDebateMessage("macro", "總經專家", `已調閱景氣燈號與產業供需現況：台灣景氣信號亮出熱絡紅燈，全球相關供應鏈景氣循環${resolvedData.expertViews[3].conclusion.includes("多") ? "正處於強勁上升軌道" : "表現中平"}。`);
-    }, 3500);
+    }, 3500));
 
-    setTimeout(() => {
+    pipelineTimeouts.push(setTimeout(() => {
         activateAgent("agent-company", "獨立研究中...", 100);
         appendDebateMessage("company", "公司專家", `正拉取公司經營檔案、實收股本與重大新聞解讀：該公司股本為 ${resolvedData.companyData.capital}，經營業務為 ${resolvedData.companyData.business.substring(0, 18)}...`);
-    }, 4500);
+    }, 4500));
 
-    setTimeout(() => {
+    pipelineTimeouts.push(setTimeout(() => {
         activateAgent("agent-branch", "獨立研究中...", 100);
         appendDebateMessage("branch", "分點專家", `正掃描全台券商分點進出紀錄：${resolvedData.branchData[20].suggestion.substring(0, 50)}...`);
-    }, 5500);
+    }, 5500));
 
     // 5 Agent Debate
-    setTimeout(() => {
+    pipelineTimeouts.push(setTimeout(() => {
         agents.forEach(id => {
             document.getElementById(id).querySelector(".status-indicator").textContent = "交叉質詢中...";
         });
         appendDebateMessage("system", "核心秘書", `獨立研究完畢，進入【五位專家交叉質詢與共識辯論階段】。`);
 
-        setTimeout(() => {
+        pipelineTimeouts.push(setTimeout(() => {
             const log = resolvedData.debateLogs[0];
             appendDebateMessage(log.area, log.sender, log.content);
-        }, 300);
+        }, 300));
 
-        setTimeout(() => {
+        pipelineTimeouts.push(setTimeout(() => {
             const log = resolvedData.debateLogs[1];
             appendDebateMessage(log.area, log.sender, log.content);
-        }, 1500);
+        }, 1500));
 
-        setTimeout(() => {
+        pipelineTimeouts.push(setTimeout(() => {
             const log = resolvedData.debateLogs[2];
             appendDebateMessage(log.area, log.sender, log.content);
-        }, 2700);
+        }, 2700));
 
-        setTimeout(() => {
+        pipelineTimeouts.push(setTimeout(() => {
             const log = resolvedData.debateLogs[3];
             appendDebateMessage(log.area, log.sender, log.content);
-        }, 3900);
+        }, 3900));
 
-        setTimeout(() => {
+        pipelineTimeouts.push(setTimeout(() => {
             const log = resolvedData.debateLogs[4];
             appendDebateMessage(log.area, log.sender, log.content);
-        }, 5100);
+        }, 5100));
 
         if (resolvedData.debateLogs[5]) {
-            setTimeout(() => {
+            pipelineTimeouts.push(setTimeout(() => {
                 const log = resolvedData.debateLogs[5];
                 appendDebateMessage(log.area, log.sender, log.content);
-            }, 6200);
+            }, 6200));
         }
-    }, 6500);
+    }, 6500));
 
     // Final Report Generation
-    setTimeout(() => {
+    pipelineTimeouts.push(setTimeout(() => {
         clearInterval(timerInterval);
         appendDebateMessage("system", "核心秘書", `達成共識！「台股綜合投資決策報告」產出成功。`);
 
-        setTimeout(() => {
+        pipelineTimeouts.push(setTimeout(() => {
             agentStage.classList.add("hidden");
             renderReport(resolvedData);
             reportSection.classList.remove("hidden");
             reportSection.scrollIntoView({ behavior: "smooth" });
-        }, 800);
-    }, 12500);
+        }, 800));
+    }, 12500));
 }
 
 // --- 新增：專屬全球總經診斷管線 ---
 function runMacroOnlyPipeline() {
+    clearPipelineTimeouts(); // 清除前次 pipeline 殘留
+    window._pendingPipelineReport = globalMacroData; // Ver 2.5: 供跳過動畫按鈕使用
     currentAnalysisData = globalMacroData;
 
     const agentStage = document.getElementById("agent-stage");
@@ -3179,34 +3309,34 @@ function runMacroOnlyPipeline() {
     agentStage.scrollIntoView({ behavior: "smooth" });
 
     // 快速管線模擬 (僅總經專家)
-    setTimeout(() => {
+    pipelineTimeouts.push(setTimeout(() => {
         appendDebateMessage("system", "核心秘書", `「全球總體經濟專家」已受理請求，正掃描全球宏觀指標與多大經濟體政策。`);
-    }, 500);
+    }, 500));
 
-    setTimeout(() => {
+    pipelineTimeouts.push(setTimeout(() => {
         activateAgent("agent-macro", "全球數據拉取中...", 100);
         appendDebateMessage("macro", "總經專家", `已獲取美聯準會(Fed) 5月點陣圖、CPI 趨勢以及台灣最新景氣燈號數據。`);
-    }, 1200);
+    }, 1200));
 
-    setTimeout(() => {
+    pipelineTimeouts.push(setTimeout(() => {
         appendDebateMessage("macro", "總經專家", `診斷結論：流動性環境轉趨友善，資金正從貨幣市場流向權值股。`);
-    }, 2800);
+    }, 2800));
 
-    setTimeout(() => {
+    pipelineTimeouts.push(setTimeout(() => {
         clearInterval(timerInterval);
         appendDebateMessage("system", "核心秘書", `全球總經深度報告產出成功。`);
-        setTimeout(() => {
+        pipelineTimeouts.push(setTimeout(() => {
             agentStage.classList.add("hidden");
             renderReport(globalMacroData);
             reportSection.classList.remove("hidden");
 
             // 針對總經模式隱藏不相關部分
-            document.querySelector(".strategy-block").classList.add("hidden");
-            document.querySelector(".masters-block").classList.add("hidden");
+            document.querySelector(".strategy-block")?.classList.add("hidden");
+            document.querySelector(".masters-block")?.classList.add("hidden");
 
             reportSection.scrollIntoView({ behavior: "smooth" });
-        }, 800);
-    }, 4500);
+        }, 800));
+    }, 4500));
 }
 
 function activateAgent(agentId, statusText, targetProgress) {
@@ -3255,6 +3385,8 @@ function appendDebateMessage(senderClass, senderName, content) {
 
 // 9. Render Report
 function renderReport(data) {
+    const today = new Date().toISOString().split('T')[0];
+    if (!data.time || data.time === "2026-06-02") data.time = today; // Ver 2.5: 動態日期
     const displayTitle = (data.symbol === "自訂股" || !data.symbol) ? `${data.name}` : `${data.symbol} ${data.name}`;
     document.getElementById("report-title").textContent = `📈 [${displayTitle}] 綜合分析報告`;
     document.getElementById("report-time").textContent = data.time;
@@ -3318,7 +3450,7 @@ function renderReport(data) {
     renderConfidencePanel(data);
 
     // 預設渲染第一個高手 (歐尼爾)
-    renderMasterContent('graham');
+    renderMasterContent('oneil');
 }
 
 function getAreaIcon(area) {
@@ -4458,7 +4590,35 @@ function exportToExcel(data) {
         ws4["!cols"] = [{ wch: 15 }, { wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 80 }];
         XLSX.utils.book_append_sheet(wb, ws4, "股市高手群組");
 
-        const fileName = `${data.symbol}_${data.name}_綜合分析報告_${data.time.replace(/-/g, "")}.xlsx`;
+        // Ver 2.5: 工作表 5 — 9-Agent 投資委員會
+        const s5Data = [
+            ["台股 AI 綜合分析團隊 - 9-Agent 投資委員會"],
+            [`個股：${data.symbol} ${data.name}`],
+            [`分析日期：${data.time}`],
+            [],
+            ["代理人角色", "立場", "信心值", "判斷理由", "風險提示"]
+        ];
+
+        const committee = buildAgentCommittee(data);
+        if (committee && committee.agentResults) {
+            committee.agentResults.forEach(agent => {
+                s5Data.push([
+                    `${agent.role} (${agent.name})`,
+                    agent.stance,
+                    agent.confidence,
+                    agent.reason,
+                    agent.risk
+                ]);
+            });
+            s5Data.push([]);
+            s5Data.push(["綜合結論", committee.conclusion, `信心分數 ${committee.confidence}/100`, `適合類型 ${committee.fitType}`, `支撐/壓力/警戒: ${committee.support}/${committee.resistance}/${committee.warning}`]);
+        }
+
+        const ws5 = XLSX.utils.aoa_to_sheet(s5Data);
+        ws5["!cols"] = [{ wch: 22 }, { wch: 16 }, { wch: 10 }, { wch: 55 }, { wch: 45 }];
+        XLSX.utils.book_append_sheet(wb, ws5, "投資委員會");
+
+        const fileName = `${data.symbol}_${data.name}_綜合分析報告_${(data.time || "").replace(/-/g, "")}.xlsx`;
         XLSX.writeFile(wb, fileName);
     } catch (error) {
         console.error("Excel Export Error:", error);
