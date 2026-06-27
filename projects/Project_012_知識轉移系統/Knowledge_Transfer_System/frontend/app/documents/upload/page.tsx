@@ -4,8 +4,10 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 
 import { uploadDocument } from "@/lib/api";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 
 export default function DocumentUploadPage() {
+  const { t } = useTranslation();
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -22,7 +24,7 @@ export default function DocumentUploadPage() {
         .filter(Boolean);
       form.set("tags", JSON.stringify(tags));
       await uploadDocument(form);
-      setMessage("Document uploaded");
+      setMessage(t.documents.uploadSuccess);
       event.currentTarget.reset();
     } catch {
       setMessage("Upload failed");
@@ -35,24 +37,24 @@ export default function DocumentUploadPage() {
     <main className="shell">
       <section className="hero">
         <div>
-          <p className="eyebrow">Document Center</p>
-          <h1>Upload</h1>
-          <p className="lead">Add source files and metadata for the knowledge lifecycle.</p>
+          <p className="eyebrow">{t.documents.eyebrow}</p>
+          <h1>{t.documents.uploadTitle}</h1>
+          <p className="lead">{t.documents.uploadSubtitle}</p>
         </div>
       </section>
 
       <section className="panel">
         <form className="form" onSubmit={handleSubmit}>
           <label className="field">
-            <span>File</span>
+            <span>{t.documents.fileField}</span>
             <input name="file" type="file" required />
           </label>
           <label className="field">
-            <span>Title</span>
+            <span>{t.documents.titleField}</span>
             <input name="title" placeholder="Document title" required />
           </label>
           <label className="field">
-            <span>Description</span>
+            <span>{t.documents.descriptionField}</span>
             <textarea name="description" rows={5} placeholder="Short description" />
           </label>
           <label className="field">
@@ -60,11 +62,11 @@ export default function DocumentUploadPage() {
             <input name="category" placeholder="Policy, SOP, Training" />
           </label>
           <label className="field">
-            <span>Tags</span>
+            <span>{t.documents.tagsField}</span>
             <input name="tags" placeholder="policy, onboarding" />
           </label>
           <button className="action" type="submit" disabled={loading}>
-            {loading ? "Uploading" : "Upload Document"}
+            {loading ? t.documents.uploading : t.documents.uploadTitle}
           </button>
           {message ? <p>{message}</p> : null}
         </form>

@@ -1,0 +1,5 @@
+# Convenience compose file — delegates to docker/docker-compose.yml
+# Usage: docker compose --profile app up -d
+
+include:
+  - docker/docker-compose.yml

@@ -11,9 +11,11 @@ import {
   processExperience,
   reviewExperience,
 } from "@/lib/api";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 import type { ExperiencePackage, ExperienceRecord, ExperienceSegment } from "@/types/api";
 
 export default function ExperienceDetailPage() {
+  const { t } = useTranslation();
   const params = useParams<{ id: string }>();
   const [record, setRecord] = useState<ExperienceRecord | null>(null);
   const [segments, setSegments] = useState<ExperienceSegment[]>([]);
@@ -51,14 +53,14 @@ export default function ExperienceDetailPage() {
   }
 
   if (!record) {
-    return <main className="shell"><article className="panel">Loading experience</article></main>;
+    return <main className="shell"><article className="panel">{t.experience.loadingExp}</article></main>;
   }
 
   return (
     <main className="shell">
       <section className="hero">
         <div>
-          <p className="eyebrow">Experience Detail</p>
+          <p className="eyebrow">{t.experience.detailTitle}</p>
           <h1>{record.title}</h1>
           <p className="lead">{record.summary ?? "Summary pending"}</p>
         </div>
@@ -71,25 +73,25 @@ export default function ExperienceDetailPage() {
           <p>Expert: <strong>{record.expert_name ?? "Unknown"}</strong></p>
           <button className="action" type="button" onClick={process}>
             <RefreshCw size={18} />
-            Process
+            {t.experience.process}
           </button>
           <button className="action" type="button" onClick={() => review("approve")}>
             <Check size={18} />
-            Approve
+            {t.experience.approve}
           </button>
           <button className="action" type="button" onClick={() => review("reject")}>
             <X size={18} />
-            Reject
+            {t.experience.reject}
           </button>
         </article>
 
         <article className="panel">
-          <h2>Summary</h2>
+          <h2>{t.experience.summary}</h2>
           <p>{record.summary ?? "No summary yet"}</p>
         </article>
 
         <article className="panel">
-          <h2>FAQ</h2>
+          <h2>{t.experience.faq}</h2>
           {pkg?.faq?.length ? pkg.faq.map((item, index) => (
             <div className="citation" key={index}>
               <strong>{String(item.question ?? "Question")}</strong>
@@ -101,9 +103,9 @@ export default function ExperienceDetailPage() {
 
       <section className="grid" style={{ marginTop: 16 }}>
         <article className="panel">
-          <h2>Transcript Timeline</h2>
+          <h2>{t.experience.transcript}</h2>
           <div className="timeline">
-            {segments.length === 0 ? <p>No transcript segments yet</p> : null}
+            {segments.length === 0 ? <p>{t.experience.noTranscript}</p> : null}
             {segments.map((segment) => (
               <div className="timeline-item" key={segment.id}>
                 <strong>{segment.speaker ?? "Speaker"}</strong>
@@ -115,7 +117,7 @@ export default function ExperienceDetailPage() {
         </article>
 
         <article className="panel">
-          <h2>Best Practices</h2>
+          <h2>{t.experience.bestPractices}</h2>
           {pkg?.best_practices?.length ? pkg.best_practices.map((item, index) => (
             <div className="citation" key={index}>
               <strong>{String(item.title ?? "Best Practice")}</strong>

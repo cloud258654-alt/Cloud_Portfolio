@@ -1,0 +1,47 @@
+groups:
+  - name: kts_alerts
+    rules:
+      - alert: BackendDown
+        expr: up{job="kts_backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "KTS Backend is down"
+          description: "Backend service has been unreachable for more than 1 minute."
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High 5xx error rate detected"
+          description: "Backend 5xx rate is above 5% over the last 5 minutes."
+
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API latency"
+          description: "P95 latency is above 2 seconds."
+
+      - alert: PostgresDown
+        expr: kts_postgres_healthy == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL health check has been failing for 1 minute."
+
+      - alert: RedisDown
+        expr: kts_redis_healthy == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+          description: "Redis health check has been failing for 1 minute."

@@ -1,5 +1,8 @@
+from app.models.auth import Permission, Role, RolePermission, User, UserRole
 from app.models.chat import Citation, Conversation, ConversationMessage, Feedback
+from app.models.collaboration import DocumentComment, KnowledgeRequest
 from app.models.document import Document, DocumentActivity, DocumentFavorite, DocumentVersion
+from app.models.embedding import Embedding
 from app.models.experience import ExperienceRecord, ExperienceSegment
 from app.models.ingestion import ChunkMetadata, DocumentChunk, EmbeddingJob, IngestionJob
 from app.models.sop import (
@@ -16,6 +19,7 @@ from app.models.tag import DocumentTag, Tag
 __all__ = [
     "Document",
     "DocumentActivity",
+    "DocumentComment",
     "DocumentFavorite",
     "DocumentTag",
     "DocumentVersion",
@@ -24,11 +28,16 @@ __all__ = [
     "Conversation",
     "ConversationMessage",
     "DocumentChunk",
+    "Embedding",
     "EmbeddingJob",
     "ExperienceRecord",
     "ExperienceSegment",
     "Feedback",
     "IngestionJob",
+    "KnowledgeRequest",
+    "Permission",
+    "Role",
+    "RolePermission",
     "SOP",
     "SOPAttachment",
     "SOPReview",
@@ -36,4 +45,6 @@ __all__ = [
     "SOPTemplate",
     "SOPVersion",
     "Tag",
+    "User",
+    "UserRole",
 ]

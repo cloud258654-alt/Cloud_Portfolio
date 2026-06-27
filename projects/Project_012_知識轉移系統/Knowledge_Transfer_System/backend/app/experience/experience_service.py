@@ -109,8 +109,101 @@ class ExperienceService:
         record.status = "approved"
         record.updated_at = datetime.utcnow()
         self.db.commit()
+        self._ingest_into_rag(record)
         self.db.refresh(record)
         return self.to_read(record)
+
+    def _ingest_into_rag(self, record: ExperienceRecord) -> None:
+        """After approval, ingest the transcript and summary into the RAG index."""
+        import logging
+
+        log = logging.getLogger(__name__)
+        try:
+            from app.models.document import Document
+            from app.models.ingestion import DocumentChunk
+            from app.search.vector_engine import VectorEngine
+            from app.services.embedding_service import EmbeddingService
+
+            content = record.transcript or ""
+            summary_text = record.summary or ""
+            faq_text = ""
+            pkg = (record.experience_metadata or {}).get("knowledge_package", {})
+            if isinstance(pkg, dict):
+                faq_text = "\n".join(
+                    f"Q: {fa.get('question', '')}\nA: {fa.get('answer', '')}"
+                    for fa in pkg.get("faq", [])
+                )
+
+            full_text = f"{content}\n\nSUMMARY: {summary_text}\n\nFAQ:\n{faq_text}"
+            if len(full_text.strip()) < 50:
+                log.info("Experience %s has too little text to ingest, skipping", record.id)
+                return
+
+            virtual_doc_id = f"exp_{record.id}"
+            existing = self.db.get(Document, virtual_doc_id)
+            if existing:
+                return
+
+            doc = Document(
+                id=virtual_doc_id,
+                title=f"[Experience] {record.title} — {record.expert_name or 'Unknown'}",
+                description=summary_text[:500],
+                file_type="experience",
+                storage_path=record.raw_storage_path or "",
+                status="published",
+                doc_metadata={
+                    "source": "experience_transfer",
+                    "expert_name": record.expert_name,
+                    "experience_id": record.id,
+                },
+                created_at=datetime.utcnow(),
+            )
+            self.db.add(doc)
+
+            chunk_size = 600
+            words = full_text.split()
+            chunks_list = [
+                " ".join(words[i:i + chunk_size])
+                for i in range(0, len(words), chunk_size - 50)
+            ]
+
+            embedder = EmbeddingService()
+            vector_engine = VectorEngine(self.db)
+
+            for idx, chunk_text in enumerate(chunks_list):
+                chunk = DocumentChunk(
+                    document_id=virtual_doc_id,
+                    chunk_index=idx,
+                    content=chunk_text,
+                    title=f"{record.title} (part {idx + 1})",
+                    token_count=len(chunk_text.split()),
+                    created_at=datetime.utcnow(),
+                )
+                self.db.add(chunk)
+                self.db.flush()
+
+                try:
+                    embedding = embedder.embed(chunk_text)
+                    vector_engine.store_embedding(
+                        source_type="chunk",
+                        source_id=chunk.id,
+                        vector=embedding,
+                        model="text-embedding-3-small",
+                        dimension=len(embedding),
+                    )
+                except Exception as e:
+                    log.warning("Embedding failed for experience chunk %d: %s", idx, e)
+
+            record.experience_metadata = {
+                **(record.experience_metadata or {}),
+                "rag_ingested": True,
+                "rag_document_id": virtual_doc_id,
+            }
+            self.db.commit()
+            log.info("Experience %s successfully ingested into RAG (%d chunks)", record.id, len(chunks_list))
+
+        except Exception as e:
+            log.warning("Failed to ingest experience %s into RAG: %s", record.id, e)
 
     def reject(self, experience_id: str) -> ExperienceRead:
         record = self.require_record(experience_id)

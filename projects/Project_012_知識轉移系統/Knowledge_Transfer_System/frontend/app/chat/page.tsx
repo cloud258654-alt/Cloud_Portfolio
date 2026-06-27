@@ -4,21 +4,26 @@ import { Send, ThumbsUp } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { askChat, listConversations, sendFeedback } from "@/lib/api";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 import type { ChatAnswer, ChatCitation, ConversationMessage, ConversationSummary } from "@/types/api";
 
 export default function ChatPage() {
+  const { t, lang } = useTranslation();
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [conversationId, setConversationId] = useState<string | undefined>();
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [citations, setCitations] = useState<ChatCitation[]>([]);
-  const [suggestions, setSuggestions] = useState<string[]>([
-    "ISO 9001 相關 SOP 是什麼？",
-    "採購流程有哪些注意事項？",
-    "如何查詢 ERP 操作文件？",
-  ]);
+  const [suggestions, setSuggestions] = useState<string[]>(
+    lang === "zh"
+      ? ["客人要求退換貨該怎麼處理？", "如何處理顧客抱怨？", "新人報到的標準流程是什麼？"]
+      : ["How to handle a customer return?", "Customer complaint procedure?", "New employee onboarding SOP?"]
+  );
+  const [confidenceTier, setConfidenceTier] = useState<string>("uncertain");
+  const [groundingRatio, setGroundingRatio] = useState<number>(0);
   const [question, setQuestion] = useState("");
   const [lastAnswer, setLastAnswer] = useState<ChatAnswer | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     listConversations()
@@ -41,6 +46,8 @@ export default function ChatPage() {
       setConversationId(response.data.conversation_id);
       setLastAnswer(response.data);
       setCitations(response.data.citations);
+      setConfidenceTier(response.data.confidence_tier || "uncertain");
+      setGroundingRatio(response.data.grounding_ratio || 0);
       setSuggestions(response.data.suggested_questions);
       setMessages((current) => [
         ...current,
@@ -52,6 +59,9 @@ export default function ChatPage() {
       ]);
       const list = await listConversations();
       setConversations(list.data);
+      setError(null);
+    } catch {
+      setError(t.chat.failedToAnswer);
     } finally {
       setLoading(false);
     }
@@ -68,19 +78,19 @@ export default function ChatPage() {
     <main className="shell">
       <section className="hero">
         <div>
-          <p className="eyebrow">Enterprise AI QA</p>
-          <h1>Chat</h1>
-          <p className="lead">Ask questions against indexed enterprise knowledge with citations.</p>
+          <p className="eyebrow">{t.chat.eyebrow}</p>
+          <h1>{t.chat.title}</h1>
+          <p className="lead">{t.chat.subtitle}</p>
         </div>
       </section>
 
       <section className="chat-layout">
         <aside className="conversation-list">
-          <h2>Conversations</h2>
+          <h2>{t.chat.conversations}</h2>
           <div className="list">
             {conversations.map((item) => (
               <button key={item.id} type="button" onClick={() => setConversationId(item.id)}>
-                {item.title ?? "Untitled"}
+                {item.title ?? t.chat.untitled}
               </button>
             ))}
           </div>
@@ -88,13 +98,14 @@ export default function ChatPage() {
 
         <section className="chat-window">
           <div className="messages">
-            {messages.length === 0 ? <p className="lead">Start with a question.</p> : null}
+            {messages.length === 0 ? <p className="lead">{t.chat.startPrompt}</p> : null}
             {messages.map((message) => (
               <div className={`bubble ${message.sender_type}`} key={message.id}>
                 {message.message}
               </div>
             ))}
-            {loading ? <div className="bubble">Typing...</div> : null}
+            {loading ? <div className="bubble">{t.chat.typing}</div> : null}
+            {error ? <p className="error" style={{ padding: "8px 12px" }}>{error}</p> : null}
           </div>
           <form
             className="chat-form"
@@ -103,10 +114,10 @@ export default function ChatPage() {
               submit();
             }}
           >
-            <input value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="Ask a question" />
+            <input value={question} onChange={(event) => setQuestion(event.target.value)} placeholder={t.chat.placeholder} />
             <button className="action" type="submit" disabled={loading}>
               <Send size={18} />
-              Send
+              {t.chat.send}
             </button>
           </form>
           <div className="suggestions">
@@ -119,18 +130,27 @@ export default function ChatPage() {
         </section>
 
         <aside className="citation-panel">
-          <h2>Citations</h2>
-          {citations.length === 0 ? <p>No citations yet</p> : null}
+          <h2>{t.chat.answerQuality}</h2>
+          <div style={{ marginBottom: 16 }}>
+            <div className={`status ${confidenceTier}`}>
+              {confidenceTier === "verified" ? "Verified" : confidenceTier === "partial" ? "Partial" : "Uncertain"}
+            </div>
+            <p style={{ fontSize: 12, color: "#6B7280", marginTop: 4 }}>
+              {(groundingRatio * 100).toFixed(0)}% {t.chat.grounding}
+            </p>
+          </div>
+          <h2>{t.chat.citations}</h2>
+          {citations.length === 0 ? <p>{t.chat.noCitations}</p> : null}
           {citations.map((citation) => (
             <div className="citation" key={`${citation.document_id}-${citation.chunk_id}`}>
               <strong>{citation.document_title}</strong>
-              <p>Version: {citation.version ?? "n/a"}</p>
-              <p>Score: {citation.score.toFixed(2)}</p>
+              <p>{t.chat.version}: {citation.version ?? "n/a"}</p>
+              <p>{t.chat.score}: {citation.score.toFixed(2)}</p>
             </div>
           ))}
           <button className="action" type="button" onClick={feedback} disabled={!lastAnswer}>
             <ThumbsUp size={18} />
-            Helpful
+            {t.chat.helpful}
           </button>
         </aside>
       </section>

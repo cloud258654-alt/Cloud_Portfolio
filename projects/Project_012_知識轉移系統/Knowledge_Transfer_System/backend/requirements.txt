@@ -26,5 +26,8 @@ pytesseract
 ffmpeg-python
 python-dotenv
 loguru
+prometheus-client
+slowapi
+starlette
 pytest
 httpx

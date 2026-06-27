@@ -5,9 +5,11 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { getDocument, getDocumentChunks, getDocumentProcessing, reprocessDocument } from "@/lib/api";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 import type { DocumentChunk, DocumentItem, ProcessingStatus } from "@/types/api";
 
 export default function DocumentDetailPage() {
+  const { t } = useTranslation();
   const params = useParams<{ id: string }>();
   const [document, setDocument] = useState<DocumentItem | null>(null);
   const [processing, setProcessing] = useState<ProcessingStatus | null>(null);
@@ -46,7 +48,7 @@ export default function DocumentDetailPage() {
   if (!document) {
     return (
       <main className="shell">
-        <article className="panel">Loading document</article>
+        <article className="panel">{t.documents.loadingDoc}</article>
       </main>
     );
   }
@@ -57,9 +59,9 @@ export default function DocumentDetailPage() {
     <main className="shell">
       <section className="hero">
         <div>
-          <p className="eyebrow">Document Detail</p>
+          <p className="eyebrow">{t.documents.documentDetail}</p>
           <h1>{document.title}</h1>
-          <p className="lead">{document.description ?? "No description"}</p>
+          <p className="lead">{document.description ?? t.documents.noDescription}</p>
         </div>
       </section>
 
@@ -73,7 +75,7 @@ export default function DocumentDetailPage() {
         </article>
 
         <article className="panel">
-          <h2>Processing</h2>
+          <h2>{t.documents.processing}</h2>
           <div className="progress"><span style={{ width: `${progress}%` }} /></div>
           <p>Stage: <strong>{processing?.ingestion?.stage ?? "not_started"}</strong></p>
           <p>Progress: <strong>{progress}%</strong></p>
@@ -82,14 +84,14 @@ export default function DocumentDetailPage() {
           <p>Language: <strong>{processing?.language ?? "unknown"}</strong></p>
           <button className="action" type="button" onClick={handleReprocess}>
             <RefreshCw size={18} />
-            Reprocess
+            {t.documents.reprocess}
           </button>
         </article>
 
         <article className="panel">
           <h2>Actions</h2>
-          <button className="action" type="button"><Eye size={18} />Preview</button>
-          <button className="action" type="button"><Download size={18} />Download</button>
+          <button className="action" type="button"><Eye size={18} />{t.documents.preview}</button>
+          <button className="action" type="button"><Download size={18} />{t.documents.download}</button>
           <button className="action" type="button"><Star size={18} />Favorite</button>
         </article>
       </section>
@@ -100,9 +102,9 @@ export default function DocumentDetailPage() {
           <p>{processing?.summary ?? "No extracted summary yet"}</p>
         </article>
         <article className="panel">
-          <h2>Chunks</h2>
+          <h2>{t.documents.chunks}</h2>
           <div className="chunk-list">
-            {chunks.length === 0 ? <p>No chunks yet</p> : null}
+            {chunks.length === 0 ? <p>{t.documents.noChunks}</p> : null}
             {chunks.map((chunk) => (
               <div className="chunk" key={chunk.id}>
                 <strong>Chunk {chunk.chunk_index + 1}</strong>

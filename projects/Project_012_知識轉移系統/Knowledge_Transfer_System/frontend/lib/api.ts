@@ -1,10 +1,10 @@
 import type {
-  DocumentChunk,
-  DocumentItem,
-  DocumentListResponse,
   ChatAnswer,
   ConversationDetail,
   ConversationSummary,
+  DocumentChunk,
+  DocumentItem,
+  DocumentListResponse,
   ExperiencePackage,
   ExperienceRecord,
   ExperienceSegment,
@@ -247,5 +247,94 @@ export async function reviewExperience(id: string, action: "approve" | "reject")
     throw new Error("Experience review failed");
   }
 
+  return response.json();
+}
+
+// ─── Analytics ────────────────────────────────────────────
+
+export async function getAnalyticsSummary(): Promise<StandardResponse<Record<string, unknown>>> {
+  const response = await fetch(`${API_BASE}/admin/analytics/summary`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Analytics summary failed");
+  return response.json();
+}
+
+export async function getKnowledgeGaps(): Promise<StandardResponse<Record<string, unknown>>> {
+  const response = await fetch(`${API_BASE}/admin/gaps`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Knowledge gaps failed");
+  return response.json();
+}
+
+export async function getDepartmentAnalytics(): Promise<StandardResponse<Record<string, unknown>[]>> {
+  const response = await fetch(`${API_BASE}/admin/analytics/departments`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Department analytics failed");
+  return response.json();
+}
+
+export async function runHealthCheck(): Promise<StandardResponse<Record<string, unknown>>> {
+  const response = await fetch(`${API_BASE}/admin/health/run`, { method: "POST" });
+  if (!response.ok) throw new Error("Health check run failed");
+  return response.json();
+}
+
+// ─── Quiz ──────────────────────────────────────────────────
+
+export async function generateQuiz(documentText: string, title: string, count = 5): Promise<StandardResponse<Record<string, unknown>[]>> {
+  const response = await fetch(`${API_BASE}/quiz/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ document_text: documentText, title, count }),
+  });
+  if (!response.ok) throw new Error("Quiz generation failed");
+  return response.json();
+}
+
+export async function gradeQuiz(quiz: Record<string, unknown>[], answers: number[]): Promise<StandardResponse<Record<string, unknown>>> {
+  const response = await fetch(`${API_BASE}/quiz/grade`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ quiz, answers }),
+  });
+  if (!response.ok) throw new Error("Quiz grading failed");
+  return response.json();
+}
+
+// ─── Collaboration ─────────────────────────────────────────
+
+export async function createComment(documentId: string, content: string, authorName = "Anonymous"): Promise<StandardResponse<{ id: string }>> {
+  const response = await fetch(`${API_BASE}/collaboration/comments`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ document_id: documentId, content, author_name: authorName }),
+  });
+  if (!response.ok) throw new Error("Comment creation failed");
+  return response.json();
+}
+
+export async function listComments(documentId: string): Promise<StandardResponse<Record<string, unknown>[]>> {
+  const response = await fetch(`${API_BASE}/collaboration/documents/${documentId}/comments`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Comments list failed");
+  return response.json();
+}
+
+export async function createKnowledgeRequest(title: string, description?: string, requestorName?: string): Promise<StandardResponse<{ id: string }>> {
+  const response = await fetch(`${API_BASE}/collaboration/requests`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title, description, requestor_name: requestorName || "Anonymous" }),
+  });
+  if (!response.ok) throw new Error("Request creation failed");
+  return response.json();
+}
+
+export async function listKnowledgeRequests(status?: string): Promise<StandardResponse<Record<string, unknown>[]>> {
+  const url = status ? `${API_BASE}/collaboration/requests?status=${status}` : `${API_BASE}/collaboration/requests`;
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error("Requests list failed");
+  return response.json();
+}
+
+export async function endorseDocument(documentId: string): Promise<StandardResponse<{ endorsement_count: number }>> {
+  const response = await fetch(`${API_BASE}/collaboration/documents/${documentId}/endorse`, { method: "POST" });
+  if (!response.ok) throw new Error("Endorsement failed");
   return response.json();
 }

@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -7,14 +8,14 @@ class Settings(BaseSettings):
     app_name: str = "AI Knowledge Transfer System"
     app_env: str = "development"
     app_debug: bool = True
-    app_secret_key: str = "change-me"
+    app_secret_key: str = Field("change-me", min_length=16)
 
     backend_host: str = "0.0.0.0"
-    backend_port: int = 8000
+    backend_port: int = Field(8000, ge=1, le=65535)
 
-    jwt_secret_key: str = "change-me"
+    jwt_secret_key: str = Field("change-me", min_length=16)
     jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 60
+    access_token_expire_minutes: int = Field(60, ge=1, le=10080)
 
     postgres_host: str = "postgres"
     postgres_port: int = 5432
@@ -47,14 +48,19 @@ class Settings(BaseSettings):
 
     embedding_provider: str = "openai"
     embedding_model: str = "text-embedding-3-small"
-    embedding_dimension: int = 1536
+    embedding_dimension: int = Field(1536, ge=1, le=8192)
 
     ocr_provider: str = "paddleocr"
     stt_provider: str = "whisper"
     vector_store: str = "pgvector"
-    max_upload_size_mb: int = 1024
+    max_upload_size_mb: int = Field(1024, ge=1, le=10240)
 
     cors_origins: str = "http://localhost:3000,http://localhost"
+
+    rate_limit_enabled: bool = True
+    rate_limit_chat: str = "30/minute"
+    rate_limit_quiz: str = "10/minute"
+    rate_limit_upload: str = "20/minute"
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -69,6 +75,32 @@ class Settings(BaseSettings):
             for origin in self.cors_origins.split(",")
             if origin.strip()
         ]
+
+    @field_validator("cors_origins")
+    @classmethod
+    def validate_cors(cls, v: str) -> str:
+        origins = [o.strip() for o in v.split(",") if o.strip()]
+        if not origins:
+            raise ValueError("cors_origins must contain at least one origin")
+        return v
+
+    @field_validator("app_secret_key", "jwt_secret_key")
+    @classmethod
+    def warn_default_secrets(cls, v: str) -> str:
+        if v == "change-me":
+            import warnings
+            warnings.warn("Using default secret key — change in production", stacklevel=2)
+        return v
+
+    def ai_providers_available(self) -> list[str]:
+        providers = []
+        if self.openai_api_key:
+            providers.append("openai")
+        if self.anthropic_api_key:
+            providers.append("anthropic")
+        if self.gemini_api_key:
+            providers.append("gemini")
+        return providers
 
 
 @lru_cache

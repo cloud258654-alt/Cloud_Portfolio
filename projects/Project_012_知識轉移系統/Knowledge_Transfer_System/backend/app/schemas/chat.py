@@ -26,6 +26,8 @@ class ChatAnswer(BaseModel):
     answer: str
     citations: list[CitationRead] = Field(default_factory=list)
     confidence: float = 0.0
+    confidence_tier: str = "uncertain"
+    grounding_ratio: float = 0.0
     suggested_questions: list[str] = Field(default_factory=list)
 
 

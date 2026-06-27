@@ -4,8 +4,10 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 
 import { uploadExperience } from "@/lib/api";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 
 export default function ExperienceUploadPage() {
+  const { t } = useTranslation();
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -28,9 +30,9 @@ export default function ExperienceUploadPage() {
     <main className="shell">
       <section className="hero">
         <div>
-          <p className="eyebrow">Experience Transfer</p>
-          <h1>Upload Interview</h1>
-          <p className="lead">Upload audio or video for transcript, summary, FAQ, and knowledge package extraction.</p>
+          <p className="eyebrow">{t.experience.eyebrow}</p>
+          <h1>{t.experience.uploadTitle}</h1>
+          <p className="lead">{t.experience.uploadSubtitle}</p>
         </div>
       </section>
 

@@ -23,6 +23,7 @@ class HybridSearchEngine:
         self,
         query: str,
         *,
+        query_embedding: list[float] | None = None,
         department: str | None = None,
         limit: int = 10,
     ) -> list[tuple[DocumentChunk, Document, float]]:
@@ -34,9 +35,10 @@ class HybridSearchEngine:
             scores[chunk.id] += score * 0.4
             merged[chunk.id] = (chunk, document, scores[chunk.id])
 
-        for chunk, document, score in self.vector.search(parsed.raw, limit=50):
-            scores[chunk.id] += score * 0.6
-            merged[chunk.id] = (chunk, document, scores[chunk.id])
+        if query_embedding:
+            for chunk, document, score in self.vector.search(query_embedding, limit=50):
+                scores[chunk.id] += score * 0.6
+                merged[chunk.id] = (chunk, document, scores[chunk.id])
 
         filtered = self.permission_filter.filter(list(merged.values()), department=department)
         return self.reranker.rerank(filtered, limit=limit)

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.search.citation_builder import CitationBuilder, SearchCitation
 from app.search.hybrid_engine import HybridSearchEngine
+from app.services.embedding_service import EmbeddingService
 
 
 class SearchResult(BaseModel):
@@ -18,10 +19,19 @@ class SearchService:
     def __init__(self, db: Session) -> None:
         self.engine = HybridSearchEngine(db)
         self.citations = CitationBuilder()
+        self.embedder = EmbeddingService()
 
     def search(self, query: str, *, department: str | None = None, limit: int = 10) -> list[SearchResult]:
+        query_embedding: list[float] | None = None
+        try:
+            query_embedding = self.embedder.embed(query)
+        except Exception:
+            pass
+
         results = []
-        for chunk, document, score in self.engine.search(query, department=department, limit=limit):
+        for chunk, document, score in self.engine.search(
+            query, query_embedding=query_embedding, department=department, limit=limit
+        ):
             citation = self.citations.build(
                 document_id=document.id,
                 document_title=document.title,

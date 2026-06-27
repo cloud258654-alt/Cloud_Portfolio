@@ -88,6 +88,8 @@ export type ChatAnswer = {
   answer: string;
   citations: ChatCitation[];
   confidence: number;
+  confidence_tier: string;
+  grounding_ratio: number;
   suggested_questions: string[];
 };
 
@@ -145,4 +147,45 @@ export type ExperiencePackage = {
   keywords: string[];
   tags: string[];
   related_documents: string[];
+};
+
+export type QuizQuestion = {
+  question: string;
+  options: string[];
+  correct_index: number;
+  explanation: string;
+  source: string;
+};
+
+export type QuizGradeResult = {
+  score: number;
+  total: number;
+  percentage: number;
+  passed: boolean;
+  results: Array<{
+    question_index: number;
+    user_answer: number;
+    correct_answer: number;
+    is_correct: boolean;
+    explanation: string;
+  }>;
+};
+
+export type KnowledgeRequestItem = {
+  id: string;
+  title: string;
+  description: string | null;
+  requestor_name: string;
+  status: string;
+  assigned_to: string | null;
+  created_at: string | null;
+};
+
+export type CommentItem = {
+  id: string;
+  document_id: string;
+  author_name: string;
+  content: string;
+  parent_id: string | null;
+  created_at: string | null;
 };
