@@ -1,17 +1,4 @@
-import { copyFileSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
-
-const root = resolve(".");
-const dist = resolve("dist");
-
-copyFileSync(resolve(dist, "app-source.html"), resolve(dist, "index.html"));
-
-const pwaFiles = ["manifest.json", "icon-192.png", "icon-512.png"];
-for (const file of pwaFiles) {
-  copyFileSync(resolve(dist, file), resolve(root, file));
-}
-
-const rootSw = `const CACHE_NAME = "futian-storage-v1";
+const CACHE_NAME = "futian-storage-v1";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
@@ -63,6 +50,3 @@ self.addEventListener("fetch", (event) => {
     })
   );
 });
-`;
-
-writeFileSync(resolve(root, "sw.js"), rootSw, "utf-8");

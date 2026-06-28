@@ -1,0 +1,29 @@
+{
+  "name": "福田貨櫃倉儲管理系統",
+  "short_name": "福田倉儲",
+  "description": "福田貨櫃倉儲智慧管理系統 - 貨櫃管理、客戶管理、預約、收費、電費、維修、續約提醒、通知中心、報表與 AI 助理",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#07152b",
+  "background_color": "#07152b",
+  "lang": "zh-Hant",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "dir": "ltr",
+  "prefer_related_applications": false
+}

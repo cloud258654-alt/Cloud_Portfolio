@@ -29,10 +29,17 @@ export default defineConfig({
           delete bundle["app-source.html"];
         }
       },
-      transformIndexHtml(html) {
-        return html
-          .replace(/<script type="module" crossorigin src="([^"]+)"><\/script>/g, '<script defer src="$1"></script>')
-          .replace(/<link rel="stylesheet" crossorigin href="([^"]+)">/g, '<link rel="stylesheet" href="$1">');
+      transformIndexHtml: {
+        order: "post",
+        handler(html) {
+          const withMeta = html.replace(
+            "</head>",
+            '  <meta name="theme-color" content="#07152b" />\n    <meta name="description" content="福田貨櫃倉儲智慧管理系統" />\n    <link rel="manifest" href="./manifest.json" />\n    <link rel="apple-touch-icon" href="./icon-192.png" />\n    <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />\n  </head>'
+          );
+          return withMeta
+            .replace(/<script type="module" crossorigin src="([^"]+)"><\/script>/g, '<script defer src="$1"></script>')
+            .replace(/<link rel="stylesheet" crossorigin href="([^"]+)">/g, '<link rel="stylesheet" href="$1">');
+        }
       }
     }
   ]
