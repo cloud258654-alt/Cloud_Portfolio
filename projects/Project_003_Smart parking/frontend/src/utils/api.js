@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = '/api';
 
 let authToken = localStorage.getItem('token');
 
@@ -25,10 +25,15 @@ async function request(endpoint, options = {}) {
     headers['Authorization'] = `Bearer ${authToken}`;
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  let response;
+  try {
+    response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers,
+    });
+  } catch {
+    throw new Error('無法連線到伺服器，請確認後端服務是否已啟動');
+  }
 
   if (response.status === 401 || response.status === 403) {
     setToken(null);
