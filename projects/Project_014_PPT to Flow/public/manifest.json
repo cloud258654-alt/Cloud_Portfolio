@@ -1,0 +1,17 @@
+{
+  "name": "Google Flow Enterprise Director OS",
+  "short_name": "Flow Director",
+  "description": "AI filmmaking platform for Google Flow production planning.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#F8F7F3",
+  "theme_color": "#F8F7F3",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+export type Scene = {
+  id: string;
+  projectId: string;
+  sceneNumber: number;
+  title: string;
+  goal: string;
+  storyBeat: string;
+  emotion: string;
+  durationSec: number;
+  heroImagePrompt: string;
+  flowAnimationPrompt: string;
+  voiceOver: string;
+  subtitle: string;
+  camera: string;
+  music: string;
+  sfx: string;
+  transition: string;
+  endingFrameNote: string;
+  qaScore: number;
+  createdAt: string;
+  updatedAt: string;
+};
