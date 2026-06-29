@@ -33,6 +33,10 @@ Google Flow Director OS is a production operating system for planning, prompting
 - Dashboard scene-level progress
 - Placeholder routes for future Google Flow production modules
 
+## Live Demo
+
+Demo coming soon. (Pending deployment)
+
 ## Local Setup
 
 ```bash
