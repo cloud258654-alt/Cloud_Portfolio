@@ -10,6 +10,11 @@ import { db } from "@/lib/db";
 import type { FlowProject, FlowScene } from "@/lib/types/flow";
 import { useLanguage } from "@/lib/i18n";
 
+type HeroScene = FlowScene & {
+  heroImageReferenceName?: string;
+  endingFrameReferenceName?: string;
+};
+
 type CharacterReference = {
   name: string;
   role: string;
@@ -20,7 +25,7 @@ type CharacterReference = {
 
 type ExportBundle = {
   project: FlowProject;
-  scenes: FlowScene[];
+  scenes: HeroScene[];
   characters: CharacterReference[];
   markdown: string;
   json: string;
@@ -31,7 +36,7 @@ export default function ExportPage() {
   const labels = copy[language];
   const [projects, setProjects] = useState<FlowProject[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState("");
-  const [scenes, setScenes] = useState<FlowScene[]>([]);
+  const [scenes, setScenes] = useState<HeroScene[]>([]);
   const [characters, setCharacters] = useState<CharacterReference[]>([]);
   const [copied, setCopied] = useState<"markdown" | "json" | null>(null);
 
@@ -58,7 +63,7 @@ export default function ExportPage() {
         db.projectBibles.where("projectId").equals(selectedProjectId).first(),
       ]);
 
-      setScenes(loadedScenes);
+      setScenes(loadedScenes as HeroScene[]);
       setCharacters(parseCharacters(bible?.characterBible));
     }
 
@@ -165,7 +170,7 @@ export default function ExportPage() {
 
 function createExportBundle(
   project: FlowProject,
-  scenes: FlowScene[],
+  scenes: HeroScene[],
   characters: CharacterReference[],
 ): ExportBundle {
   const exportScenes = scenes.map((scene) => ({
@@ -175,6 +180,7 @@ function createExportBundle(
     storyBeat: scene.storyBeat,
     emotion: scene.emotion,
     camera: scene.camera,
+    heroImageReferenceName: scene.heroImageReferenceName,
     heroImagePrompt: scene.heroImagePrompt,
     googleFlowPrompt: scene.flowAnimationPrompt,
     voiceOver: scene.voiceOver,
@@ -182,6 +188,7 @@ function createExportBundle(
     music: scene.music,
     sfx: scene.sfx,
     continuityNote: scene.continuityNote,
+    endingFrameReferenceName: scene.endingFrameReferenceName,
     endingFrameNote: scene.endingFrameNote,
     qa: {
       sceneHealthScore: scene.sceneHealthScore,

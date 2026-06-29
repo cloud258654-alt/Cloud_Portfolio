@@ -1,4 +1,4 @@
-export type FlowProject = {
+﻿export type FlowProject = {
   id: string;
   workspaceId: string;
   name: string;
@@ -82,9 +82,13 @@ export type FlowScene = {
     | "custom";
 
   heroImagePrompt: string;
+  heroImageReferenceName?: string;
+  heroImageReferenceDataUrl?: string;
   heroImageStatus: "not_started" | "drafted" | "ready" | "needs_revision";
   flowAnimationPrompt: string;
   flowPromptStatus: "not_started" | "drafted" | "ready" | "needs_revision";
+  endingFrameReferenceName?: string;
+  endingFrameReferenceDataUrl?: string;
   endingFrameStatus: "not_available" | "available" | "needs_revision";
 
   voiceOver: string;
