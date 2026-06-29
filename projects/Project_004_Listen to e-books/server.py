@@ -1,10 +1,12 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import StreamingResponse, FileResponse
+from fastapi.responses import StreamingResponse, FileResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import edge_tts
 import uvicorn
 import os
+import io
+import tempfile
 import aiohttp
 import json
 
@@ -30,20 +32,45 @@ async def read_index():
 @app.get("/style.css")
 async def read_style():
     if os.path.exists("style.css"):
-        return FileResponse("style.css")
+        return FileResponse("style.css", headers={"Cache-Control": "no-cache"})
     raise HTTPException(status_code=404, detail="style.css not found")
 
 # Route to serve the main JavaScript logic
 @app.get("/app.js")
 async def read_js():
     if os.path.exists("app.js"):
-        return FileResponse("app.js")
+        return FileResponse("app.js", headers={"Cache-Control": "no-cache"})
     raise HTTPException(status_code=404, detail="app.js not found")
 
 # Endpoint to test server status
 @app.get("/ping")
 def ping():
     return {"status": "ok"}
+
+# PWA static files
+@app.get("/manifest.json")
+async def serve_manifest():
+    if os.path.exists("manifest.json"):
+        return FileResponse("manifest.json", headers={"Cache-Control": "no-cache"})
+    raise HTTPException(status_code=404)
+
+@app.get("/sw.js")
+async def serve_sw():
+    if os.path.exists("sw.js"):
+        return FileResponse("sw.js", headers={"Cache-Control": "no-cache"})
+    raise HTTPException(status_code=404)
+
+@app.get("/icon-192.svg")
+async def serve_icon_192():
+    if os.path.exists("icon-192.svg"):
+        return FileResponse("icon-192.svg", headers={"Cache-Control": "no-cache"})
+    raise HTTPException(status_code=404)
+
+@app.get("/icon-512.svg")
+async def serve_icon_512():
+    if os.path.exists("icon-512.svg"):
+        return FileResponse("icon-512.svg", headers={"Cache-Control": "no-cache"})
+    raise HTTPException(status_code=404)
 
 import re
 
@@ -122,7 +149,7 @@ async def llm_generate(req: LLMRequest):
 
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.post(ollama_url, json=payload, timeout=aiohttp.ClientTimeout(total=120)) as resp:
+            async with session.post(ollama_url, json=payload, timeout=aiohttp.ClientTimeout(total=300)) as resp:
                 if resp.status != 200:
                     error_text = await resp.text()
                     raise HTTPException(status_code=502, detail=f"Ollama error: {resp.status} - {error_text[:200]}")
@@ -173,6 +200,66 @@ async def tts(req: TTSRequest):
             print(f"[TTS Error] Failed to generate speech for text '{req.text[:20]}...': {e}")
             
     return StreamingResponse(tts_stream(), media_type="audio/mpeg")
+
+# Request body model for full MP3 download
+class TTSFullRequest(BaseModel):
+    text: str
+    voice: str = "zh-TW-HsiaoChenNeural"
+    rate: str = "+10%"
+    pitch: str = "+1Hz"
+    filename: str = "podcast"
+
+# Asynchronous TTS endpoint for full MP3 download
+@app.post("/api/tts-full")
+async def tts_full(req: TTSFullRequest):
+    if not req.text:
+        raise HTTPException(status_code=400, detail="Missing text parameter")
+
+    safe_filename = req.filename.replace("/", "_").replace("\\", "_").replace(" ", "_")
+    if not safe_filename.endswith(".mp3"):
+        safe_filename += ".mp3"
+
+    try:
+        # Split text into chunks of ~500 chars to avoid edge-tts limits
+        MAX_CHUNK = 500
+        text = req.text.strip()
+        chunks = []
+        i = 0
+        while i < len(text):
+            end = min(i + MAX_CHUNK, len(text))
+            if end < len(text):
+                for sep in ["\n", "。", "！", "？", ".", "!", "?"]:
+                    pos = text.rfind(sep, i, end)
+                    if pos > i + MAX_CHUNK // 2:
+                        end = pos + 1
+                        break
+            chunks.append(text[i:end])
+            i = end
+
+        combined = io.BytesIO()
+        for chunk_text in chunks:
+            if not chunk_text.strip():
+                continue
+            # edge-tts save() requires a file path, use temp file
+            with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
+                tmp_path = tmp.name
+            try:
+                communicate = edge_tts.Communicate(chunk_text.strip(), req.voice, rate=req.rate, pitch=req.pitch)
+                await communicate.save(tmp_path)
+                with open(tmp_path, "rb") as f:
+                    combined.write(f.read())
+            finally:
+                if os.path.exists(tmp_path):
+                    os.unlink(tmp_path)
+
+        combined.seek(0)
+        headers = {
+            "Content-Disposition": f'attachment; filename="{safe_filename}"'
+        }
+        return Response(content=combined.read(), media_type="audio/mpeg", headers=headers)
+    except Exception as e:
+        print(f"[TTS Full Error] {e}")
+        raise HTTPException(status_code=500, detail=f"語音合成失敗: {str(e)[:200]}")
 
 if __name__ == "__main__":
     # Ensure port reuse is allowed and run server on port 8000

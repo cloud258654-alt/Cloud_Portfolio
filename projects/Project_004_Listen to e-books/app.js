@@ -112,8 +112,12 @@ const state = {
     chunks: [], // Text chunks corresponding to audio chunks
     currentChunkIndex: 0,
     isPlaying: false,
+    ttsMode: "server", // "server" | "browser" — falls back to browser SpeechSynthesis when backend unavailable
+    browserTtsUtterance: null,
+    browserTtsProgressTimer: null,
+    browserTtsCurrentDuration: 0,
     apiKey: localStorage.getItem("gemini_api_key") || "",
-    model: localStorage.getItem("gemini_model") || "gemini-2.0-flash",
+    model: localStorage.getItem("gemini_model") || "gemini-2.5-flash",
     temperature: parseFloat(localStorage.getItem("gemini_temperature")) || 0.3,
     customPromptEnabled: localStorage.getItem("gemini_custom_prompt_enabled") === "true",
     customPrompt: localStorage.getItem("gemini_custom_prompt") || ""
@@ -173,6 +177,52 @@ const PODCAST_SYSTEM_PROMPT = `你是一位卓越的說書 Podcast 主持人與�
 - 核心觀點深度展開 (Body, 約 1600-2200 字)：逐一深入解析書中的 3 個核心觀點。為了保證長度達到 10-15 分鐘，請將書中的每個案例、故事、科學實驗、數據背景「極盡詳細」地還原並展開敘述，多用生動的細節描繪，避免抽象空洞。
 - 溫馨結尾與行動指南 (Outro, 約 300-400 字)：提出一個明天早上聽眾立刻可以嘗試的具體小實驗，並以老朋友般溫暖自然的口吻道別。`;
 
+// Shorter extraction prompt for Ollama (no JSON required → faster)
+const OLLAMA_EXTRACT_PROMPT = `你是一位圖書說書人。請閱讀以下文本，用繁體中文依序輸出以下內容：
+
+===一句話亮點===
+（一句話總結核心價值）
+
+===痛點共鳴===
+（這本書要解決什麼問題）
+
+===核心解藥===
+（總體解決方案）
+
+===三大觀點===
+觀點一：
+（標題）
+理論：
+（詳細解釋）
+案例：
+（書中案例）
+
+觀點二：
+（標題）
+理論：
+（詳細解釋）
+案例：
+（書中案例）
+
+觀點三：
+（標題）
+理論：
+（詳細解釋）
+案例：
+（書中案例）
+
+===行動指南===
+標題：
+（具體行動名稱）
+說明：
+（詳細說明）
+步驟：
+1. 
+2. 
+3. 
+
+請直接輸出以上格式，不要加開頭結尾語。`;
+
 // Audio Node Reference
 const audio = document.getElementById("podcast-audio");
 
@@ -193,20 +243,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Load settings into input fields
 function initSettingsUI() {
-    // Migrate deprecated models
-    if (state.model === "gemini-1.5-flash") {
-        state.model = "gemini-2.0-flash";
-        localStorage.setItem("gemini_model", state.model);
-    } else if (state.model === "gemini-1.5-pro") {
-        state.model = "gemini-2.0-pro";
+    // Migrate unknown models
+    const allModels = getAllModelOptions();
+    if (!allModels.includes(state.model)) {
+        state.model = "qwen2.5:3b";
         localStorage.setItem("gemini_model", state.model);
     }
 
+    syncModelDropdown();
     document.getElementById("api-key-input").value = state.apiKey;
-    document.getElementById("model-select").value = state.model;
     document.getElementById("temperature-slider").value = state.temperature;
     document.getElementById("temp-val").textContent = state.temperature;
-    document.getElementById("ollama-model-input").value = localStorage.getItem("ollama_model") || "qwen2.5:3b";
 
     const customizeCheckbox = document.getElementById("customize-prompt-checkbox");
     customizeCheckbox.checked = state.customPromptEnabled;
@@ -222,6 +269,42 @@ function initSettingsUI() {
         state.customPrompt = DEFAULT_SYSTEM_PROMPT;
     }
     document.getElementById("system-prompt-textarea").value = state.customPrompt;
+}
+
+// Collect all valid model option values from the dropdown
+function getAllModelOptions() {
+    const select = document.getElementById("model-select");
+    const values = [];
+    for (const opt of select.options) {
+        values.push(opt.value);
+    }
+    return values;
+}
+
+// Sync model dropdown visibility based on API key presence
+function syncModelDropdown() {
+    const geminiGroup = document.getElementById("gemini-model-group");
+    const ollamaGroup = document.getElementById("ollama-model-group");
+    const label = document.getElementById("model-select-label");
+    const select = document.getElementById("model-select");
+
+    if (state.apiKey) {
+        geminiGroup.style.display = "";
+        ollamaGroup.style.display = "none";
+        label.textContent = "Gemini AI 模型";
+        // If current model is an Ollama model, switch to default Gemini
+        if (!select.value || select.selectedOptions[0]?.parentElement === ollamaGroup) {
+            select.value = "gemini-2.5-flash";
+        }
+    } else {
+        geminiGroup.style.display = "none";
+        ollamaGroup.style.display = "";
+        label.textContent = "Ollama 本機模型";
+        // If current model is a Gemini model, switch to default Ollama
+        if (!select.value || select.selectedOptions[0]?.parentElement === geminiGroup) {
+            select.value = "qwen2.5:3b";
+        }
+    }
 }
 
 // Bind UI Events
@@ -266,11 +349,7 @@ function bindEvents() {
         localStorage.setItem("gemini_custom_prompt_enabled", state.customPromptEnabled);
         localStorage.setItem("gemini_custom_prompt", state.customPrompt);
 
-        const ollamaModelInput = document.getElementById("ollama-model-input");
-        if (ollamaModelInput) {
-            localStorage.setItem("ollama_model", ollamaModelInput.value.trim() || "llama3.2");
-        }
-
+        syncModelDropdown();
         updateBadgeStatus();
         showToast("設定已存檔！", "check-circle");
         settingsCard.classList.add("hidden");
@@ -413,9 +492,79 @@ function bindEvents() {
 
     // Output Action: Download Script
     document.getElementById("download-script-btn").addEventListener("click", () => {
-        if (!state.podcastScript) return;
+        if (!state.podcastScript) {
+            showToast("請先點擊 Agent 02 生成播客腳本", "alert-triangle");
+            return;
+        }
         const title = state.extractedData?.title || "說書播客";
         triggerDownload(state.podcastScript, `${title}_播客逐字稿.txt`, "text/plain");
+    });
+
+    // Output Action: Download MP3 (requires server TTS)
+    document.getElementById("download-mp3-btn").addEventListener("click", async () => {
+        if (state.ttsMode !== "server") {
+            showToast("MP3 下載需要後端語音伺服器，請啟動 python server.py", "alert-triangle");
+            return;
+        }
+        if (!state.podcastScript) {
+            showToast("請先生成播客腳本", "alert-triangle");
+            return;
+        }
+
+        const btn = document.getElementById("download-mp3-btn");
+        const origHTML = btn.innerHTML;
+        btn.innerHTML = `<i data-lucide="loader"></i> 合成中...`;
+        btn.disabled = true;
+        lucide.createIcons({ attrs: { class: "lucide" } });
+
+        try {
+            const voice = document.getElementById("player-voice-select").value;
+            const speedSelect = document.getElementById("player-speed-select").value;
+            let rate = "+10%";
+            if (speedSelect === "0.8") rate = "-20%";
+            if (speedSelect === "1.2") rate = "+20%";
+            if (speedSelect === "1.5") rate = "+50%";
+
+            const title = state.extractedData?.title || "podcast";
+            const safeFilename = title.replace(/[\/\\:*?"<>| ]/g, "_");
+
+            const backendHost = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port === "8000"
+                ? "" : "http://localhost:8000";
+
+            const response = await fetch(`${backendHost}/api/tts-full`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    text: state.podcastScript,
+                    voice,
+                    rate,
+                    pitch: "+1Hz",
+                    filename: safeFilename
+                })
+            });
+
+            if (!response.ok) throw new Error(`伺服器錯誤: ${response.status}`);
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${safeFilename}.mp3`;
+            a.style.display = "none";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast("MP3 下載成功！", "download");
+        } catch (err) {
+            console.error("MP3 download error:", err);
+            showToast(`MP3 下載失敗: ${err.message}`, "alert-triangle");
+        } finally {
+            btn.innerHTML = origHTML;
+            btn.disabled = (state.ttsMode !== "server");
+            lucide.createIcons({ attrs: { class: "lucide" } });
+        }
     });
 
     // Audio Player Controls
@@ -619,6 +768,190 @@ async function parseEpubFile(file) {
 }
 
 // ==========================================================================
+// Client-side Text Analysis Fallback (when no LLM available)
+// ==========================================================================
+
+function extractOutlineLocally(text, filename) {
+    // Normalize whitespace but keep sentence boundaries
+    const cleaned = text.replace(/[\r\t]+/g, " ").replace(/\n{2,}/g, "\n").trim();
+
+    // Try splitting by double-newlines (paragraphs) first
+    let paragraphs = cleaned.split(/\n+/).map(p => p.trim()).filter(p => p.length > 20);
+
+    // If too few paragraphs, split by sentence-ending chars into chunks
+    if (paragraphs.length < 6) {
+        const sentences = cleaned.split(/(?<=[。！？.!?])/).map(s => s.trim()).filter(s => s.length > 10);
+        paragraphs = [];
+        let chunk = "";
+        for (const s of sentences) {
+            if ((chunk + s).length > 250 && chunk.length > 50) {
+                paragraphs.push(chunk.trim());
+                chunk = s;
+            } else {
+                chunk += s;
+            }
+        }
+        if (chunk.trim().length > 20) paragraphs.push(chunk.trim());
+    }
+
+    // Still too few? Use raw chunks of ~250 chars
+    if (paragraphs.length < 3) {
+        paragraphs = [];
+        for (let i = 0; i < cleaned.length; i += 250) {
+            const chunk = cleaned.substring(i, i + 250).trim();
+            if (chunk.length > 20) paragraphs.push(chunk);
+        }
+    }
+
+    // Title: from filename or first significant text
+    let title = filename ? filename.replace(/\.(epub|txt)$/i, "") : "";
+    if (!title && paragraphs.length > 0) {
+        const first = paragraphs[0].replace(/\s+/g, "");
+        title = first.length > 50 ? first.substring(0, 47) + "..." : first;
+    }
+    if (!title) title = "未知書籍";
+
+    // Highlight: best mid-length sentence with meaningful content
+    const sentences = cleaned.split(/[。！？.!?]/).map(s => s.trim().replace(/\s+/g, "")).filter(s => s.length > 25 && s.length < 100);
+    let highlight = "此書籍內容豐富，值得深入閱讀與反思。";
+    if (sentences.length > 2) {
+        // Pick a sentence from the middle third of the text (usually most substantial)
+        const mid = Math.floor(sentences.length / 3);
+        highlight = sentences[mid] || sentences[0];
+    } else if (sentences.length > 0) {
+        highlight = sentences[0];
+    }
+
+    // Pain: first substantial paragraph (the problem the book addresses)
+    const pain = paragraphs.length > 0
+        ? (paragraphs[0].length > 150 ? paragraphs[0].substring(0, 147) + "..." : paragraphs[0])
+        : "讀者在資訊爆炸的時代中感到迷茫與焦慮。";
+
+    // Solve: a paragraph from the middle (solution area)
+    const solveIdx = Math.min(Math.floor(paragraphs.length / 3), paragraphs.length - 1);
+    const solve = paragraphs.length > solveIdx
+        ? (paragraphs[solveIdx].length > 150 ? paragraphs[solveIdx].substring(0, 147) + "..." : paragraphs[solveIdx])
+        : "本書提供了一套系統化的思考框架與實踐方法。";
+
+    // Takeaways: distribute paragraphs into 3 groups
+    const chunkSize = Math.max(1, Math.ceil(paragraphs.length / 3));
+    const takeaways = [];
+    for (let i = 0; i < 3; i++) {
+        const start = i * chunkSize;
+        const end = Math.min((i + 1) * chunkSize, paragraphs.length);
+        const group = paragraphs.slice(start, end);
+        const groupText = group.join("\n\n").substring(0, 400);
+        takeaways.push({
+            title: `第 ${i + 1} 部分`,
+            theory: groupText || "（文字分析中，請點選「經典範本」體驗完整 AI 萃取）",
+            case: "此為基礎文字分析結果。安裝 Ollama 或設定 Gemini API Key 可獲得 AI 深度萃取，包含書中具體案例與實驗細節。"
+        });
+    }
+
+    return {
+        title,
+        highlight,
+        pain,
+        solve,
+        takeaways,
+        action_title: "閱讀摘要行動指南",
+        action_desc: "此為基礎文字分析模式（無需 API Key、無需後端）。建議設定 Gemini API Key 或安裝 Ollama 以獲得完整的 AI 精華萃取。",
+        action_steps: [
+            "閱讀上方萃取的核心段落，標記最有感觸的句子。",
+            "挑選一個核心觀點，用自己的話寫下 3 句反思。",
+            "明天與一位朋友分享你學到的 1 個關鍵概念。"
+        ]
+    };
+}
+
+function generateScriptLocally(outline) {
+    const lines = [];
+    lines.push("嗨，今天過得好嗎？我剛讀了一本很有意思的書，想跟你分享幾個讓我印象深刻的重點。");
+    lines.push("");
+    lines.push(`這本書的核心觀點是：${outline.highlight}`);
+    lines.push("");
+    lines.push(`它試圖解決的問題是：${outline.pain}`);
+    lines.push("");
+    lines.push(`書中提出的解方是：${outline.solve}`);
+    lines.push("");
+
+    const takeaways = outline.takeaways || [];
+    takeaways.forEach((t, i) => {
+        lines.push(`重點${i + 1}：`);
+        lines.push(t.theory);
+        lines.push("");
+    });
+
+    lines.push("此為基礎文字分析模式產出的摘要。若你需要更高品質的 AI 語音播客內容，可設定 Gemini API Key 或安裝 Ollama 以啟動 AI 深度萃取。");
+    lines.push("");
+    lines.push("希望這些內容對你有幫助，願你今天收穫滿滿，我們下次聊。");
+
+    return lines.join("\n");
+}
+
+// Parse Ollama's marker-based extraction output (faster than JSON for small models)
+function parseOllamaExtract(text) {
+    const getSection = (label) => {
+        const regex = new RegExp(`===${label}===\\s*\\n([\\s\\S]*?)(?=\\n===|$)`, "i");
+        const match = text.match(regex);
+        return match ? match[1].trim() : "";
+    };
+
+    const highlight = getSection("一句話亮點") || "此書籍內容豐富，值得深入閱讀。";
+    const pain = getSection("痛點共鳴") || "讀者在資訊爆炸的時代中感到迷茫。";
+    const solve = getSection("核心解藥") || "本書提供了一套系統化的思考框架。";
+
+    // Parse three viewpoints
+    const viewpointsSection = getSection("三大觀點");
+    const takeaways = [];
+    const vpBlocks = viewpointsSection.split(/觀點[一二三][：:]/);
+    for (let i = 1; i < vpBlocks.length && i <= 3; i++) {
+        const block = vpBlocks[i].trim();
+        const titleMatch = block.match(/(?:標題[：:]?\s*)?(.+?)(?=\n理論[：:]|\n案例[：:]|$)/s);
+        const theoryMatch = block.match(/理論[：:]\s*([\s\S]*?)(?=\n案例[：:]|$)/);
+        const caseMatch = block.match(/案例[：:]\s*([\s\S]*?)(?=\n觀點|$)/);
+
+        takeaways.push({
+            title: titleMatch ? titleMatch[1].trim().substring(0, 60) : `觀點 ${i}`,
+            theory: theoryMatch ? theoryMatch[1].trim().substring(0, 500) : block.substring(0, 300),
+            case: caseMatch ? caseMatch[1].trim().substring(0, 400) : "（詳見原文）"
+        });
+    }
+
+    // Parse action guide
+    const actionSection = getSection("行動指南");
+    const actionTitleMatch = actionSection.match(/標題[：:]\s*(.+)/);
+    const actionDescMatch = actionSection.match(/說明[：:]\s*([\s\S]*?)(?=\n步驟[：:]|$)/);
+    const stepsMatch = actionSection.match(/步驟[：:]\s*([\s\S]*)/);
+
+    const actionSteps = [];
+    if (stepsMatch) {
+        const stepsText = stepsMatch[1];
+        const stepLines = stepsText.split(/\n/).filter(s => /\d+\./.test(s));
+        stepLines.forEach(s => {
+            const cleaned = s.replace(/^\d+\.\s*/, "").trim();
+            if (cleaned) actionSteps.push(cleaned);
+        });
+    }
+    if (actionSteps.length === 0) actionSteps.push("閱讀萃取內容", "寫下心得反思", "與朋友分享");
+
+    return {
+        title: state.selectedFile?.name?.replace(/\.(epub|txt)$/i, "") || "未知書籍",
+        highlight,
+        pain,
+        solve,
+        takeaways: takeaways.length >= 3 ? takeaways : [
+            ...takeaways,
+            { title: "更多觀點", theory: "（請重試或切換模型）", case: "" },
+            { title: "更多觀點", theory: "（請重試或切換模型）", case: "" }
+        ].slice(0, 3),
+        action_title: actionTitleMatch ? actionTitleMatch[1].trim() : "閱讀行動指南",
+        action_desc: actionDescMatch ? actionDescMatch[1].trim() : "根據文本內容制定的行動計畫。",
+        action_steps: actionSteps.slice(0, 3)
+    };
+}
+
+// ==========================================================================
 // Agent 01: Extract Outline Process
 // ==========================================================================
 async function triggerAgent01Extraction() {
@@ -672,17 +1005,26 @@ async function triggerAgent01Extraction() {
             updateLoadingStep(1, "completed");
             updateLoadingStep(2, "running");
 
-            const maxChars = 40000;
+            const maxChars = 3000;
             if (state.parsedText.length > maxChars) {
-                showToast(`書籍長度較長，已自動截取前 ${maxChars.toLocaleString()} 字以防止 API 額度限制。`, "info");
+                showToast(`文本較長，已截取前 ${maxChars.toLocaleString()} 字分析（Ollama 本機模型處理中，約需 1-3 分鐘）`, "info");
             }
-            const prompt = `${state.customPromptEnabled ? state.customPrompt : DEFAULT_SYSTEM_PROMPT}\n\n以下是書籍內容：\n${state.parsedText.substring(0, maxChars)}`;
-            const responseText = await requestGemini(prompt, true);
+            const prompt = state.apiKey
+                ? `${state.customPromptEnabled ? state.customPrompt : DEFAULT_SYSTEM_PROMPT}\n\n以下是書籍內容：\n${state.parsedText.substring(0, maxChars)}`
+                : `${OLLAMA_EXTRACT_PROMPT}\n\n文本內容：\n${state.parsedText.substring(0, maxChars)}`;
+            const useJson = !!state.apiKey;
+            let parsedJson;
+            try {
+                const responseText = await requestGemini(prompt, useJson);
+                parsedJson = useJson ? parseJsonSafe(responseText) : parseOllamaExtract(responseText);
+            } catch (llmErr) {
+                console.warn("LLM unavailable, using local text analysis:", llmErr.message);
+                showToast("未偵測到 AI 服務，使用基礎文字分析模式", "info");
+                parsedJson = extractOutlineLocally(state.parsedText, state.selectedFile?.name || null);
+            }
 
             updateLoadingStep(2, "completed");
             updateLoadingStep(3, "running");
-
-            const parsedJson = parseJsonSafe(responseText);
 
             updateLoadingStep(3, "completed");
             updateLoadingStep(4, "running");
@@ -701,10 +1043,17 @@ async function triggerAgent01Extraction() {
         showToast("精華大綱萃取完成！", "check-circle");
 
     } catch (err) {
-        console.error("Agent 01 error:", err);
-        showToast(`萃取失敗: ${err.message}`, "alert-triangle");
+        console.error("Agent 01 error, using local fallback:", err);
+        showToast("AI 服務無法連線，使用基礎文字分析模式", "info");
+        const fallbackData = extractOutlineLocally(state.parsedText || "", state.selectedFile?.name || null);
+        renderExtractedResults(fallbackData);
+
+        // Switch to Outline tab
+        document.getElementById("btn-tab-outline").click();
+
+        // Hide loader, show results
         loadingView.classList.add("hidden");
-        document.getElementById("empty-state-view").classList.remove("hidden");
+        document.getElementById("results-view").classList.remove("hidden");
     }
 }
 
@@ -798,10 +1147,12 @@ async function triggerAgent02PodcastGeneration() {
     `;
     lucide.createIcons();
 
-    try {
-        let scriptText = "";
-        let bookTitle = "";
+    let scriptText = "";
+    let bookTitle = "";
+    let agent01Fallback = false;
+    let agent02Fallback = false;
 
+    try {
         if (activeTab === "tab-samples") {
             const selectedCard = document.querySelector(".sample-card-btn.selected");
             const sampleKey = selectedCard.getAttribute("data-sample");
@@ -824,13 +1175,23 @@ async function triggerAgent02PodcastGeneration() {
             // If we don't have outline data yet, run Agent 01 first
             if (!state.extractedData) {
                 updateLoadingStep(1, "running");
-                const maxChars = 40000;
+                const maxChars = 3000;
                 if (state.parsedText.length > maxChars) {
                     showToast(`書籍長度較長，已自動截取前 ${maxChars.toLocaleString()} 字以防止 API 額度限制。`, "info");
                 }
-                const promptA1 = `${DEFAULT_SYSTEM_PROMPT}\n\n以下是書籍內容：\n${state.parsedText.substring(0, maxChars)}`;
-                const responseA1 = await requestGemini(promptA1, true);
-                state.extractedData = parseJsonSafe(responseA1);
+                try {
+                    const promptA1 = state.apiKey
+                        ? `${DEFAULT_SYSTEM_PROMPT}\n\n以下是書籍內容：\n${state.parsedText.substring(0, maxChars)}`
+                        : `${OLLAMA_EXTRACT_PROMPT}\n\n文本內容：\n${state.parsedText.substring(0, maxChars)}`;
+                    const useJson = !!state.apiKey;
+                    const responseA1 = await requestGemini(promptA1, useJson);
+                    state.extractedData = useJson ? parseJsonSafe(responseA1) : parseOllamaExtract(responseA1);
+                } catch (llmErr) {
+                    console.warn("LLM unavailable for Agent 01, using local fallback:", llmErr.message);
+                    showToast("未偵測到 AI 服務，使用基礎文字分析模式", "info");
+                    state.extractedData = extractOutlineLocally(state.parsedText, state.selectedFile?.name || null);
+                    agent01Fallback = true;
+                }
                 renderExtractedResults(state.extractedData);
                 updateLoadingStep(1, "completed");
             } else {
@@ -839,8 +1200,15 @@ async function triggerAgent02PodcastGeneration() {
 
             updateLoadingStep(2, "running");
 
-            const promptA2 = `${PODCAST_SYSTEM_PROMPT}\n\n以下是 Agent 01 產出的書籍大綱資訊：\n${JSON.stringify(state.extractedData)}\n\n請根據大綱直接輸出完整主持人逐字稿（約 2200-3000 字），嚴禁使用任何公式套話。`;
-            scriptText = await requestGemini(promptA2, false);
+            try {
+                const promptA2 = `${PODCAST_SYSTEM_PROMPT}\n\n以下是 Agent 01 產出的書籍大綱資訊：\n${JSON.stringify(state.extractedData)}\n\n請根據大綱直接輸出完整主持人逐字稿（約 2200-3000 字），嚴禁使用任何公式套話。`;
+                scriptText = await requestGemini(promptA2, false);
+            } catch (llmErr) {
+                console.warn("LLM unavailable for Agent 02, using local fallback:", llmErr.message);
+                showToast("使用基礎文字分析生成播客講稿", "info");
+                scriptText = generateScriptLocally(state.extractedData);
+                agent02Fallback = true;
+            }
             bookTitle = state.extractedData.title;
 
             updateLoadingStep(2, "completed");
@@ -851,44 +1219,76 @@ async function triggerAgent02PodcastGeneration() {
             await sleep(500);
             updateLoadingStep(4, "completed");
         }
-
-        // Save Script
-        state.podcastScript = scriptText;
-
-        // Split script into paragraphs for chunked TTS on-demand loading
-        const paragraphs = scriptText.split(/\n+/).map(p => p.trim()).filter(p => p.length > 0);
-        state.chunks = paragraphs;
-        state.currentChunkIndex = 0;
-
-        // Render Teleprompter elements
-        const container = document.getElementById("teleprompter-content");
-        container.innerHTML = paragraphs.map((p, idx) => `
-            <div class="teleprompter-p" id="p-${idx}">${p}</div>
-        `).join("");
-
-        // Reset player UI
-        stopPodcastAudio();
-        document.getElementById("player-time-current").textContent = "0:00";
-        document.getElementById("player-time-duration").textContent = "0:00";
-        document.getElementById("player-progress").style.width = "0%";
-        document.getElementById("player-status").textContent = "音訊加載完成，點擊播放開始收聽";
-
-        // Enable download MP3 button
-        document.getElementById("download-mp3-btn").disabled = false;
-
-        // Switch to Podcast tab
-        document.getElementById("btn-tab-podcast").click();
-
-        // Hide loader, show results
-        loadingView.classList.add("hidden");
-        document.getElementById("results-view").classList.remove("hidden");
-        showToast("播客音訊生成成功！", "check-circle");
-
     } catch (err) {
-        console.error("Agent 02 error:", err);
-        showToast(`音訊生成失敗: ${err.message}`, "alert-triangle");
+        console.error("Agent 02 error, using full local fallback:", err);
+        showToast("AI 服務無法連線，使用基礎文字分析模式", "info");
+        // Full local fallback
+        if (!state.extractedData) {
+            state.extractedData = extractOutlineLocally(state.parsedText || "", state.selectedFile?.name || null);
+            renderExtractedResults(state.extractedData);
+        }
+        scriptText = generateScriptLocally(state.extractedData);
+        bookTitle = state.extractedData.title;
+        agent01Fallback = true;
+        agent02Fallback = true;
+        // Skip ahead to rendering
+        document.getElementById("loading-steps-container").querySelectorAll(".loading-step").forEach(el => {
+            el.classList.remove("active"); el.classList.add("completed");
+        });
+        document.getElementById("loader-progress-text").textContent = "100%";
+    }
+
+    // ---- Render Results (runs for both success and fallback) ----
+    if (!scriptText || !bookTitle) {
         loadingView.classList.add("hidden");
         document.getElementById("empty-state-view").classList.remove("hidden");
+        showToast("無法產出內容，請選擇「經典範本」體驗完整功能", "alert-triangle");
+        return;
+    }
+
+    // Save Script
+    state.podcastScript = scriptText;
+
+    // Reset TTS mode — try server first, fall back to browser on failure
+    state.ttsMode = "server";
+
+    // Split script into paragraphs for chunked TTS on-demand loading
+    const paragraphs = scriptText.split(/\n+/).map(p => p.trim()).filter(p => p.length > 0);
+    state.chunks = paragraphs;
+    state.currentChunkIndex = 0;
+
+    // Render Teleprompter elements
+    const teleContainer = document.getElementById("teleprompter-content");
+    teleContainer.innerHTML = paragraphs.map((p, idx) => `
+        <div class="teleprompter-p" id="p-${idx}">${p}</div>
+    `).join("");
+
+    // Reset player UI
+    stopPodcastAudio();
+    document.getElementById("player-time-current").textContent = "0:00";
+    document.getElementById("player-time-duration").textContent = "0:00";
+    document.getElementById("player-progress").style.width = "0%";
+    document.getElementById("player-status").textContent = "音訊加載完成，點擊播放開始收聽";
+
+    // Update voice info based on current mode
+    updatePlayerVoiceInfo();
+
+    // Enable download MP3 button (only works when server TTS is available)
+    document.getElementById("download-mp3-btn").disabled = (state.ttsMode !== "server");
+
+    // Switch to Podcast tab
+    document.getElementById("btn-tab-podcast").click();
+
+    // Hide loader, show results
+    loadingView.classList.add("hidden");
+    document.getElementById("results-view").classList.remove("hidden");
+
+    if (agent01Fallback && agent02Fallback) {
+        showToast("基礎文字分析模式 — 可設定 Gemini API Key 或安裝 Ollama 獲得 AI 深度萃取", "info");
+    } else if (agent01Fallback) {
+        showToast("播客腳本由 AI 生成，大綱使用基礎分析（可切換模型改善 JSON 輸出）", "info");
+    } else {
+        showToast("播客音訊生成成功！", "check-circle");
     }
 }
 
@@ -900,8 +1300,6 @@ async function requestGemini(prompt, isJson) {
             ? ''
             : 'http://localhost:8000';
 
-        const ollamaModel = localStorage.getItem("ollama_model") || "qwen2.5:3b";
-
         try {
             const response = await fetch(`${backendHost}/api/llm`, {
                 method: "POST",
@@ -909,7 +1307,7 @@ async function requestGemini(prompt, isJson) {
                 body: JSON.stringify({
                     prompt,
                     isJson,
-                    model: ollamaModel,
+                    model: state.model,
                     temperature: state.temperature
                 })
             });
@@ -921,7 +1319,7 @@ async function requestGemini(prompt, isJson) {
             return data.text;
         } catch (error) {
             if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-                throw new Error("網路連線失敗。請確認後端伺服器 (python server.py) 已啟動");
+                throw new Error("網路連線失敗。請確認後端伺服器 (python server.py) 已啟動，或直接使用「經典範本」分頁體驗完整功能");
             }
             throw error;
         }
@@ -974,22 +1372,31 @@ async function requestGemini(prompt, isJson) {
 // Clean markdown wrapper around JSON
 function parseJsonSafe(text) {
     let cleaned = text.trim();
-    if (cleaned.startsWith("```json")) {
-        cleaned = cleaned.substring(7);
-    }
-    if (cleaned.startsWith("```")) {
-        cleaned = cleaned.substring(3);
-    }
-    if (cleaned.endsWith("```")) {
-        cleaned = cleaned.substring(0, cleaned.length - 3);
-    }
+
+    // Remove markdown code fences
+    if (cleaned.startsWith("```json")) cleaned = cleaned.substring(7);
+    else if (cleaned.startsWith("```")) cleaned = cleaned.substring(3);
+    if (cleaned.endsWith("```")) cleaned = cleaned.substring(0, cleaned.length - 3);
     cleaned = cleaned.trim();
-    try {
-        return JSON.parse(cleaned);
-    } catch (e) {
-        console.error("[parseJsonSafe] Failed to parse:", cleaned.substring(0, 500));
-        throw new Error(`JSON 解析失敗: ${e.message}。模型可能未正確輸出 JSON，請重試或更換 Ollama 模型（例如 qwen2.5、gemma3 對中文 JSON 支援較佳）。`);
+
+    // Try direct parse
+    try { return JSON.parse(cleaned); } catch (e) { /* continue */ }
+
+    // Try to find JSON object boundaries
+    const start = cleaned.indexOf("{");
+    const end = cleaned.lastIndexOf("}");
+    if (start !== -1 && end !== -1 && end > start) {
+        try { return JSON.parse(cleaned.substring(start, end + 1)); } catch (e) { /* continue */ }
     }
+
+    // Try fixing common issues: trailing commas, unquoted keys
+    const fixed = cleaned
+        .replace(/,\s*}/g, "}")
+        .replace(/,\s*]/g, "]");
+    try { return JSON.parse(fixed); } catch (e) { /* continue */ }
+
+    console.error("[parseJsonSafe] Failed:", cleaned.substring(0, 500));
+    throw new Error("JSON 解析失敗，Ollama 模型回傳格式異常。請重試，或改用 gemma3 / qwen2.5:7b 等較大型模型。");
 }
 
 // Animate loading items for demo mode/user feel
@@ -1063,6 +1470,174 @@ function updateLoadingStep(stepNum, status) {
 }
 
 // ==========================================================================
+// Browser SpeechSynthesis TTS Fallback Engine
+// ==========================================================================
+
+// Load voices — must be called after user gesture; voices may load async
+function ensureVoicesLoaded() {
+    return new Promise((resolve) => {
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+            resolve(voices);
+            return;
+        }
+        window.speechSynthesis.onvoiceschanged = () => {
+            resolve(window.speechSynthesis.getVoices());
+        };
+    });
+}
+
+// Find best matching browser voice for the selected edge-tts voice
+function getBrowserVoice(preferredVoice) {
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length === 0) return null;
+
+    const voiceMap = {
+        "zh-TW-HsiaoChenNeural": ["zh-TW"],
+        "zh-TW-YunJheNeural": ["zh-TW"],
+        "zh-CN-XiaoxiaoNeural": ["zh-CN"],
+        "en-US-EmmaNeural": ["en-US"],
+    };
+
+    const targets = voiceMap[preferredVoice] || ["zh-TW"];
+
+    for (const lang of targets) {
+        const match = voices.find((v) => v.lang === lang);
+        if (match) return match;
+    }
+
+    // Fallback: any voice starting with the target prefix
+    for (const lang of targets) {
+        const match = voices.find((v) => v.lang.startsWith(lang));
+        if (match) return match;
+    }
+
+    return voices[0] || null;
+}
+
+// Rough duration estimate for Chinese/English mixed text
+function estimateSpeechDuration(text, rate) {
+    const charsPerSecond = 4 * rate;
+    return Math.max(2, text.length / charsPerSecond);
+}
+
+// Play a single chunk using browser SpeechSynthesis
+function playChunkWithBrowserTTS(index) {
+    return new Promise((resolve, reject) => {
+        if (index < 0 || index >= state.chunks.length) {
+            resolve();
+            return;
+        }
+
+        stopBrowserTTS();
+
+        state.currentChunkIndex = index;
+
+        // Highlight teleprompter paragraph
+        document.querySelectorAll(".teleprompter-p").forEach((p) => p.classList.remove("highlighted"));
+        const activeP = document.getElementById(`p-${index}`);
+        if (activeP) {
+            activeP.classList.add("highlighted");
+            const container = document.getElementById("teleprompter-content");
+            container.scrollTop = activeP.offsetTop - container.offsetTop - container.clientHeight / 2 + activeP.clientHeight / 2;
+        }
+
+        const text = state.chunks[index];
+        const voiceSelect = document.getElementById("player-voice-select").value;
+        const speedSelect = parseFloat(document.getElementById("player-speed-select").value);
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        const browserVoice = getBrowserVoice(voiceSelect);
+        if (browserVoice) {
+            utterance.voice = browserVoice;
+        }
+        utterance.rate = speedSelect;
+        utterance.lang = voiceSelect.startsWith("zh") ? "zh-TW" : "en-US";
+
+        state.browserTtsUtterance = utterance;
+        state.browserTtsCurrentDuration = estimateSpeechDuration(text, speedSelect);
+
+        const statusEl = document.getElementById("player-status");
+        statusEl.textContent = `正在播放第 ${index + 1}/${state.chunks.length} 段 (瀏覽器語音)...`;
+
+        // Progress simulation
+        let elapsed = 0;
+        const tickMs = 200;
+        state.browserTtsProgressTimer = setInterval(() => {
+            elapsed += tickMs / 1000;
+            const dur = state.browserTtsCurrentDuration;
+            const cur = Math.min(dur, elapsed);
+            document.getElementById("player-time-current").textContent = formatTime(cur);
+            document.getElementById("player-time-duration").textContent = formatTime(dur);
+            const pct = Math.min(100, (cur / dur) * 100);
+            document.getElementById("player-progress").style.width = `${pct}%`;
+        }, tickMs);
+
+        utterance.onstart = () => {
+            state.isPlaying = true;
+            document.querySelector(".audio-player-card").classList.add("playing");
+            document.getElementById("player-btn-play").innerHTML = `<i data-lucide="pause"></i>`;
+            lucide.createIcons({ attrs: { class: "lucide" } });
+        };
+
+        utterance.onend = () => {
+            clearInterval(state.browserTtsProgressTimer);
+            state.browserTtsProgressTimer = null;
+            state.browserTtsUtterance = null;
+            resolve();
+        };
+
+        utterance.onerror = (e) => {
+            clearInterval(state.browserTtsProgressTimer);
+            state.browserTtsProgressTimer = null;
+            state.browserTtsUtterance = null;
+            if (e.error === "canceled" || e.error === "interrupted") {
+                resolve();
+                return;
+            }
+            reject(new Error(`瀏覽器語音錯誤: ${e.error}`));
+        };
+
+        window.speechSynthesis.speak(utterance);
+    });
+}
+
+function stopBrowserTTS() {
+    if (state.browserTtsProgressTimer) {
+        clearInterval(state.browserTtsProgressTimer);
+        state.browserTtsProgressTimer = null;
+    }
+    window.speechSynthesis.cancel();
+    state.browserTtsUtterance = null;
+    state.isPlaying = false;
+}
+
+function pauseBrowserTTS() {
+    if (state.browserTtsProgressTimer) {
+        clearInterval(state.browserTtsProgressTimer);
+        state.browserTtsProgressTimer = null;
+    }
+    window.speechSynthesis.pause();
+}
+
+function resumeBrowserTTS() {
+    window.speechSynthesis.resume();
+
+    // Resume progress timer
+    let elapsed = 0;
+    const tickMs = 200;
+    const dur = state.browserTtsCurrentDuration;
+    state.browserTtsProgressTimer = setInterval(() => {
+        elapsed += tickMs / 1000;
+        const cur = Math.min(dur, elapsed);
+        document.getElementById("player-time-current").textContent = formatTime(cur);
+        document.getElementById("player-time-duration").textContent = formatTime(dur);
+        const pct = Math.min(100, (cur / dur) * 100);
+        document.getElementById("player-progress").style.width = `${pct}%`;
+    }, tickMs);
+}
+
+// ==========================================================================
 // Sequenced Paragraph TTS Player Engine
 // ==========================================================================
 async function playChunkAtIndex(index) {
@@ -1075,59 +1650,109 @@ async function playChunkAtIndex(index) {
     const activeP = document.getElementById(`p-${index}`);
     if (activeP) {
         activeP.classList.add("highlighted");
-        // Scroll inside container
         const container = document.getElementById("teleprompter-content");
-        container.scrollTop = activeP.offsetTop - container.offsetTop - (container.clientHeight / 2) + (activeP.clientHeight / 2);
+        container.scrollTop = activeP.offsetTop - container.offsetTop - container.clientHeight / 2 + activeP.clientHeight / 2;
     }
 
     const text = state.chunks[index];
-    document.getElementById("player-status").textContent = `正在生成第 ${index + 1}/${state.chunks.length} 段語音...`;
-
     const voice = document.getElementById("player-voice-select").value;
     const speedSelect = document.getElementById("player-speed-select").value;
 
-    // Map speed multiplier to edge-tts rate parameter
-    let rate = "+10%";
-    if (speedSelect === "0.8") rate = "-20%";
-    if (speedSelect === "1.2") rate = "+20%";
-    if (speedSelect === "1.5") rate = "+50%";
+    // --- Server TTS path ---
+    if (state.ttsMode === "server") {
+        document.getElementById("player-status").textContent = `正在生成第 ${index + 1}/${state.chunks.length} 段語音...`;
 
-    // Determine the backend host dynamically to allow hosting the frontend on other ports (like VS Code Live Server) or via file:///
-    const backendHost = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port === '8000'
-        ? ''
-        : 'http://localhost:8000';
+        let rate = "+10%";
+        if (speedSelect === "0.8") rate = "-20%";
+        if (speedSelect === "1.2") rate = "+20%";
+        if (speedSelect === "1.5") rate = "+50%";
 
-    try {
-        const response = await fetch(`${backendHost}/api/tts`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text, voice, rate, pitch: '+1Hz' })
+        const backendHost = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port === '8000'
+            ? '' : 'http://localhost:8000';
+
+        try {
+            const response = await fetch(`${backendHost}/api/tts`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text, voice, rate, pitch: '+1Hz' })
+            });
+            if (!response.ok) throw new Error(`TTS server error: ${response.status}`);
+            const blob = await response.blob();
+            audio.src = URL.createObjectURL(blob);
+        } catch (err) {
+            console.warn("Server TTS unavailable, switching to browser SpeechSynthesis:", err.message);
+            state.ttsMode = "browser";
+            updatePlayerVoiceInfo();
+            document.getElementById("download-mp3-btn").disabled = true;
+            showToast("後端語音服務未啟動，已切換為瀏覽器內建語音", "info");
+            // Fall through to browser TTS
+        }
+    }
+
+    // --- Server TTS: audio element playback ---
+    if (state.ttsMode === "server" && audio.src) {
+        audio.playbackRate = parseFloat(speedSelect);
+
+        audio.play().then(() => {
+            state.isPlaying = true;
+            document.querySelector(".audio-player-card").classList.add("playing");
+            document.getElementById("player-btn-play").innerHTML = `<i data-lucide="pause"></i>`;
+            lucide.createIcons({ attrs: { class: 'lucide' } });
+            document.getElementById("player-status").textContent = `正在播放第 ${index + 1}/${state.chunks.length} 段...`;
+        }).catch(err => {
+            console.error("TTS chunk playback failed:", err);
+            document.getElementById("player-status").textContent = `播放出錯: 請重試`;
         });
-        if (!response.ok) throw new Error(`TTS server error: ${response.status}`);
-        const blob = await response.blob();
-        audio.src = URL.createObjectURL(blob);
-    } catch (err) {
-        console.error("TTS chunk fetch failed:", err);
-        document.getElementById("player-status").textContent = `語音生成失敗: 請確認伺服器已啟動`;
         return;
     }
 
-    audio.playbackRate = parseFloat(speedSelect);
+    // --- Browser TTS path ---
+    if (state.ttsMode === "browser") {
+        if (!window.speechSynthesis) {
+            showToast("您的瀏覽器不支援語音播放，請使用 Chrome/Edge 或啟動 python server.py", "alert-triangle");
+            stopPodcastAudio();
+            return;
+        }
+        // Ensure voices are loaded
+        await ensureVoicesLoaded();
 
-    audio.play().then(() => {
-        state.isPlaying = true;
-        document.querySelector(".audio-player-card").classList.add("playing");
-        document.getElementById("player-btn-play").innerHTML = `<i data-lucide="pause"></i>`;
-        lucide.createIcons({ attrs: { class: 'lucide' } });
-        document.getElementById("player-status").textContent = `正在播放第 ${index + 1}/${state.chunks.length} 段...`;
-    }).catch(err => {
-        console.error("TTS chunk playback failed:", err);
-        document.getElementById("player-status").textContent = `播放出錯: 請重試`;
-    });
+        try {
+            await playChunkWithBrowserTTS(index);
+
+            // Auto-advance to next chunk if still playing
+            if (state.isPlaying && index + 1 < state.chunks.length) {
+                await playChunkAtIndex(index + 1);
+            } else if (index + 1 >= state.chunks.length) {
+                stopPodcastAudio();
+                showToast("播客播放完畢！", "check-circle");
+            }
+        } catch (err) {
+            console.error("Browser TTS playback error:", err);
+            document.getElementById("player-status").textContent = `播放出錯: ${err.message}`;
+            stopPodcastAudio();
+        }
+    }
 }
 
 function playPodcastAudio() {
     if (state.chunks.length === 0) return;
+
+    if (state.ttsMode === "browser") {
+        // Browser TTS: resume if paused, otherwise start from current chunk
+        if (state.browserTtsUtterance && window.speechSynthesis.paused) {
+            resumeBrowserTTS();
+            state.isPlaying = true;
+            document.querySelector(".audio-player-card").classList.add("playing");
+            document.getElementById("player-btn-play").innerHTML = `<i data-lucide="pause"></i>`;
+            lucide.createIcons({ attrs: { class: 'lucide' } });
+            document.getElementById("player-status").textContent = `正在播放第 ${state.currentChunkIndex + 1}/${state.chunks.length} 段 (瀏覽器語音)...`;
+            return;
+        }
+        playChunkAtIndex(state.currentChunkIndex);
+        return;
+    }
+
+    // Server TTS
     if (audio.src) {
         audio.play().then(() => {
             state.isPlaying = true;
@@ -1142,6 +1767,16 @@ function playPodcastAudio() {
 }
 
 function pausePodcastAudio() {
+    if (state.ttsMode === "browser") {
+        pauseBrowserTTS();
+        state.isPlaying = false;
+        document.querySelector(".audio-player-card").classList.remove("playing");
+        document.getElementById("player-btn-play").innerHTML = `<i data-lucide="play"></i>`;
+        lucide.createIcons({ attrs: { class: 'lucide' } });
+        document.getElementById("player-status").textContent = "播放暫停";
+        return;
+    }
+
     audio.pause();
     state.isPlaying = false;
     document.querySelector(".audio-player-card").classList.remove("playing");
@@ -1151,20 +1786,36 @@ function pausePodcastAudio() {
 }
 
 function stopPodcastAudio() {
+    if (state.ttsMode === "browser") {
+        stopBrowserTTS();
+    }
+
     audio.pause();
     audio.src = "";
     state.isPlaying = false;
+    state.currentChunkIndex = 0;
     document.querySelector(".audio-player-card").classList.remove("playing");
     document.getElementById("player-btn-play").innerHTML = `<i data-lucide="play"></i>`;
     lucide.createIcons({ attrs: { class: 'lucide' } });
     document.getElementById("player-status").textContent = "播放已停止";
-    state.currentChunkIndex = 0;
 
     document.getElementById("player-time-current").textContent = "0:00";
     document.getElementById("player-progress").style.width = "0%";
 
     document.querySelectorAll(".teleprompter-p").forEach(p => p.classList.remove("highlighted"));
     document.getElementById("teleprompter-content").scrollTop = 0;
+}
+
+// Update player voice info banner based on TTS mode
+function updatePlayerVoiceInfo() {
+    const voiceInfoEl = document.querySelector(".player-voice-info");
+    if (voiceInfoEl) {
+        if (state.ttsMode === "browser") {
+            voiceInfoEl.textContent = "配音：瀏覽器內建語音 | Web Speech API";
+        } else {
+            voiceInfoEl.textContent = "配音：微軟曉臻 (HsiaoChen) | 台灣女聲";
+        }
+    }
 }
 
 // Helper to format structured object as markdown text
