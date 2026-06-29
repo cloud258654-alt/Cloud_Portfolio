@@ -15,7 +15,8 @@ Next Milestone: Canon Studio
 - Keep negative prompt and continuity constraints available for every Flow Scene.
 - Prepare prompt Markdown for the Flow Export Package.
 
-Initial placeholder functions live in `lib/engines/promptEngine.ts`.
+Prompt engine implementation is deferred until after v0.5 Alpha stabilization.
+The current engine layer only includes `lib/engines/sceneHealthEngine.ts`.
 
 ## Boundary
 
