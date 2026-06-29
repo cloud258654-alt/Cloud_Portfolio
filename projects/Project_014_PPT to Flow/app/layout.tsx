@@ -3,8 +3,9 @@ import { AppShell } from "@/components/layout/AppShell";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Google Flow Enterprise Director OS",
-  description: "AI filmmaking platform for Google Flow production planning.",
+  title: "Google Flow Director OS",
+  description:
+    "A production operating system for planning, prompting, and managing Google Flow videos.",
   manifest: "/manifest.json",
 };
 
@@ -19,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
+      <body suppressHydrationWarning>
         <AppShell>{children}</AppShell>
       </body>
     </html>

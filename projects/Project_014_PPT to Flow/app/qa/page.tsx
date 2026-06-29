@@ -3,8 +3,9 @@ import { PlaceholderPanel } from "@/components/shared/PlaceholderPanel";
 export default function QAPage() {
   return (
     <PlaceholderPanel
-      title="QA Center"
-      description="Check scene continuity, missing prompts, duration drift, and production readiness."
+      title="Flow QA"
+      description="Check Flow Ready Score, Hero Image quality, prompt completeness, consistency, and Ending Frame availability."
+      stages={["Flow Ready Score", "Continuity", "Export Check"]}
     />
   );
 }

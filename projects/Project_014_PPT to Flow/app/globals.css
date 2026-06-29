@@ -6,12 +6,27 @@
   color-scheme: light;
   --background: #f8f7f3;
   --surface: #ffffff;
+  --surface-muted: #f3f1ec;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --border: #e5e7eb;
+  --toyota-red: #e11d2e;
+  --toyota-red-soft: #fde8ea;
+  --soft-blue: #dcebff;
+  --soft-blue-text: #1d4ed8;
+  --warm-wood: #e8d8c3;
+  --warm-wood-dark: #bfa98c;
+  --success: #16a34a;
+  --success-soft: #dcfce7;
+  --warning: #f59e0b;
+  --warning-soft: #fef3c7;
+  --danger: #dc2626;
+  --danger-soft: #fee2e2;
+  --dark: #111827;
   --text: #111827;
   --muted: #6b7280;
   --accent: #e11d2e;
-  --soft-blue: #dcebff;
-  --warm-wood: #e8d8c3;
-  --border: #e5e7eb;
 }
 
 * {
@@ -42,4 +57,50 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+@layer components {
+  .display-title {
+    @apply text-5xl font-bold leading-tight tracking-normal text-textPrimary;
+  }
+
+  .page-title {
+    @apply text-4xl font-bold leading-tight tracking-normal text-textPrimary;
+  }
+
+  .section-title {
+    @apply text-2xl font-semibold leading-snug tracking-normal text-textPrimary;
+  }
+
+  .card-title {
+    @apply text-lg font-semibold leading-snug tracking-normal text-textPrimary;
+  }
+
+  .body-text {
+    @apply text-base font-normal leading-7 text-textPrimary;
+  }
+
+  .muted-text {
+    @apply text-sm font-normal leading-6 text-textSecondary;
+  }
+
+  .caption-text {
+    @apply text-xs font-normal leading-5 text-textMuted;
+  }
+
+  .code-text {
+    @apply font-mono text-[13px] leading-6 text-textPrimary;
+  }
+
+  .soft-shadow {
+    box-shadow: 0 18px 48px rgba(17, 24, 39, 0.08);
+  }
+
+  .glass-shadow {
+    box-shadow: 0 24px 70px rgba(17, 24, 39, 0.12);
+  }
+
+  .floating-shadow {
+    box-shadow: 0 30px 90px rgba(17, 24, 39, 0.16);
+  }
 }

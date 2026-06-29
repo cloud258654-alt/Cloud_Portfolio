@@ -2,7 +2,7 @@
 
 ## Scope
 
-Create the initial Google Flow Enterprise Director OS project skeleton with Next.js, TypeScript, Tailwind CSS, local-first data foundations, and the requested app routes.
+Create the initial Google Flow Director OS project skeleton with Next.js, TypeScript, Tailwind CSS, local-first data foundations, and the requested app routes.
 
 ## Deliverables
 
