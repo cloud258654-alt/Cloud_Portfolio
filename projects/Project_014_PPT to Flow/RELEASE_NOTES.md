@@ -4,6 +4,8 @@
 
 Release Date: 2026-06-29
 
+Status: Feature Freeze / Stabilization
+
 ## Completed Tasks
 
 - Task0001 Project Skeleton
@@ -11,6 +13,7 @@ Release Date: 2026-06-29
 - Task0003 Google Flow Focused Architecture
 - Task0004 Flow Workspace Manager
 - Task0005 Flow Storyboard Studio
+- Task0099 Project Stabilization & Release
 
 ## Major Features
 
@@ -25,7 +28,25 @@ Release Date: 2026-06-29
 - Dashboard metrics from local IndexedDB data
 - Placeholder routes for future Google Flow production modules
 
-## Validation Results
+## Stabilization Phase (Task0099)
+
+The v0.5 Alpha stabilization phase focuses on:
+
+- Code cleanup and deduplication
+- Dead code removal (10 unused files removed)
+- Shared utility extraction (`average`, `countPercent`, `formatLabel`, `coveragePercent`, `getErrorMessage`)
+- Shared form components (FormInput, FormSelect, FormTextarea)
+- Shared constants extraction (`lib/constants.ts`)
+- UI spacing consistency (all feature pages use `space-y-8`)
+- Flow timeline page simplified to clean placeholder
+- Store error handling unified with shared `getErrorMessage`
+- Unused dependency (`@radix-ui/react-slot`) removed
+- ESLint configuration updated
+- Documentation alignment across all docs
+
+No new features, no schema changes, and no external API integrations are permitted during this phase.
+
+## Validation Results (Post-Stabilization)
 
 Validation target:
 
@@ -67,10 +88,8 @@ Route target:
 
 ## Next Release Plan
 
-The next release should begin with:
+The next feature release (Task0006) is deferred until v0.5 Alpha stabilization is complete.
 
 ```txt
-Task0006_Canon_Studio_Google_Flow_Canon_Engine
+Task0006_Canon_Studio_Google_Flow_Canon_Engine (deferred)
 ```
-
-The goal is to turn Project Bible into a Canon Studio / consistency memory layer for future Hero Image, Flow Prompt, QA, and Export workflows.

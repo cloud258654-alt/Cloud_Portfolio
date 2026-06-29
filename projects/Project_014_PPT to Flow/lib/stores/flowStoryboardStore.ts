@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { db } from "@/lib/db";
 import type { FlowStoryboard } from "@/lib/types/flow";
+import { getErrorMessage } from "@/lib/utils";
 
 type CreateStoryboardInput = Omit<
   FlowStoryboard,
@@ -101,7 +102,3 @@ export const useFlowStoryboardStore = create<FlowStoryboardState>((set) => ({
   },
   setActiveStoryboard: (activeStoryboardId) => set({ activeStoryboardId }),
 }));
-
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Unexpected storyboard error";
-}

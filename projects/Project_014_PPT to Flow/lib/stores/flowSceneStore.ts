@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { db } from "@/lib/db";
-import { calculateSceneHealthScore as scoreSceneHealth } from "@/lib/engines/sceneHealthEngine";
+import { calculateSceneHealthScore } from "@/lib/engines/sceneHealthEngine";
 import type { FlowScene } from "@/lib/types/flow";
+import { getErrorMessage } from "@/lib/utils";
 
 export type CreateFlowSceneInput = Omit<
   FlowScene,
@@ -83,7 +84,7 @@ export const useFlowSceneStore = create<FlowSceneState>((set, get) => ({
     const scene: FlowScene = {
       id: crypto.randomUUID(),
       ...sceneDraft,
-      sceneHealthScore: input.sceneHealthScore ?? scoreSceneHealth(sceneDraft),
+      sceneHealthScore: input.sceneHealthScore ?? calculateSceneHealthScore(sceneDraft),
       createdAt: now,
       updatedAt: now,
     };
@@ -100,7 +101,7 @@ export const useFlowSceneStore = create<FlowSceneState>((set, get) => ({
     const existing = get().scenes.find((scene) => scene.id === sceneId);
     const nextScene = existing ? { ...existing, ...input } : input;
     const updatedAt = new Date().toISOString();
-    const sceneHealthScore = scoreSceneHealth(nextScene);
+    const sceneHealthScore = calculateSceneHealthScore(nextScene);
 
     await db.flowScenes.update(sceneId, { ...input, sceneHealthScore, updatedAt });
     set((state) => ({
@@ -151,9 +152,5 @@ export const useFlowSceneStore = create<FlowSceneState>((set, get) => ({
         .sort((a, b) => a.sceneNumber - b.sceneNumber),
     }));
   },
-  calculateSceneHealthScore: scoreSceneHealth,
+  calculateSceneHealthScore: calculateSceneHealthScore,
 }));
-
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Unexpected scene error";
-}

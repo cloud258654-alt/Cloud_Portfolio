@@ -8,48 +8,16 @@ import { AppButton } from "@/components/ui/AppButton";
 import { AppCard } from "@/components/ui/AppCard";
 import { AppProgress } from "@/components/ui/AppProgress";
 import { ScoreRing } from "@/components/ui/ScoreRing";
+import { FormInput } from "@/components/ui/FormInput";
+import { FormSelect } from "@/components/ui/FormSelect";
+import { FormTextarea } from "@/components/ui/FormTextarea";
 import { useFlowProjectStore } from "@/lib/stores/flowProjectStore";
 import { useFlowSceneStore } from "@/lib/stores/flowSceneStore";
 import { useFlowStoryboardStore } from "@/lib/stores/flowStoryboardStore";
 import { useWorkspaceStore } from "@/lib/stores/workspaceStore";
 import type { FlowScene } from "@/lib/types/flow";
-
-const storyBeatOptions: FlowScene["storyBeat"][] = [
-  "opening",
-  "conflict",
-  "pain",
-  "question",
-  "discovery",
-  "transformation",
-  "future",
-  "ending",
-  "custom",
-];
-
-const emotionOptions: FlowScene["emotion"][] = [
-  "neutral",
-  "curious",
-  "concerned",
-  "thinking",
-  "hopeful",
-  "excited",
-  "confident",
-  "happy",
-  "inspired",
-  "custom",
-];
-
-const cameraOptions: FlowScene["camera"][] = [
-  "wide",
-  "medium",
-  "close_up",
-  "slow_dolly",
-  "orbit",
-  "tracking",
-  "drone",
-  "logo_push",
-  "custom",
-];
+import { storyBeatOptions, emotionOptions, cameraOptions } from "@/lib/constants";
+import { average, formatLabel } from "@/lib/utils";
 
 const initialSceneForm = {
   title: "",
@@ -162,7 +130,7 @@ export default function ScenesPage() {
 
   if (!currentProject && !loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-8">
         <PageHeader
           title="Flow Scenes"
           description="Manage scene workspace cards for Google Flow production."
@@ -294,22 +262,22 @@ function SceneForm({
         <p className="muted-text mt-1">Create a Flow Scene workspace card.</p>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
-        <Input label="Title" value={form.title} onChange={(title) => onChange({ ...form, title })} required />
-        <Input label="Goal" value={form.goal} onChange={(goal) => onChange({ ...form, goal })} required />
-        <Select label="Story Beat" value={form.storyBeat} options={storyBeatOptions} onChange={(storyBeat) => onChange({ ...form, storyBeat: storyBeat as FlowScene["storyBeat"] })} />
-        <Select label="Emotion" value={form.emotion} options={emotionOptions} onChange={(emotion) => onChange({ ...form, emotion: emotion as FlowScene["emotion"] })} />
-        <Input label="Duration Sec" type="number" value={`${form.durationSec}`} onChange={(value) => onChange({ ...form, durationSec: Number(value) })} required />
-        <Select label="Camera" value={form.camera} options={cameraOptions} onChange={(camera) => onChange({ ...form, camera: camera as FlowScene["camera"] })} />
-        <Textarea label="Story Text" value={form.storyText} onChange={(storyText) => onChange({ ...form, storyText })} />
-        <Textarea label="Hero Image Prompt" value={form.heroImagePrompt} onChange={(heroImagePrompt) => onChange({ ...form, heroImagePrompt })} />
-        <Textarea label="Flow Animation Prompt" value={form.flowAnimationPrompt} onChange={(flowAnimationPrompt) => onChange({ ...form, flowAnimationPrompt })} />
-        <Textarea label="Voice Over" value={form.voiceOver} onChange={(voiceOver) => onChange({ ...form, voiceOver })} />
-        <Textarea label="Subtitle" value={form.subtitle} onChange={(subtitle) => onChange({ ...form, subtitle })} />
-        <Input label="Music" value={form.music} onChange={(music) => onChange({ ...form, music })} />
-        <Input label="SFX" value={form.sfx} onChange={(sfx) => onChange({ ...form, sfx })} />
-        <Input label="Transition" value={form.transition} onChange={(transition) => onChange({ ...form, transition })} />
-        <Textarea label="Continuity Note" value={form.continuityNote} onChange={(continuityNote) => onChange({ ...form, continuityNote })} />
-        <Textarea label="Ending Frame Note" value={form.endingFrameNote} onChange={(endingFrameNote) => onChange({ ...form, endingFrameNote })} />
+        <FormInput label="Title" value={form.title} onChange={(title) => onChange({ ...form, title })} required />
+        <FormInput label="Goal" value={form.goal} onChange={(goal) => onChange({ ...form, goal })} required />
+        <FormSelect label="Story Beat" value={form.storyBeat} options={storyBeatOptions} onChange={(storyBeat) => onChange({ ...form, storyBeat: storyBeat as FlowScene["storyBeat"] })} />
+        <FormSelect label="Emotion" value={form.emotion} options={emotionOptions} onChange={(emotion) => onChange({ ...form, emotion: emotion as FlowScene["emotion"] })} />
+        <FormInput label="Duration Sec" type="number" value={`${form.durationSec}`} onChange={(value) => onChange({ ...form, durationSec: Number(value) })} required />
+        <FormSelect label="Camera" value={form.camera} options={cameraOptions} onChange={(camera) => onChange({ ...form, camera: camera as FlowScene["camera"] })} />
+        <FormTextarea label="Story Text" value={form.storyText} onChange={(storyText) => onChange({ ...form, storyText })} />
+        <FormTextarea label="Hero Image Prompt" value={form.heroImagePrompt} onChange={(heroImagePrompt) => onChange({ ...form, heroImagePrompt })} />
+        <FormTextarea label="Flow Animation Prompt" value={form.flowAnimationPrompt} onChange={(flowAnimationPrompt) => onChange({ ...form, flowAnimationPrompt })} />
+        <FormTextarea label="Voice Over" value={form.voiceOver} onChange={(voiceOver) => onChange({ ...form, voiceOver })} />
+        <FormTextarea label="Subtitle" value={form.subtitle} onChange={(subtitle) => onChange({ ...form, subtitle })} />
+        <FormInput label="Music" value={form.music} onChange={(music) => onChange({ ...form, music })} />
+        <FormInput label="SFX" value={form.sfx} onChange={(sfx) => onChange({ ...form, sfx })} />
+        <FormInput label="Transition" value={form.transition} onChange={(transition) => onChange({ ...form, transition })} />
+        <FormTextarea label="Continuity Note" value={form.continuityNote} onChange={(continuityNote) => onChange({ ...form, continuityNote })} />
+        <FormTextarea label="Ending Frame Note" value={form.endingFrameNote} onChange={(endingFrameNote) => onChange({ ...form, endingFrameNote })} />
       </div>
       <div className="flex flex-wrap gap-3">
         <AppButton type="submit">Create Scene</AppButton>
@@ -414,45 +382,8 @@ function Detail({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Input({ label, value, onChange, type = "text", required = false }: { label: string; value: string; onChange: (value: string) => void; type?: string; required?: boolean }) {
-  return (
-    <label>
-      <span className="caption-text font-semibold">{label}</span>
-      <input required={required} type={type} value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 h-11 w-full rounded-radius-sm border border-border bg-surface px-3 text-sm outline-none focus:border-toyotaRed" />
-    </label>
-  );
-}
-
-function Select({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (value: string) => void }) {
-  return (
-    <label>
-      <span className="caption-text font-semibold">{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 h-11 w-full rounded-radius-sm border border-border bg-surface px-3 text-sm outline-none focus:border-toyotaRed">
-        {options.map((option) => <option key={option} value={option}>{formatLabel(option)}</option>)}
-      </select>
-    </label>
-  );
-}
-
-function Textarea({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
-  return (
-    <label>
-      <span className="caption-text font-semibold">{label}</span>
-      <textarea value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 min-h-24 w-full rounded-radius-sm border border-border bg-surface px-3 py-3 text-sm outline-none focus:border-toyotaRed" />
-    </label>
-  );
-}
-
-function average(values: number[]) {
-  if (values.length === 0) return 0;
-  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
-}
-
 function readyCount<T extends keyof FlowScene>(scenes: FlowScene[], field: T, readyValue: FlowScene[T]) {
   if (scenes.length === 0) return 0;
   return Math.round((scenes.filter((scene) => scene[field] === readyValue).length / scenes.length) * 100);
 }
 
-function formatLabel(value: string) {
-  return value.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
-}

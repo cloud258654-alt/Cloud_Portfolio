@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { db } from "@/lib/db";
 import type { Workspace } from "@/lib/types/workspace";
+import { getErrorMessage } from "@/lib/utils";
 
 type WorkspaceInput = {
   name: string;
@@ -96,7 +97,3 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   },
   setActiveWorkspace: (activeWorkspaceId) => set({ activeWorkspaceId }),
 }));
-
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Unexpected workspace error";
-}

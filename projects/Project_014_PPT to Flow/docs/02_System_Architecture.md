@@ -4,9 +4,18 @@
 
 Current Version: v0.5 Alpha
 
-Status: Feature Freeze after Task0005
+Status: Feature Freeze after Task0005 (Stabilization via Task0099)
 
-Next Milestone: Canon Studio
+Next Milestone: Canon Studio (deferred — post-stabilization)
+
+## Completed in v0.5 Alpha
+
+- Task0001 — Project Skeleton
+- Task0002 — UI Design System
+- Task0003 — Google Flow Focused Architecture
+- Task0004 — Flow Workspace Manager
+- Task0005 — Flow Storyboard Studio
+- Task0099 — Project Stabilization & Release
 
 ## Product Boundary
 
@@ -24,7 +33,7 @@ Google Flow Director OS is focused only on Google Flow production planning. It s
 
 ## Data Flow
 
-The app stores Flow Projects, Flow Storyboards, Flow Scenes, Project Bibles, Flow Prompt Packages, Flow Ready Scores, and Flow Export Packages in IndexedDB. Zustand stores manage active selections and in-memory working state for page interactions.
+The app stores Workspaces, Flow Projects, Flow Storyboards, and Flow Scenes with full CRUD in IndexedDB via Dexie.js (schema v4). Remaining tables (Project Bible, Flow Prompt Packages, Flow Ready Scores, Flow Export Packages) are defined in the schema but have placeholder implementations only. Zustand stores manage active selections and in-memory working state for page interactions.
 
 ## Google Flow Production Pipeline
 

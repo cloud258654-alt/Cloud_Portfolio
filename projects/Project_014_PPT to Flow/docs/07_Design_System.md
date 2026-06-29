@@ -1,5 +1,13 @@
 # Design System
 
+## Current Version
+
+Current Version: v0.5 Alpha
+
+Status: Feature Freeze after Task0005
+
+Next Milestone: Canon Studio (deferred — post-stabilization)
+
 ## Design Intent
 
 Google Flow Director OS uses a quiet, premium interface language for Google Flow production planning. The system blends Apple-like clarity, Toyota-style confidence, Notion organization, Linear focus, and Japanese minimalism.

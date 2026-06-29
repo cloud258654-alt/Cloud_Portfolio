@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { db } from "@/lib/db";
 import type { FlowProject } from "@/lib/types/flow";
+import { getErrorMessage } from "@/lib/utils";
 
 export type CreateFlowProjectInput = Omit<
   FlowProject,
@@ -105,7 +106,3 @@ export const useFlowProjectStore = create<FlowProjectState>((set) => ({
   },
   setActiveProject: (activeProjectId) => set({ activeProjectId }),
 }));
-
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Unexpected project error";
-}

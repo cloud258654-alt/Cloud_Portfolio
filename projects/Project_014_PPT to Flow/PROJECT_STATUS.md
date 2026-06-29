@@ -15,6 +15,7 @@ Feature Freeze / Stabilization
 - Task0003 Google Flow Focused Architecture
 - Task0004 Flow Workspace Manager
 - Task0005 Flow Storyboard Studio
+- Task0099 Project Stabilization & Release
 
 ## Implemented Features
 
@@ -30,6 +31,11 @@ Feature Freeze / Stabilization
 - Scene Health Score
 - Story Beat, Emotion, and Camera timelines
 - Dashboard scene-level progress
+- Shared utility functions extracted to `lib/utils.ts`
+- Shared constants extracted to `lib/constants.ts`
+- Shared form components (FormInput, FormSelect, FormTextarea)
+- Dead code and unused files removed
+- UI spacing normalized across feature pages
 
 ## Current Architecture
 
@@ -85,10 +91,10 @@ Main route target:
 
 ## Next Milestone
 
-Canon Studio / Google Flow memory layer.
+Canon Studio / Google Flow memory layer. (Deferred — post-stabilization)
 
 ## Recommended Next Task
 
 ```txt
-Task0006_Canon_Studio_Google_Flow_Canon_Engine
+Task0006_Canon_Studio_Google_Flow_Canon_Engine (deferred after stabilization)
 ```

@@ -18,44 +18,16 @@ import { AppButton } from "@/components/ui/AppButton";
 import { AppCard } from "@/components/ui/AppCard";
 import { AppProgress } from "@/components/ui/AppProgress";
 import { ScoreRing } from "@/components/ui/ScoreRing";
+import { FormInput } from "@/components/ui/FormInput";
+import { FormSelect } from "@/components/ui/FormSelect";
+import { FormTextarea } from "@/components/ui/FormTextarea";
 import { useFlowProjectStore } from "@/lib/stores/flowProjectStore";
 import { useFlowSceneStore } from "@/lib/stores/flowSceneStore";
 import { useFlowStoryboardStore } from "@/lib/stores/flowStoryboardStore";
 import { useWorkspaceStore } from "@/lib/stores/workspaceStore";
 import type { FlowScene } from "@/lib/types/flow";
-
-const storyBeatOptions = [
-  "opening",
-  "conflict",
-  "pain",
-  "question",
-  "discovery",
-  "transformation",
-  "future",
-  "ending",
-] as const;
-
-const emotionOptions = [
-  "neutral",
-  "curious",
-  "concerned",
-  "thinking",
-  "hopeful",
-  "excited",
-  "confident",
-  "inspired",
-] as const;
-
-const cameraOptions = [
-  "wide",
-  "medium",
-  "close_up",
-  "slow_dolly",
-  "orbit",
-  "tracking",
-  "drone",
-  "logo_push",
-] as const;
+import { storyBeatOptions, emotionOptions, cameraOptions } from "@/lib/constants";
+import { average, countPercent, formatLabel } from "@/lib/utils";
 
 type SceneFormState = {
   title: string;
@@ -218,7 +190,7 @@ export default function StoryboardPage() {
 
   if (!currentProject && !storyboardLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-8">
         <PageHeader
           title="Flow Storyboard Studio"
           description="A Google Flow long-form production studio for cinematic scene planning."
@@ -241,7 +213,7 @@ export default function StoryboardPage() {
   const googleFlowReady = average(scenes.map((scene) => scene.flowReadyScore));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         eyebrow={currentProject?.name}
         title="Flow Storyboard Studio"
@@ -469,7 +441,7 @@ function SceneDetailWorkspace({
 
   return (
     <form onSubmit={onSubmit}>
-      <AppCard className="space-y-6">
+      <AppCard className="space-y-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="caption-text">Scene{String(scene.sceneNumber).padStart(2, "0")}</p>
@@ -487,17 +459,17 @@ function SceneDetailWorkspace({
         </div>
 
         <WorkspaceSection title="Story">
-          <Input label="Goal" value={form.goal} onChange={(goal) => onChange({ ...form, goal })} />
-          <Select label="Story Beat" value={form.storyBeat} options={storyBeatOptions} onChange={(storyBeat) => onChange({ ...form, storyBeat: storyBeat as FlowScene["storyBeat"] })} />
-          <Textarea label="Story" value={form.storyText} onChange={(storyText) => onChange({ ...form, storyText })} />
-          <Select label="Emotion" value={form.emotion} options={emotionOptions} onChange={(emotion) => onChange({ ...form, emotion: emotion as FlowScene["emotion"] })} />
+          <FormInput label="Goal" value={form.goal} onChange={(goal) => onChange({ ...form, goal })} />
+          <FormSelect label="Story Beat" value={form.storyBeat} options={storyBeatOptions} onChange={(storyBeat) => onChange({ ...form, storyBeat: storyBeat as FlowScene["storyBeat"] })} />
+          <FormTextarea label="Story" value={form.storyText} onChange={(storyText) => onChange({ ...form, storyText })} />
+          <FormSelect label="Emotion" value={form.emotion} options={emotionOptions} onChange={(emotion) => onChange({ ...form, emotion: emotion as FlowScene["emotion"] })} />
         </WorkspaceSection>
 
         <WorkspaceSection title="Production">
-          <Input label="Duration" type="number" value={`${form.durationSec}`} onChange={(durationSec) => onChange({ ...form, durationSec: Number(durationSec) })} />
-          <Select label="Camera" value={form.camera} options={cameraOptions} onChange={(camera) => onChange({ ...form, camera: camera as FlowScene["camera"] })} />
-          <Input label="Transition" value={form.transition} onChange={(transition) => onChange({ ...form, transition })} />
-          <Textarea label="Continuity" value={form.continuityNote} onChange={(continuityNote) => onChange({ ...form, continuityNote })} />
+          <FormInput label="Duration" type="number" value={`${form.durationSec}`} onChange={(durationSec) => onChange({ ...form, durationSec: Number(durationSec) })} />
+          <FormSelect label="Camera" value={form.camera} options={cameraOptions} onChange={(camera) => onChange({ ...form, camera: camera as FlowScene["camera"] })} />
+          <FormInput label="Transition" value={form.transition} onChange={(transition) => onChange({ ...form, transition })} />
+          <FormTextarea label="Continuity" value={form.continuityNote} onChange={(continuityNote) => onChange({ ...form, continuityNote })} />
         </WorkspaceSection>
 
         <WorkspaceSection title="Google Flow">
@@ -505,15 +477,15 @@ function SceneDetailWorkspace({
           <ReadonlyMetric label="Ending Frame Status" value={formatLabel(scene.endingFrameStatus)} />
           <ReadonlyMetric label="Prompt Status" value={formatLabel(scene.flowPromptStatus)} />
           <ReadonlyMetric label="Flow Ready" value={`${scene.flowReadyScore}%`} />
-          <Textarea label="Hero Image Prompt" value={form.heroImagePrompt} onChange={(heroImagePrompt) => onChange({ ...form, heroImagePrompt })} />
-          <Textarea label="Flow Prompt" value={form.flowAnimationPrompt} onChange={(flowAnimationPrompt) => onChange({ ...form, flowAnimationPrompt })} />
+          <FormTextarea label="Hero Image Prompt" value={form.heroImagePrompt} onChange={(heroImagePrompt) => onChange({ ...form, heroImagePrompt })} />
+          <FormTextarea label="Flow Prompt" value={form.flowAnimationPrompt} onChange={(flowAnimationPrompt) => onChange({ ...form, flowAnimationPrompt })} />
         </WorkspaceSection>
 
         <WorkspaceSection title="Audio">
-          <Textarea label="Voice" value={form.voiceOver} onChange={(voiceOver) => onChange({ ...form, voiceOver })} />
-          <Textarea label="Subtitle" value={form.subtitle} onChange={(subtitle) => onChange({ ...form, subtitle })} />
-          <Input label="Music" value={form.music} onChange={(music) => onChange({ ...form, music })} />
-          <Input label="SFX" value={form.sfx} onChange={(sfx) => onChange({ ...form, sfx })} />
+          <FormTextarea label="Voice" value={form.voiceOver} onChange={(voiceOver) => onChange({ ...form, voiceOver })} />
+          <FormTextarea label="Subtitle" value={form.subtitle} onChange={(subtitle) => onChange({ ...form, subtitle })} />
+          <FormInput label="Music" value={form.music} onChange={(music) => onChange({ ...form, music })} />
+          <FormInput label="SFX" value={form.sfx} onChange={(sfx) => onChange({ ...form, sfx })} />
         </WorkspaceSection>
 
         <WorkspaceSection title="QA">
@@ -544,7 +516,7 @@ function NewSceneDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-dark/40 p-4 backdrop-blur-sm">
       <AppCard className="max-h-[90vh] w-full max-w-4xl overflow-y-auto">
-        <form onSubmit={onSubmit} className="space-y-6">
+        <form onSubmit={onSubmit} className="space-y-8">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="caption-text font-semibold uppercase">New Scene Dialog</p>
@@ -554,18 +526,18 @@ function NewSceneDialog({
             <AppButton type="button" variant="ghost" onClick={onClose}>Close</AppButton>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
-            <Input label="Title" value={form.title} onChange={(title) => onChange({ ...form, title })} required />
-            <Input label="Goal" value={form.goal} onChange={(goal) => onChange({ ...form, goal })} required />
-            <Select label="Story Beat" value={form.storyBeat} options={storyBeatOptions} onChange={(storyBeat) => onChange({ ...form, storyBeat: storyBeat as FlowScene["storyBeat"] })} />
-            <Select label="Emotion" value={form.emotion} options={emotionOptions} onChange={(emotion) => onChange({ ...form, emotion: emotion as FlowScene["emotion"] })} />
-            <Input label="Duration" type="number" value={`${form.durationSec}`} onChange={(durationSec) => onChange({ ...form, durationSec: Number(durationSec) })} required />
-            <Select label="Camera" value={form.camera} options={cameraOptions} onChange={(camera) => onChange({ ...form, camera: camera as FlowScene["camera"] })} />
-            <Textarea label="Story" value={form.storyText} onChange={(storyText) => onChange({ ...form, storyText })} />
-            <Textarea label="Voice" value={form.voiceOver} onChange={(voiceOver) => onChange({ ...form, voiceOver })} />
-            <Textarea label="Subtitle" value={form.subtitle} onChange={(subtitle) => onChange({ ...form, subtitle })} />
-            <Textarea label="Hero Image Prompt (placeholder)" value={form.heroImagePrompt} onChange={(heroImagePrompt) => onChange({ ...form, heroImagePrompt })} />
-            <Textarea label="Flow Prompt (placeholder)" value={form.flowAnimationPrompt} onChange={(flowAnimationPrompt) => onChange({ ...form, flowAnimationPrompt })} />
-            <Input label="Transition" value={form.transition} onChange={(transition) => onChange({ ...form, transition })} />
+            <FormInput label="Title" value={form.title} onChange={(title) => onChange({ ...form, title })} required />
+            <FormInput label="Goal" value={form.goal} onChange={(goal) => onChange({ ...form, goal })} required />
+            <FormSelect label="Story Beat" value={form.storyBeat} options={storyBeatOptions} onChange={(storyBeat) => onChange({ ...form, storyBeat: storyBeat as FlowScene["storyBeat"] })} />
+            <FormSelect label="Emotion" value={form.emotion} options={emotionOptions} onChange={(emotion) => onChange({ ...form, emotion: emotion as FlowScene["emotion"] })} />
+            <FormInput label="Duration" type="number" value={`${form.durationSec}`} onChange={(durationSec) => onChange({ ...form, durationSec: Number(durationSec) })} required />
+            <FormSelect label="Camera" value={form.camera} options={cameraOptions} onChange={(camera) => onChange({ ...form, camera: camera as FlowScene["camera"] })} />
+            <FormTextarea label="Story" value={form.storyText} onChange={(storyText) => onChange({ ...form, storyText })} />
+            <FormTextarea label="Voice" value={form.voiceOver} onChange={(voiceOver) => onChange({ ...form, voiceOver })} />
+            <FormTextarea label="Subtitle" value={form.subtitle} onChange={(subtitle) => onChange({ ...form, subtitle })} />
+            <FormTextarea label="Hero Image Prompt (placeholder)" value={form.heroImagePrompt} onChange={(heroImagePrompt) => onChange({ ...form, heroImagePrompt })} />
+            <FormTextarea label="Flow Prompt (placeholder)" value={form.flowAnimationPrompt} onChange={(flowAnimationPrompt) => onChange({ ...form, flowAnimationPrompt })} />
+            <FormInput label="Transition" value={form.transition} onChange={(transition) => onChange({ ...form, transition })} />
           </div>
           <div className="flex flex-wrap gap-3">
             <AppButton type="submit">Create Scene</AppButton>
@@ -610,83 +582,6 @@ function ReadonlyMetric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Input({
-  label,
-  value,
-  onChange,
-  type = "text",
-  required = false,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: string;
-  required?: boolean;
-}) {
-  return (
-    <label>
-      <span className="caption-text font-semibold">{label}</span>
-      <input
-        required={required}
-        type={type}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="mt-2 h-11 w-full rounded-radius-sm border border-border bg-surface px-3 text-sm outline-none focus:border-toyotaRed"
-      />
-    </label>
-  );
-}
-
-function Select({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  options: readonly string[];
-  onChange: (value: string) => void;
-}) {
-  return (
-    <label>
-      <span className="caption-text font-semibold">{label}</span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="mt-2 h-11 w-full rounded-radius-sm border border-border bg-surface px-3 text-sm outline-none focus:border-toyotaRed"
-      >
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {formatLabel(option)}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function Textarea({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <label>
-      <span className="caption-text font-semibold">{label}</span>
-      <textarea
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="mt-2 min-h-24 w-full rounded-radius-sm border border-border bg-surface px-3 py-3 text-sm outline-none focus:border-toyotaRed"
-      />
-    </label>
-  );
-}
-
 function sceneToForm(scene: FlowScene): SceneFormState {
   return {
     title: scene.title,
@@ -708,16 +603,5 @@ function sceneToForm(scene: FlowScene): SceneFormState {
   };
 }
 
-function average(values: number[]) {
-  if (values.length === 0) return 0;
-  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
-}
 
-function countPercent(value: number, total: number) {
-  if (total <= 0) return 0;
-  return Math.round((value / total) * 100);
-}
 
-function formatLabel(value: string) {
-  return value.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
-}

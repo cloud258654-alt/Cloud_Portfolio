@@ -26,59 +26,8 @@ import { useFlowProjectStore } from "@/lib/stores/flowProjectStore";
 import { useFlowSceneStore } from "@/lib/stores/flowSceneStore";
 import { useWorkspaceStore } from "@/lib/stores/workspaceStore";
 import type { FlowProject } from "@/lib/types/flow";
-
-const pipeline = [
-  "PPT / Idea",
-  "Story Planner",
-  "Flow Storyboard",
-  "Hero Image",
-  "Google Flow",
-  "Ending Frame",
-  "Next Flow Scene",
-  "Flow Export Package",
-];
-
-const statusLabels: Record<FlowProject["flowStatus"], string> = {
-  draft: "Draft",
-  storyboarding: "Storyboarding",
-  prompting: "Prompting",
-  ready_for_flow: "Ready for Flow",
-  in_flow_production: "In Flow Production",
-  completed: "Completed",
-};
-
-const storyBeatOptions = [
-  "opening",
-  "conflict",
-  "pain",
-  "question",
-  "discovery",
-  "transformation",
-  "future",
-  "ending",
-];
-
-const emotionOptions = [
-  "neutral",
-  "curious",
-  "concerned",
-  "thinking",
-  "hopeful",
-  "excited",
-  "confident",
-  "inspired",
-];
-
-const cameraOptions = [
-  "wide",
-  "medium",
-  "close_up",
-  "slow_dolly",
-  "orbit",
-  "tracking",
-  "drone",
-  "logo_push",
-];
+import { pipeline, statusLabels, storyBeatOptions, emotionOptions, cameraOptions } from "@/lib/constants";
+import { average, countPercent, coveragePercent } from "@/lib/utils";
 
 export default function DashboardPage() {
   const {
@@ -560,18 +509,4 @@ function getNextTask(project: FlowProject | null) {
   return "Review Flow Export Package readiness.";
 }
 
-function average(values: number[]) {
-  if (values.length === 0) return 0;
-  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
-}
 
-function countPercent(value: number, total: number) {
-  if (total <= 0) return 0;
-  return Math.round((value / total) * 100);
-}
-
-function coveragePercent(values: string[], options: string[]) {
-  if (values.length === 0) return 0;
-  const covered = new Set(values.filter((value) => options.includes(value)));
-  return countPercent(covered.size, options.length);
-}

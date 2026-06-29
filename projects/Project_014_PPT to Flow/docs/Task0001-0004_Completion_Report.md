@@ -1,4 +1,10 @@
-# Google Flow Director OS Completion Report
+# Google Flow Director OS v0.5 Alpha — Task0001-0004 Completion Report
+
+## Version
+
+Current Version: v0.5 Alpha
+
+Status: Feature Freeze after Task0005 (Stabilization via Task0099)
 
 ## Project Status
 
@@ -384,34 +390,12 @@ http://localhost:3000/design-system
 
 ---
 
-## Suggested Next Task
+## Next Steps
 
-Recommended next task:
+Task0005 was subsequently completed (see `docs/Task0005_Completion_Report.md`). Task0099 (Project Stabilization & Release) was completed to align documentation and cleanup the codebase.
 
-`Task0005_Flow_Storyboard_Scene_Manager`
-
-Suggested scope:
-
-1. Add Flow Storyboard data model
-2. Add Flow Scene CRUD
-3. Connect Flow Scenes to Flow Projects
-4. Add scene ordering
-5. Add current scene selection
-6. Add Hero Image status fields
-7. Add Ending Frame status fields
-8. Add Flow Prompt status fields
-9. Update Dashboard to read scene-level progress
-10. Prepare the foundation for Prompt Builder and Flow Export Package
-
-Recommended next data hierarchy:
+Task0006 is deferred until after v0.5 Alpha stabilization.
 
 ```txt
-Workspace
-  -> Flow Project
-  -> Flow Storyboard
-  -> Flow Scene
-      -> Hero Image
-      -> Ending Frame
-      -> Flow Prompt
-      -> Flow Ready Score
+Task0006_Canon_Studio_Google_Flow_Canon_Engine (deferred)
 ```

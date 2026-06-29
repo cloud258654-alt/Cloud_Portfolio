@@ -1,5 +1,7 @@
 # Google Flow Director OS
 
+**[v0.5 Alpha]** — **Status:** Feature Freeze / Stabilization
+
 Google Flow Director OS is a local-first PWA for planning, prompting, QA, timeline management, and export preparation for Google Flow video production workflows.
 
 This project does not generate videos directly and does not integrate with Google Flow API, OpenAI API, or any external video generation service.
@@ -7,6 +9,15 @@ This project does not generate videos directly and does not integrate with Googl
 ## Product Positioning
 
 Google Flow Director OS is a production operating system for planning, prompting, and managing Google Flow videos. The v0.5 Alpha release focuses on local project management, storyboard planning, scene workspaces, readiness scoring foundations, and consistent Google Flow-specific information architecture.
+
+## Completed Tasks (v0.5 Alpha)
+
+- Task0001 — Project Skeleton
+- Task0002 — UI Design System
+- Task0003 — Google Flow Focused Architecture
+- Task0004 — Flow Workspace Manager
+- Task0005 — Flow Storyboard Studio
+- Task0099 — Project Stabilization & Release
 
 ## Tech Stack
 
@@ -96,10 +107,12 @@ npm run build
 
 ## Next Milestone
 
-Recommended next task:
+Task0006 is deferred until after v0.5 Alpha stabilization. The current focus is bug fixes, documentation alignment, and validation hardening only.
 
 ```txt
-Task0006_Canon_Studio_Google_Flow_Canon_Engine
+Task0006_Canon_Studio_Google_Flow_Canon_Engine (deferred)
 ```
 
-The next milestone should turn Project Bible into a Canon Studio / memory layer, but it is not included in v0.5 Alpha.
+## Stabilization
+
+The v0.5 Alpha stabilization phase (Task0099) addresses code cleanup, UI consistency, shared utility extraction, dead code removal, and documentation alignment. No new features, no schema changes, and no external API integrations are permitted during this phase.

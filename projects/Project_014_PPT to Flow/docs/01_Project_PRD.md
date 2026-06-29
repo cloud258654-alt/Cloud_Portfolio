@@ -4,9 +4,18 @@
 
 Current Version: v0.5 Alpha
 
-Status: Feature Freeze after Task0005
+Status: Feature Freeze after Task0005 (Stabilization via Task0099)
 
-Next Milestone: Canon Studio
+Next Milestone: Canon Studio (deferred — post-stabilization)
+
+## Completed Tasks (v0.5 Alpha)
+
+- Task0001 — Project Skeleton
+- Task0002 — UI Design System
+- Task0003 — Google Flow Focused Architecture
+- Task0004 — Flow Workspace Manager
+- Task0005 — Flow Storyboard Studio
+- Task0099 — Project Stabilization & Release
 
 ## Purpose
 
@@ -18,24 +27,24 @@ Google Flow Director OS is a production operating system for Google Flow. It hel
 
 ## Core Modules
 
-- Dashboard
-- Flow Projects
-- Flow Storyboard
-- Project Bible
-- Characters
-- Vehicles
-- Environments
-- Flow Scenes
-- Hero Images
-- Ending Frames
-- Flow Prompts
-- Voice Over
-- Subtitles
-- Flow Timeline
-- Flow QA
-- Flow Export
-- Design System
-- Settings
+- Dashboard (Implemented)
+- Flow Projects (Implemented)
+- Flow Storyboard (Implemented)
+- Project Bible (Placeholder route)
+- Characters (Placeholder route)
+- Vehicles (Placeholder route)
+- Environments (Placeholder route)
+- Flow Scenes (Implemented)
+- Hero Images (Placeholder route)
+- Ending Frames (Placeholder route)
+- Flow Prompts (Placeholder route)
+- Voice Over (Placeholder route)
+- Subtitles (Placeholder route)
+- Flow Timeline (Placeholder route)
+- Flow QA (Placeholder route)
+- Flow Export (Placeholder route)
+- Design System (Implemented)
+- Settings (Placeholder route)
 
 ## Out of Scope
 
