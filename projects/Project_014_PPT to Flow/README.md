@@ -46,7 +46,18 @@ Google Flow Director OS is a production operating system for planning, prompting
 
 ## Live Demo
 
-Demo coming soon. (Pending deployment)
+🚀 **Run it locally in seconds:**
+
+```bash
+git clone https://github.com/cloud258654-alt/Cloud_Portfolio.git
+cd Cloud_Portfolio/projects/Project_014_PPT\ to\ Flow
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+> Live hosted demo coming soon. Deploy instantly with [Vercel](https://vercel.com/new) or [Netlify](https://www.netlify.com/).
 
 ## Local Setup
 
