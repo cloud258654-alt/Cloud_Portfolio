@@ -206,6 +206,7 @@ function initSettingsUI() {
     document.getElementById("model-select").value = state.model;
     document.getElementById("temperature-slider").value = state.temperature;
     document.getElementById("temp-val").textContent = state.temperature;
+    document.getElementById("ollama-model-input").value = localStorage.getItem("ollama_model") || "qwen2.5:3b";
 
     const customizeCheckbox = document.getElementById("customize-prompt-checkbox");
     customizeCheckbox.checked = state.customPromptEnabled;
@@ -264,6 +265,11 @@ function bindEvents() {
         localStorage.setItem("gemini_temperature", state.temperature);
         localStorage.setItem("gemini_custom_prompt_enabled", state.customPromptEnabled);
         localStorage.setItem("gemini_custom_prompt", state.customPrompt);
+
+        const ollamaModelInput = document.getElementById("ollama-model-input");
+        if (ollamaModelInput) {
+            localStorage.setItem("ollama_model", ollamaModelInput.value.trim() || "llama3.2");
+        }
 
         updateBadgeStatus();
         showToast("設定已存檔！", "check-circle");
@@ -638,19 +644,24 @@ async function triggerAgent01Extraction() {
     try {
         if (activeTab === "tab-samples") {
             const selectedCard = document.querySelector(".sample-card-btn.selected");
+            if (!selectedCard) {
+                showToast("請先選擇一本書籍範本！", "alert-triangle");
+                loadingView.classList.add("hidden");
+                document.getElementById("empty-state-view").classList.remove("hidden");
+                return;
+            }
             const sampleKey = selectedCard.getAttribute("data-sample");
             const bookData = DEMO_BOOKS[sampleKey];
-
-            await runLoadingSimulation(40);
-            renderExtractedResults(bookData);
-        } else {
-            if (!state.apiKey) {
-                showToast("未設定 API Key，請點擊 API 設定或使用經典範本！", "alert-triangle");
+            if (!bookData) {
+                showToast("選取的書籍範本資料不存在，請重新選擇！", "alert-triangle");
                 loadingView.classList.add("hidden");
                 document.getElementById("empty-state-view").classList.remove("hidden");
                 return;
             }
 
+            await runLoadingSimulation(40);
+            renderExtractedResults(bookData);
+        } else {
             if (window.location.protocol === 'file:') {
                 throw new Error("環境錯誤：在 file:/// 協議下無法發送 API 請求，請使用 Live Server 或本地伺服器開啟。");
             }
@@ -806,13 +817,6 @@ async function triggerAgent02PodcastGeneration() {
                 renderExtractedResults(bookData);
             }
         } else {
-            if (!state.apiKey) {
-                showToast("未設定 API Key，請點擊 API 設定或使用經典範本！", "alert-triangle");
-                loadingView.classList.add("hidden");
-                document.getElementById("empty-state-view").classList.remove("hidden");
-                return;
-            }
-
             if (window.location.protocol === 'file:') {
                 throw new Error("環境錯誤：在 file:/// 協議下無法發送 API 請求，請使用 Live Server 或本地伺服器開啟。");
             }
@@ -888,8 +892,42 @@ async function triggerAgent02PodcastGeneration() {
     }
 }
 
-// Call Google Gemini REST Endpoint
+// Call LLM (Gemini if API key set, otherwise local Ollama via server)
 async function requestGemini(prompt, isJson) {
+    if (!state.apiKey) {
+        // No API key → use local Ollama via backend server
+        const backendHost = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port === '8000'
+            ? ''
+            : 'http://localhost:8000';
+
+        const ollamaModel = localStorage.getItem("ollama_model") || "qwen2.5:3b";
+
+        try {
+            const response = await fetch(`${backendHost}/api/llm`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    prompt,
+                    isJson,
+                    model: ollamaModel,
+                    temperature: state.temperature
+                })
+            });
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.detail || `伺服器 LLM 錯誤: ${response.status}`);
+            }
+            const data = await response.json();
+            return data.text;
+        } catch (error) {
+            if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                throw new Error("網路連線失敗。請確認後端伺服器 (python server.py) 已啟動");
+            }
+            throw error;
+        }
+    }
+
+    // API key set → use Gemini directly
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${state.model}:generateContent?key=${state.apiKey}`;
     const body = {
         contents: [{ parts: [{ text: prompt }] }],
@@ -945,7 +983,13 @@ function parseJsonSafe(text) {
     if (cleaned.endsWith("```")) {
         cleaned = cleaned.substring(0, cleaned.length - 3);
     }
-    return JSON.parse(cleaned.trim());
+    cleaned = cleaned.trim();
+    try {
+        return JSON.parse(cleaned);
+    } catch (e) {
+        console.error("[parseJsonSafe] Failed to parse:", cleaned.substring(0, 500));
+        throw new Error(`JSON 解析失敗: ${e.message}。模型可能未正確輸出 JSON，請重試或更換 Ollama 模型（例如 qwen2.5、gemma3 對中文 JSON 支援較佳）。`);
+    }
 }
 
 // Animate loading items for demo mode/user feel
@@ -968,8 +1012,10 @@ async function runLoadingSimulation(msPerTick) {
 
             // Animate SVG circular progress
             const ring = document.querySelector(".ring-fill");
-            const dashoffset = 283 - (283 * currentPct) / 100;
-            ring.style.strokeDashoffset = dashoffset;
+            if (ring) {
+                const dashoffset = 283 - (283 * currentPct) / 100;
+                ring.style.strokeDashoffset = dashoffset;
+            }
 
             await sleep(msPerTick);
         }
@@ -995,13 +1041,18 @@ function updateLoadingStep(stepNum, status) {
         stepEl.className = "loading-step active";
         icon.setAttribute("data-lucide", "loader");
         icon.className = "spinner-icon";
-        document.getElementById("loading-status-title").textContent = stepEl.querySelector("span").textContent;
+        const stepSpan = stepEl.querySelector("span");
+        if (stepSpan) {
+            document.getElementById("loading-status-title").textContent = stepSpan.textContent;
+        }
         const progressValues = { 1: 15, 2: 45, 3: 75, 4: 95 };
         progressEl.textContent = `${progressValues[stepNum]}%`;
 
         // Sync circle SVG
         const ring = document.querySelector(".ring-fill");
-        ring.style.strokeDashoffset = 283 - (283 * progressValues[stepNum]) / 100;
+        if (ring) {
+            ring.style.strokeDashoffset = 283 - (283 * progressValues[stepNum]) / 100;
+        }
     } else if (status === "completed") {
         stepEl.className = "loading-step completed";
         icon.setAttribute("data-lucide", "check-circle-2");
@@ -1014,7 +1065,7 @@ function updateLoadingStep(stepNum, status) {
 // ==========================================================================
 // Sequenced Paragraph TTS Player Engine
 // ==========================================================================
-function playChunkAtIndex(index) {
+async function playChunkAtIndex(index) {
     if (index < 0 || index >= state.chunks.length) return;
 
     state.currentChunkIndex = index;
@@ -1045,9 +1096,22 @@ function playChunkAtIndex(index) {
     const backendHost = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port === '8000'
         ? ''
         : 'http://localhost:8000';
-    const ttsUrl = `${backendHost}/api/tts?text=${encodeURIComponent(text)}&voice=${voice}&rate=${encodeURIComponent(rate)}&pitch=%2B1Hz`;
 
-    audio.src = ttsUrl;
+    try {
+        const response = await fetch(`${backendHost}/api/tts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, voice, rate, pitch: '+1Hz' })
+        });
+        if (!response.ok) throw new Error(`TTS server error: ${response.status}`);
+        const blob = await response.blob();
+        audio.src = URL.createObjectURL(blob);
+    } catch (err) {
+        console.error("TTS chunk fetch failed:", err);
+        document.getElementById("player-status").textContent = `語音生成失敗: 請確認伺服器已啟動`;
+        return;
+    }
+
     audio.playbackRate = parseFloat(speedSelect);
 
     audio.play().then(() => {
@@ -1106,11 +1170,11 @@ function stopPodcastAudio() {
 // Helper to format structured object as markdown text
 function formatDataToMarkdown(data) {
     let md = `# 《${data.title || "書籍名稱"}》精華與大綱大盤點\n\n`;
-    md += `## 💡 一句話亮點\n> ${data.highlight}\n\n`;
+    md += `## 💡 一句話亮點\n> ${data.highlight || "暫無亮點"}\n\n`;
 
     md += `## 🎯 痛點與解藥\n`;
-    md += `* **聽眾痛點共鳴**：${data.pain}\n`;
-    md += `* **書籍核心解藥**：${data.solve}\n\n`;
+    md += `* **聽眾痛點共鳴**：${data.pain || "暫無資料"}\n`;
+    md += `* **書籍核心解藥**：${data.solve || "暫無資料"}\n\n`;
 
     md += `## 📚 三大核心觀點 (Core Takeaways)\n\n`;
     const takeaways = data.takeaways || [];

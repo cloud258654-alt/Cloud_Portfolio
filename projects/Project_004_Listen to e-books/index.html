@@ -14,7 +14,7 @@
         rel="stylesheet">
 
     <!-- Lucide Icons for premium modern iconography -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@0.344.0"></script>
 
     <!-- JSZip for browser-side EPUB file extraction -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -415,25 +415,30 @@
     <div class="settings-drawer-overlay hidden" id="api-settings-card">
         <div class="settings-drawer">
             <div class="drawer-header">
-                <h2><i data-lucide="key-round"></i> Gemini API 設定</h2>
+                <h2><i data-lucide="key-round"></i> AI 設定</h2>
                 <button class="close-btn" id="close-settings-btn"><i data-lucide="x"></i></button>
             </div>
             <div class="drawer-body">
-                <p class="drawer-desc">填入您的 Gemini API Key 來啟動實機模式。金鑰將安全地儲存在本機瀏覽器的 LocalStorage 中，絕不上傳至任何第三方伺服器。</p>
+                <p class="drawer-desc">填入 Gemini API Key（選填）來使用雲端模型；留空則自動使用本機 Ollama 離線 LLM，無需任何 API Key。</p>
 
                 <div class="form-group">
-                    <label for="api-key-input">Gemini API Key</label>
+                    <label for="api-key-input">Gemini API Key（選填）</label>
                     <div class="password-input-wrapper">
-                        <input type="password" id="api-key-input" placeholder="AIzaSy...">
+                        <input type="password" id="api-key-input" placeholder="AIzaSy...（留空使用 Ollama）">
                         <button class="toggle-password-btn" id="toggle-api-key-visibility" title="顯示/隱藏金鑰">
                             <i data-lucide="eye"></i>
                         </button>
                     </div>
                 </div>
 
+                <div class="form-group">
+                    <label for="ollama-model-input">Ollama 模型名稱</label>
+                    <input type="text" id="ollama-model-input" placeholder="qwen2.5:3b">
+                </div>
+
                 <div class="info-alert">
                     <i data-lucide="info"></i>
-                    <span>未設定 API Key 時，您依然可以切換到「經典範本」分頁，在展示模式 (Demo Mode) 下體驗完整的語音播放與視覺動畫。</span>
+                    <span>未設定 API Key 時，系統將自動使用本機 Ollama（qwen2.5:3b）。請先安裝 <a href="https://ollama.com" target="_blank">Ollama</a> 並執行 <code>ollama pull qwen2.5:3b</code>，然後啟動 Ollama 即可免費使用。</span>
                 </div>
 
                 <button class="drawer-save-btn" id="save-settings-btn">儲存並套用</button>
