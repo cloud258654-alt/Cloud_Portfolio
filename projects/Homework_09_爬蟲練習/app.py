@@ -5,6 +5,9 @@ import base64
 import re
 from collections import Counter
 
+# 固定路徑為本檔案所在目錄
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 st.set_page_config(
     page_title="電影資料庫 | Movie DB",
     page_icon="🎬",
@@ -15,12 +18,13 @@ st.set_page_config(
 # ── 載入資料 ──
 @st.cache_data
 def load_data():
-    with open("movies.json", "r", encoding="utf-8") as f:
+    with open(os.path.join(BASE_DIR, "movies.json"), "r", encoding="utf-8") as f:
         data = json.load(f)
 
     poster_map = {}
-    if os.path.isdir("posters"):
-        for fname in os.listdir("posters"):
+    poster_dir = os.path.join(BASE_DIR, "posters")
+    if os.path.isdir(poster_dir):
+        for fname in os.listdir(poster_dir):
             try:
                 fid = int(fname[:3])
                 poster_map[fid] = fname
@@ -51,7 +55,7 @@ def load_data():
 
 def get_poster_path(m):
     if m["poster_file"]:
-        path = os.path.join("posters", m["poster_file"])
+        path = os.path.join(BASE_DIR, "posters", m["poster_file"])
         if os.path.isfile(path):
             return path
     return None
