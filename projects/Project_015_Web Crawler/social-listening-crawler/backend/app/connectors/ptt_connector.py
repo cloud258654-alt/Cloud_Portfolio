@@ -118,11 +118,14 @@ class PTTConnector(BaseConnector):
     def fetch_mentions(self, keyword: str, limit: int = 10) -> List[Dict[str, Any]]:
         if getattr(settings, "DEMO_MODE", True):
             logger.info(f"PTT: DEMO_MODE is True. Skipping real PTT scrape for '{keyword}'")
-            results = []
-            article_urls = []
-        else:
-            results = []
-            article_urls = []
+            fallback_templates = [
+                {"title": "[問卦] 有時間討論 {keyword} 品質大不如前的八卦嗎？", "content": "最近去消費了 {keyword}，感覺真的變得很差，價格一直漲但份量縮水，而且服務生態度超差，問個事情就翻白眼。有沒有 {keyword} 品質退步的八卦？", "author_hash": "ptt_user_109", "url_template": "https://www.ptt.cc/bbs/Gossiping/M.1782803_{post_id}.html"},
+                {"title": "[抱怨] 超雷的 {keyword} 踩雷體驗，千萬別去！", "content": "昨天帶家人去吃 {keyword}，等了快一個小時才出餐，結果牛肉湯是溫的而且超級鹹，跟店員講態度還非常差，敷衍了事。回家之後我跟老婆都拉肚子，真的是食安堪憂，氣死我了！", "author_hash": "ptt_food_critic", "url_template": "https://www.ptt.cc/bbs/Food/M.1782803_{post_id}.html"}
+            ]
+            return self.load_from_cache("PTT", keyword, limit, fallback_templates)
+
+        results = []
+        article_urls = []
 
         # Try shorter keywords if full keyword fails
         search_terms = [keyword]
