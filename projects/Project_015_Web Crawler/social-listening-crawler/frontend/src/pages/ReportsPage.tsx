@@ -2,6 +2,124 @@ import { useState, useEffect, useCallback } from 'react';
 import { FileText, Copy, Download, Loader2, AlertCircle } from 'lucide-react';
 import { get } from '../api/client';
 
+function parseMarkdownToHtml(markdown: string): string {
+  if (!markdown) return '';
+  const lines = markdown.replace(/\r\n/g, '\n').split('\n');
+  let html = '';
+  let inList = false;
+  let inTable = false;
+  let tableHeaders: string[] | null = null;
+  let tableRows: string[][] = [];
+
+  const closeListIfOpen = () => {
+    if (inList) {
+      html += '</ul>';
+      inList = false;
+    }
+  };
+
+  const closeTableIfOpen = () => {
+    if (inTable) {
+      html += '<div class="overflow-x-auto my-4 border border-gray-100 rounded-xl shadow-sm"><table class="min-w-full divide-y divide-gray-200">';
+      if (tableHeaders) {
+        html += '<thead class="bg-gray-50"><tr>';
+        tableHeaders.forEach(cell => {
+          html += `<th class="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">${cell}</th>`;
+        });
+        html += '</tr></thead>';
+      }
+      html += '<tbody class="bg-white divide-y divide-gray-100">';
+      tableRows.forEach(row => {
+        html += '<tr>';
+        row.forEach(cell => {
+          html += `<td class="px-4 py-2.5 text-sm text-gray-700 font-medium">${cell}</td>`;
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table></div>';
+      
+      inTable = false;
+      tableHeaders = null;
+      tableRows = [];
+    }
+  };
+
+  const formatInline = (text: string): string => {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/__(.*?)__/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/_(.*?)_/g, '<em>$1</em>');
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+
+    if (!line) {
+      closeListIfOpen();
+      closeTableIfOpen();
+      continue;
+    }
+
+    if (line.startsWith('# ')) {
+      closeListIfOpen();
+      closeTableIfOpen();
+      html += `<h1 class="text-xl font-bold mt-6 mb-4 text-gray-900">${formatInline(line.substring(2))}</h1>`;
+      continue;
+    }
+
+    if (line.startsWith('## ')) {
+      closeListIfOpen();
+      closeTableIfOpen();
+      html += `<h2 class="text-lg font-bold mt-5 mb-3 text-gray-800">${formatInline(line.substring(3))}</h2>`;
+      continue;
+    }
+
+    if (line.startsWith('### ')) {
+      closeListIfOpen();
+      closeTableIfOpen();
+      html += `<h3 class="text-base font-bold mt-4 mb-2 text-rose-600">${formatInline(line.substring(4))}</h3>`;
+      continue;
+    }
+
+    if (line.startsWith('- ') || line.startsWith('* ')) {
+      closeTableIfOpen();
+      if (!inList) {
+        html += '<ul class="list-disc list-inside ml-4 space-y-1 my-3">';
+        inList = true;
+      }
+      html += `<li class="text-sm text-gray-600">${formatInline(line.substring(2))}</li>`;
+      continue;
+    }
+
+    if (line.startsWith('|') && line.endsWith('|')) {
+      closeListIfOpen();
+      const cells = line.split('|').map(c => c.trim()).slice(1, -1);
+      const isSeparator = cells.every(c => c.startsWith('-') || c === '');
+      if (isSeparator) {
+        inTable = true;
+        continue;
+      }
+      if (!inTable) {
+        inTable = true;
+        tableHeaders = cells.map(c => formatInline(c));
+      } else {
+        tableRows.push(cells.map(c => formatInline(c)));
+      }
+      continue;
+    }
+
+    // Default paragraph
+    closeListIfOpen();
+    closeTableIfOpen();
+    html += `<p class="text-sm text-gray-600 my-2 leading-relaxed">${formatInline(line)}</p>`;
+  }
+
+  closeListIfOpen();
+  closeTableIfOpen();
+  return html;
+}
+
 export default function ReportsPage() {
   const [report, setReport] = useState<{ date: string; markdown: string } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,20 +179,7 @@ export default function ReportsPage() {
       {report && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <div className="prose prose-sm max-w-none prose-headings:text-gray-800 prose-p:text-gray-600 prose-strong:text-gray-800 prose-table:border-collapse" dangerouslySetInnerHTML={{
-            __html: report.markdown
-              .replace(/^# /gm, '<h1 class="text-xl font-bold mb-4">')
-              .replace(/^## /gm, '<h2 class="text-lg font-bold mt-6 mb-3">')
-              .replace(/^### /gm, '<h3 class="text-base font-bold mt-4 mb-2 text-red-600">')
-              .replace(/^\|(.+)\|$/gm, (match) => {
-                if (match.includes('---')) return '';
-                const cells = match.split('|').filter(c => c.trim());
-                const tag = match.includes('---') ? '' : 'td';
-                return '<tr>' + cells.map(c => `<${tag} class="border border-gray-200 px-3 py-2 text-sm">${c.trim()}</${tag}>`).join('') + '</tr>';
-              })
-              .replace(/^- /gm, '<li class="text-sm text-gray-600 ml-4">• ')
-              .replace(/^\*\*(.+)\*\*/gm, '<strong>$1</strong>')
-              .replace(/\n\n/g, '</p><p>')
-              .replace(/\n/g, '<br/>')
+            __html: parseMarkdownToHtml(report.markdown)
           }} />
         </div>
       )}

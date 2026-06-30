@@ -7,7 +7,7 @@ export default function KeywordsPage() {
   const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [name, setName] = useState(''); const [group, setGroup] = useState(''); const [platforms, setPlatforms] = useState('PTT,Dcard,Google Search');
+  const [name, setName] = useState(''); const [group, setGroup] = useState(''); const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['PTT', 'Dcard', 'Google Search']);
   const [submitting, setSubmitting] = useState(false);
 
   const load = useCallback(async () => {
@@ -22,7 +22,7 @@ export default function KeywordsPage() {
     if (!name.trim()) return;
     setSubmitting(true);
     try {
-      await createKeyword({ name: name.trim(), group_name: group.trim() || undefined, platforms });
+      await createKeyword({ name: name.trim(), group_name: group.trim() || undefined, platforms: selectedPlatforms.join(',') });
       setName(''); setGroup('');
       await load();
     } catch { setError('新增失敗，請重試。'); }
@@ -48,19 +48,48 @@ export default function KeywordsPage() {
 
       {error && <div className="flex items-center gap-2 bg-red-50 text-red-600 text-sm rounded-xl p-3 border border-red-200"><AlertCircle className="h-4 w-4" />{error}<button onClick={()=>setError('')} className="ml-auto text-red-400">×</button></div>}
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-5">
         <h3 className="text-base font-bold text-gray-800">新增監測關鍵字</h3>
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          <input type="text" placeholder="品牌名稱 *" value={name} onChange={e=>setName(e.target.value)}
-            className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:border-brand-500 focus:outline-none" />
-          <input type="text" placeholder="群組 (科技/AI/生活...)" value={group} onChange={e=>setGroup(e.target.value)}
-            className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:border-brand-500 focus:outline-none" />
-          <input type="text" value={platforms} onChange={e=>setPlatforms(e.target.value)}
-            className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:border-brand-500 focus:outline-none" />
-          <button onClick={add} disabled={submitting || !name.trim()}
-            className="flex items-center justify-center gap-1.5 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-300 text-white text-sm font-semibold px-5 py-2 rounded-xl shadow-sm transition">
-            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}新增
-          </button>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-gray-500">品牌名稱 *</label>
+            <input type="text" placeholder="例如: 鼎泰豐" value={name} onChange={e=>setName(e.target.value)}
+              className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:border-brand-500 focus:outline-none" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-gray-500">分類群組 (選填)</label>
+            <input type="text" placeholder="例如: 餐飲" value={group} onChange={e=>setGroup(e.target.value)}
+              className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:border-brand-500 focus:outline-none" />
+          </div>
+          <div className="flex items-end">
+            <button onClick={add} disabled={submitting || !name.trim() || selectedPlatforms.length === 0}
+              className="w-full flex items-center justify-center gap-1.5 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-300 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-sm transition">
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}新增監測項目
+            </button>
+          </div>
+        </div>
+
+        <div className="border-t border-gray-100 pt-4">
+          <label className="block text-xs font-bold text-gray-500 mb-2">監測平台設定 *</label>
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            {['PTT', 'Dcard', 'Google Search', 'Google Maps', 'Facebook', 'Threads', 'TikTok', '小紅書'].map(platform => {
+              const isChecked = selectedPlatforms.includes(platform);
+              return (
+                <label key={platform} className="inline-flex items-center gap-1.5 cursor-pointer text-sm text-gray-700 select-none">
+                  <input type="checkbox" checked={isChecked}
+                    onChange={() => {
+                      if (isChecked) {
+                        setSelectedPlatforms(selectedPlatforms.filter(p => p !== platform));
+                      } else {
+                        setSelectedPlatforms([...selectedPlatforms, platform]);
+                      }
+                    }}
+                    className="rounded border-gray-300 text-brand-600 focus:ring-brand-500 cursor-pointer h-4 w-4" />
+                  {platform}
+                </label>
+              );
+            })}
+          </div>
         </div>
       </div>
 

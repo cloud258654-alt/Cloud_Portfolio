@@ -72,5 +72,47 @@
       "content": "評測團隊針對市面上熱門的五款 {keyword} 進行了為期一個月的深度測試，從功能、易用性、性價比等維度進行綜合評估。",
       "url_template": "https://www.bnext.com.tw/article/{post_id}"
     }
+  ],
+  "PTT": [
+    {
+      "title": "[問卦] 有沒有 {keyword} 品質大不如前的八卦？",
+      "content": "最近去消費了 {keyword}，感覺真的變得很差，價格一直漲但份量縮水，而且服務生態度超差，問個事情就翻白眼。有沒有 {keyword} 品質退步的八卦？",
+      "author_hash": "ptt_user_109",
+      "url_template": "https://www.ptt.cc/bbs/Gossiping/M.1782803_{post_id}.html"
+    },
+    {
+      "title": "[抱怨] 超雷的 {keyword} 踩雷體驗，千萬別去！",
+      "content": "昨天帶家人去吃 {keyword}，等了快一個小時才出餐，結果牛肉湯是溫的而且超級鹹，跟店員講態度還非常差，敷衍了事。回家之後我跟老婆都拉肚子，真的是食安堪憂，氣死我了！",
+      "author_hash": "ptt_food_critic",
+      "url_template": "https://www.ptt.cc/bbs/Food/M.1782803_{post_id}.html"
+    }
+  ],
+  "Dcard": [
+    {
+      "title": "#討論 {keyword} 到底在紅什麼？超雷的真心避雷文！",
+      "content": "看一堆脆友狂推 {keyword}，滿懷期待去踩點，結果被雷到外太空！排隊人潮大排長龍，店內環境卻很髒，桌子黏黏的，甚至還有蒼蠅飛來飛去。最受不了的是出餐慢得像樹懶，問了兩次店員還很不爽地回說「在做了啦」，服務態度差到爆！",
+      "author_hash": "dcard_food_hunter",
+      "url_template": "https://www.dcard.tw/f/food/p/{post_id}"
+    },
+    {
+      "title": "#求助 吃了 {keyword} 之後肚子痛拉肚子",
+      "content": "大家有人也是今天中午吃完 {keyword} 回來之後開始拉肚子嗎？跟朋友兩個人肚子痛到現在，懷疑有嚴重的衛生疑慮跟食安問題...有人有類似情況嗎？",
+      "author_hash": "dcard_sad_user",
+      "url_template": "https://www.dcard.tw/f/talk/p/{post_id}"
+    }
+  ],
+  "Google Maps": [
+    {
+      "title": "{keyword} 評論",
+      "content": "這家 {keyword} 真的不行，衛生環境差，餐桌都黏答答的，出餐效率超低，等了快四十分鐘。服務員態度也不耐煩，價格偏貴但份量太少吃不飽，非常失望，絕對不會再來了。",
+      "author_hash": "local_guide_tata",
+      "url_template": "https://maps.google.com/?cid={post_id}"
+    },
+    {
+      "title": "{keyword} 商家評論",
+      "content": "⚠ 衛生堪憂！吃完 {keyword} 回去腸胃不舒服一直拉肚子，服務態度冷淡，店員對人愛理不理，根本是地雷店，負評！",
+      "author_hash": "maps_user_anonymous",
+      "url_template": "https://maps.google.com/?cid={post_id}"
+    }
   ]
 }

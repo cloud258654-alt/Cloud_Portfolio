@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, UploadFile, File, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -113,19 +113,30 @@ def list_crawler_logs(limit: int = 50, db: Session = Depends(get_db)):
 
 
 @router.post("/import-csv/mentions")
-def import_csv_mentions(req: Optional[CSVImportRequest] = None, file: UploadFile = File(None), db: Session = Depends(get_db)):
+async def import_csv_mentions(request: Request, file: UploadFile = File(None), db: Session = Depends(get_db)):
     import datetime
     import json
     import os
     from app.models.import_log import ImportLog
 
-    file_name = file.filename if (file and file.filename) else (os.path.basename(req.file_path) if (req and req.file_path) else "unknown_file")
+    file_path = None
+    ct = request.headers.get("content-type", "")
+    print(f"DEBUG: Content-Type is '{ct}'")
+    if "application/json" in ct:
+        try:
+            body = await request.json()
+            print(f"DEBUG: Parsed JSON body: {body}")
+            file_path = body.get("file_path")
+        except Exception as e:
+            print(f"DEBUG: Exception parsing JSON: {e}")
+
+    file_name = file.filename if (file and file.filename) else (os.path.basename(file_path) if file_path else "unknown_file")
     try:
         if file and file.filename:
             raw = file.file.read()
             parsed = CSVImporter.import_mentions(raw)
-        elif req and req.file_path:
-            parsed = CSVImporter.import_mentions(req.file_path)
+        elif file_path:
+            parsed = CSVImporter.import_mentions(file_path)
         else:
             raise HTTPException(status_code=400, detail="Please provide file upload or file_path in JSON body.")
 
@@ -186,19 +197,27 @@ def import_csv_mentions(req: Optional[CSVImportRequest] = None, file: UploadFile
 
 
 @router.post("/import-csv/google-reviews")
-def import_csv_google_reviews(req: Optional[CSVImportRequest] = None, file: UploadFile = File(None), db: Session = Depends(get_db)):
+async def import_csv_google_reviews(request: Request, file: UploadFile = File(None), db: Session = Depends(get_db)):
     import datetime
     import json
     import os
     from app.models.import_log import ImportLog
 
-    file_name = file.filename if (file and file.filename) else (os.path.basename(req.file_path) if (req and req.file_path) else "unknown_file")
+    file_path = None
+    if "application/json" in request.headers.get("content-type", ""):
+        try:
+            body = await request.json()
+            file_path = body.get("file_path")
+        except Exception:
+            pass
+
+    file_name = file.filename if (file and file.filename) else (os.path.basename(file_path) if file_path else "unknown_file")
     try:
         if file and file.filename:
             raw = file.file.read()
             parsed = CSVImporter.import_google_reviews(raw)
-        elif req and req.file_path:
-            parsed = CSVImporter.import_google_reviews(req.file_path)
+        elif file_path:
+            parsed = CSVImporter.import_google_reviews(file_path)
         else:
             raise HTTPException(status_code=400, detail="Please provide file upload or file_path in JSON body.")
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Save, Loader2, AlertCircle } from 'lucide-react';
-import { get, post } from '../api/client';
+import { get, put } from '../api/client';
 
 const FIELD_META: Record<string, { label: string; hint: string }> = {
   company_name: { label: '公司名稱', hint: '顯示在報告與 Dashboard 頁首' },
@@ -29,7 +29,7 @@ export default function SettingsPage() {
 
   const save = async () => {
     setSaving(true); setError(''); setSaved(false);
-    try { await post<{ message: string }>('/settings', { settings }); setSaved(true); }
+    try { await put<{ message: string }>('/settings', { settings }); setSaved(true); }
     catch { setError('儲存失敗。'); }
     finally { setSaving(false); }
   };

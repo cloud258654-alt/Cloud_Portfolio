@@ -38,7 +38,15 @@ export default function LogsPage() {
           <option value="">全部狀態</option><option value="Success">成功</option><option value="Failed">失敗</option><option value="Running">執行中</option>
         </select>
         <select value={platformFilter} onChange={e=>setPlatformFilter(e.target.value)} className={sel}>
-          <option value="">全部平台</option><option value="PTT">PTT</option><option value="Dcard">Dcard</option><option value="Google Search">Google Search</option>
+          <option value="">全部平台</option>
+          <option value="PTT">PTT</option>
+          <option value="Dcard">Dcard</option>
+          <option value="Google Search">Google Search</option>
+          <option value="Google Maps">Google Maps</option>
+          <option value="Facebook Import">Facebook Import</option>
+          <option value="Threads Import">Threads Import</option>
+          <option value="小紅書 Import">小紅書 Import</option>
+          <option value="TikTok Import">TikTok Import</option>
         </select>
         <span className="text-sm text-gray-400 ml-auto">共 {logs.length} 筆</span>
       </div>

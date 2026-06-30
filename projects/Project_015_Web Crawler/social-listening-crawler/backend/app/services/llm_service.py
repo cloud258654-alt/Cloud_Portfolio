@@ -43,9 +43,18 @@ def analyze_with_llm(
             if resp.status_code == 200:
                 data = resp.json()
                 raw = data["choices"][0]["message"]["content"]
+                # Clean Markdown JSON block wrapper if present
+                cleaned_raw = raw.strip()
+                if cleaned_raw.startswith("```"):
+                    lines = cleaned_raw.splitlines()
+                    if len(lines) >= 2 and lines[0].startswith("```"):
+                        lines = lines[1:]
+                    if len(lines) >= 1 and lines[-1].strip() == "```":
+                        lines = lines[:-1]
+                    cleaned_raw = "\n".join(lines).strip()
                 try:
                     import json
-                    parsed = json.loads(raw)
+                    parsed = json.loads(cleaned_raw)
                     r_score = int(parsed.get("risk_score", 0))
                     # Map risk level
                     if r_score >= 70:

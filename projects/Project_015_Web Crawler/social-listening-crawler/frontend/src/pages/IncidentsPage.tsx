@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AlertTriangle, User, FileText, CheckCircle2, XCircle, Loader2, Calendar, ExternalLink, AlertCircle } from 'lucide-react';
-import { get, post } from '../api/client';
+import { get, put } from '../api/client';
 import { getExportMentionsCsvUrl } from '../api/imports';
 import { StatusBadge, SentimentBadge, LoadingState, EmptyState, ErrorState } from '../components/common/StatusBadge';
 
@@ -56,7 +56,7 @@ export default function IncidentsPage() {
   const saveEdit = async (id: number) => {
     setSaving(true);
     try {
-      await post(`/mentions/${id}`, { assigned_to: assignTo || null, handled_note: note || null, status: newStatus });
+      await put(`/mentions/${id}`, { assigned_to: assignTo || null, handled_note: note || null, status: newStatus });
       setEditingId(null);
       await load();
     } catch { setError('更新失敗。'); }
@@ -126,7 +126,7 @@ export default function IncidentsPage() {
 
                       {isEditing && (
                         <div className="mt-4 bg-gray-50 rounded-xl p-4 border border-gray-200 space-y-3">
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div>
                               <label className="block text-xs font-semibold text-gray-500 mb-1">指派負責人</label>
                               <select value={assignTo} onChange={e => setAssignTo(e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 outline-none">
@@ -144,20 +144,20 @@ export default function IncidentsPage() {
                                 <option value="ignored">已忽略</option>
                               </select>
                             </div>
-                            <div className="flex items-end gap-2">
-                              <button onClick={() => saveEdit(inc.id)} disabled={saving}
-                                className="flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition disabled:bg-gray-300">
-                                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}儲存
-                              </button>
-                              <button onClick={cancelEdit} className="text-gray-400 hover:text-gray-600 p-2 rounded-lg">
-                                <XCircle className="h-4 w-4" />
-                              </button>
-                            </div>
                           </div>
                           <div>
                             <label className="block text-xs font-semibold text-gray-500 mb-1">處理備註</label>
                             <textarea value={note} onChange={e => setNote(e.target.value)} rows={2} placeholder="填寫處理進度或備註..."
                               className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 outline-none resize-none" />
+                          </div>
+                          <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-200/60">
+                            <button onClick={cancelEdit} className="flex items-center gap-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 text-sm font-semibold px-4 py-2 rounded-xl transition">
+                              取消
+                            </button>
+                            <button onClick={() => saveEdit(inc.id)} disabled={saving}
+                              className="flex items-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition disabled:bg-gray-300">
+                              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}儲存
+                            </button>
                           </div>
                         </div>
                       )}

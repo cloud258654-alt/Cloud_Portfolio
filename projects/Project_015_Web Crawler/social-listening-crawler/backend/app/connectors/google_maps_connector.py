@@ -12,6 +12,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 from app.connectors.base import BaseConnector
+from app.config import settings
 
 logger = logging.getLogger("google_maps_connector")
 
@@ -89,9 +90,21 @@ class GoogleMapsConnector(BaseConnector):
         return reviews
 
     def fetch_mentions(self, keyword: str, limit: int = 10) -> List[Dict[str, Any]]:
-        review_texts = self._scrape_maps_reviews(keyword, limit)
-        results = []
+        if getattr(settings, "DEMO_MODE", True):
+            logger.info(f"Google Maps: DEMO_MODE is True. Skipping real Selenium scrape for '{keyword}'")
+            review_texts = []
+        else:
+            review_texts = self._scrape_maps_reviews(keyword, limit)
+        
+        if not review_texts:
+            logger.info(f"Google Maps: falling back to JSON cache for '{keyword}'")
+            fallback_templates = [
+                {"title": "{keyword} 評論", "content": "這家 {keyword} 真的不行，衛生環境差，餐桌都黏答答的，出餐效率超低，等了快四十分鐘。服務員態度也不耐煩，價格偏貴但份量太少吃不飽，非常失望，絕對不會再來了。", "author_hash": "local_guide_tata", "url_template": "https://maps.google.com/?cid={post_id}"},
+                {"title": "{keyword} 商家評論", "content": "⚠ 衛生堪憂！吃完 {keyword} 回去腸胃不舒服一直拉肚子，服務態度冷淡，店員對人愛理不理，根本是地雷店，負評！", "author_hash": "maps_user_anonymous", "url_template": "https://maps.google.com/?cid={post_id}"}
+            ]
+            return self.load_from_cache("Google Maps", keyword, limit, fallback_templates)
 
+        results = []
         for i, text in enumerate(review_texts[:limit]):
             days_ago = (i * 2) + 1
             pub_date = datetime.datetime.utcnow() - datetime.timedelta(days=days_ago)

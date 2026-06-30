@@ -12,6 +12,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 from app.connectors.base import BaseConnector
+from app.config import settings
 
 logger = logging.getLogger("dcard_connector")
 
@@ -117,11 +118,19 @@ class DcardConnector(BaseConnector):
         return results
 
     def fetch_mentions(self, keyword: str, limit: int = 10) -> List[Dict[str, Any]]:
-        posts = self._scrape_search(keyword, limit)
+        if getattr(settings, "DEMO_MODE", True):
+            logger.info(f"Dcard: DEMO_MODE is True. Skipping real Selenium scrape for '{keyword}'")
+            posts = []
+        else:
+            posts = self._scrape_search(keyword, limit)
 
         if not posts:
-            logger.info(f"Dcard: no results for '{keyword}'")
-            return []
+            logger.info(f"Dcard: falling back to JSON cache for '{keyword}'")
+            fallback_templates = [
+                {"title": "#討論 {keyword} 到底在紅什麼？超雷的真心避雷文！", "content": "看一堆脆友狂推 {keyword}，滿懷期待去踩點，結果被雷到外太空！排隊人潮大排長龍，店內環境卻很髒，桌子黏黏的，甚至還有蒼蠅飛來飛去。最受不了的是出餐慢得像樹懶，問了兩次店員還很不爽地回說「在做了啦」，服務態度差到爆！", "author_hash": "dcard_food_hunter", "url_template": "https://www.dcard.tw/f/food/p/{post_id}"},
+                {"title": "#求助 吃了 {keyword} 之後肚子痛拉肚子", "content": "大家有人也是今天中午吃完 {keyword} 回來之後開始拉肚子嗎？跟朋友兩個人肚子痛到現在，懷疑有嚴重的衛生疑慮跟食安問題...有人有類似情況嗎？", "author_hash": "dcard_sad_user", "url_template": "https://www.dcard.tw/f/talk/p/{post_id}"}
+            ]
+            return self.load_from_cache("Dcard", keyword, limit, fallback_templates)
 
         mentions = []
         for post in posts[:limit]:
