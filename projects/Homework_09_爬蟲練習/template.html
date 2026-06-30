@@ -6,122 +6,242 @@
 <title>電影資料庫 | Movie Database</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI','微軟正黑體',Arial,sans-serif;background:#0f0f1a;color:#e0e0e0;min-height:100vh}
-a{color:#7cb7ff;text-decoration:none}
+
+/* 手繪素描濾鏡 */
+@font-face{font-family:'Sketch';src:local('Comic Sans MS'),local('微軟正黑體'),local('Segoe UI')}
+body{font-family:'Comic Sans MS','微軟正黑體','Segoe UI',sans-serif;background:#fffdf7;color:#555;min-height:100vh;background-image:radial-gradient(circle,#e8e0d0 1px,transparent 1px);background-size:30px 30px}
+a{color:#ff6b9d;text-decoration:none;font-weight:700}
+
+/* SVG 手繪濾鏡 */
+.sketch{filter:url(#sketchFilter)}
 
 /* ===== Hero ===== */
-.hero{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);padding:40px 20px;text-align:center;border-bottom:2px solid #e94560}
-.hero h1{font-size:2rem;margin-bottom:8px;color:#e94560}
-.hero p{color:#8892b0;font-size:.95rem}
-.stats-bar{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin-top:20px}
-.stat-item{background:rgba(255,255,255,.06);border-radius:12px;padding:16px 24px;min-width:100px}
-.stat-item .num{font-size:1.6rem;font-weight:700;color:#e94560}
-.stat-item .label{font-size:.75rem;color:#8892b0;margin-top:4px}
+.hero{background:linear-gradient(135deg,#ffe0e8 0%,#e8d5f5 30%,#d5eaf8 60%,#fff9d5 100%);padding:48px 20px;text-align:center;border-bottom:5px solid #333;position:relative;overflow:hidden;border-radius:0 0 50% 20% / 0 0 30px 20px}
+.hero::before{content:'';position:absolute;top:-40px;left:-30px;width:100px;height:100px;background:rgba(255,107,157,.12);border-radius:63% 37% 54% 46% / 47% 58% 42% 53%;border:3px solid #ff6b9d;opacity:.4}
+.hero::after{content:'';position:absolute;bottom:-20px;right:-20px;width:80px;height:80px;background:rgba(196,77,255,.1);border-radius:42% 58% 63% 37% / 54% 42% 58% 46%;border:3px solid #c44dff;opacity:.3}
+.hero h1{font-size:2.8rem;margin-bottom:6px;color:#ff6b9d;font-weight:900;letter-spacing:3px;text-shadow:3px 3px 0 #fff,4px 4px 0 #333,5px 5px 0 rgba(0,0,0,.1);transform:rotate(-1deg);-webkit-text-stroke:1px #333}
+.hero p{color:#555;font-size:1.05rem;font-weight:700;letter-spacing:1px;text-shadow:1px 1px 0 #fff}
+.stats-bar{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:24px}
+.stat-item{background:#fff;border-radius:30% 70% 70% 30% / 30% 30% 70% 70%;padding:18px 28px;min-width:110px;border:3px solid #333;box-shadow:4px 4px 0 #333,6px 6px 0 rgba(0,0,0,.06);transition:all .2s;transform:rotate(var(--r,0deg))}
+.stat-item:hover{transform:translateY(-3px) rotate(var(--r,0deg))}
+.stat-item:nth-child(1){--r:-2deg}.stat-item:nth-child(2){--r:1deg}.stat-item:nth-child(3){--r:-1deg}.stat-item:nth-child(4){--r:2deg}
+.stat-item .num{font-size:2rem;font-weight:800;color:#ff6b9d}
+.stat-item .label{font-size:.8rem;color:#888;margin-top:4px;font-weight:600}
+
+/* ===== Language Toggle ===== */
+.lang-toggle{position:absolute;top:16px;right:20px;display:flex;gap:4px;z-index:10}
+.lang-toggle button{background:#fff;border:2px solid #333;color:#555;padding:5px 12px;border-radius:10px 16px 8px 14px;cursor:pointer;font-size:.75rem;font-weight:700;font-family:inherit;box-shadow:2px 2px 0 #ddd;transition:all .2s}
+.lang-toggle button.active{background:#ffd93d;color:#333;box-shadow:2px 2px 0 #333}
+.lang-toggle button:hover{transform:rotate(-1deg) scale(1.05)}
 
 /* ===== Toolbar ===== */
 .toolbar{max-width:1320px;margin:0 auto;padding:20px 20px 0;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.toolbar input,.toolbar select{background:#1a1a2e;border:1px solid #2a2a4a;color:#e0e0e0;padding:10px 14px;border-radius:8px;font-size:.9rem;outline:none}
-.toolbar input:focus,.toolbar select:focus{border-color:#e94560}
+.toolbar input,.toolbar select{background:#fff;border:3px solid #333;color:#555;padding:10px 16px;border-radius:12px 24px 8px 20px;font-size:.9rem;outline:none;font-family:inherit;box-shadow:3px 3px 0 #e0e0e0;transition:all .2s}
+.toolbar input:focus,.toolbar select:focus{border-color:#ff6b9d;box-shadow:3px 3px 0 #ffd0e0}
 .toolbar input{flex:1;min-width:200px}
-.toolbar select{min-width:120px;cursor:pointer}
-.toolbar select option{background:#1a1a2e}
+.toolbar select{min-width:130px;cursor:pointer;border-radius:20px 8px 24px 12px}
+.toolbar select option{background:#fff}
 
 /* ===== Grid ===== */
 .container{max-width:1320px;margin:0 auto;padding:20px}
-.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:18px}
 @media(max-width:1200px){.grid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:540px){.grid{grid-template-columns:1fr}}
 
 /* ===== Card ===== */
-.card{background:#1a1a2e;border-radius:12px;overflow:hidden;transition:transform .2s,box-shadow .2s;border:1px solid #2a2a4a;cursor:pointer}
-.card:hover{transform:translateY(-4px);box-shadow:0 8px 30px rgba(233,69,96,.15);border-color:#e94560}
-.card-img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;background:#0f0f1a}
-.card-body{padding:12px}
-.card-title{font-size:.95rem;font-weight:600;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card-en{font-size:.75rem;color:#8892b0;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card-meta{font-size:.7rem;color:#8892b0;line-height:1.5}
+.card{background:#fff;border-radius:20px 28px 18px 26px;overflow:hidden;transition:all .3s cubic-bezier(.34,1.56,.64,1);border:3px solid #333;cursor:pointer;box-shadow:5px 5px 0 #333,7px 7px 0 rgba(0,0,0,.04)}
+.card:hover{transform:translateY(-5px) rotate(-1deg) scale(1.03);box-shadow:7px 7px 0 #ff6b9d,10px 10px 0 rgba(255,107,157,.15);border-color:#ff6b9d}
+.card:nth-child(odd){border-radius:22px 18px 26px 20px}
+.card:nth-child(3n){border-radius:18px 24px 20px 28px}
+.card:nth-child(5n){transform:rotate(.5deg)}
+.card:nth-child(5n):hover{transform:translateY(-5px) rotate(-.5deg) scale(1.03)}
+.card:nth-child(7n){transform:rotate(-.3deg)}
+.card:nth-child(7n):hover{transform:translateY(-5px) rotate(.3deg) scale(1.03)}
+.card-img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;background:#ffe8d5}
+.card-body{padding:14px}
+.card-title{font-size:.95rem;font-weight:700;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#444}
+.card-en{font-size:.72rem;color:#aaa;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-meta{font-size:.7rem;color:#aaa;line-height:1.5}
 .card-cats{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
-.card-cats span{background:rgba(233,69,96,.2);color:#e94560;padding:2px 6px;border-radius:4px;font-size:.65rem}
-.card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid #2a2a4a}
-.card-score{font-size:1.4rem;font-weight:700;color:#e94560}
-.card-score small{font-size:.7rem;color:#8892b0}
-.card-country{font-size:.68rem;color:#8892b0;max-width:60%;text-align:right}
+.card-cats span{background:#ffe0e8;color:#ff6b9d;padding:3px 9px;border-radius:4px 10px 4px 10px;font-size:.65rem;font-weight:600;border:2px solid #ff6b9d}
+.card-cats span:nth-child(2n){background:#e0f0ff;color:#4dc9f6;border-color:#4dc9f6}
+.card-cats span:nth-child(3n){background:#f0e0ff;color:#c44dff;border-color:#c44dff}
+.card-cats span:nth-child(4n){background:#fff9d5;color:#e8b800;border-color:#e8b800;border-radius:10px 4px 10px 4px}
+.card-cats span:nth-child(5n){background:#e0ffe8;color:#4ade80;border-color:#4ade80}
+.card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:3px dotted #e0e0e0}
+.card-score{font-size:1.6rem;font-weight:800;color:#ff6b9d;text-shadow:2px 2px 0 rgba(0,0,0,.05)}
+.card-score small{font-size:.7rem;color:#bbb;font-weight:400}
+.card-country{font-size:.68rem;color:#aaa;max-width:60%;text-align:right}
 
 /* ===== Modal ===== */
-.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:999;justify-content:center;align-items:center;padding:20px}
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:999;justify-content:center;align-items:center;padding:20px}
 .modal-overlay.active{display:flex}
-.modal{background:#1a1a2e;border-radius:16px;max-width:700px;width:100%;max-height:90vh;overflow-y:auto;border:1px solid #2a2a4a}
+.modal{background:#fff;border-radius:28px 32px 24px 30px;max-width:700px;width:100%;max-height:90vh;overflow-y:auto;border:4px solid #333;box-shadow:8px 8px 0 #333,12px 12px 0 rgba(0,0,0,.06)}
 .modal-header{position:relative}
-.modal-header img{width:100%;max-height:400px;object-fit:cover;border-radius:16px 16px 0 0}
-.modal-close{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.6);color:#fff;border:none;width:36px;height:36px;border-radius:50%;font-size:1.2rem;cursor:pointer;line-height:36px;text-align:center}
-.modal-body{padding:24px}
-.modal-body h2{font-size:1.5rem;margin-bottom:4px}
-.modal-body .en-name{color:#8892b0;margin-bottom:16px}
-.modal-body .score-big{font-size:3rem;font-weight:700;color:#e94560}
+.modal-header img{width:100%;max-height:400px;object-fit:cover;border-radius:24px 28px 0 0}
+.modal-close{position:absolute;top:12px;right:12px;background:#fff;color:#333;border:3px solid #333;width:44px;height:44px;border-radius:60% 40% 50% 50% / 40% 60% 50% 50%;font-size:1.3rem;cursor:pointer;font-weight:700;box-shadow:3px 3px 0 #333;transition:transform .2s}
+.modal-close:hover{transform:scale(1.1) rotate(10deg)}
+.modal-body{padding:28px;color:#555}
+.modal-body h2{font-size:1.6rem;margin-bottom:4px;color:#444;text-shadow:2px 2px 0 rgba(255,107,157,.2)}
+.modal-body .en-name{color:#bbb;margin-bottom:16px}
+.modal-body .score-big{font-size:3.5rem;font-weight:800;color:#ff6b9d;text-shadow:3px 3px 0 #ffe0e8}
 .modal-body .info-row{display:flex;gap:24px;flex-wrap:wrap;margin:16px 0}
-.modal-body .info-item{color:#8892b0;font-size:.85rem}
-.modal-body .info-item strong{color:#e0e0e0;display:block}
+.modal-body .info-item{color:#999;font-size:.85rem}
+.modal-body .info-item strong{color:#666;display:block;font-size:.75rem;text-transform:uppercase}
 
 /* ===== Chart ===== */
 .chart-section{max-width:1320px;margin:0 auto;padding:0 20px 40px}
-.chart-section h2{font-size:1.2rem;color:#e94560;margin-bottom:16px}
-.chart-bar{margin-bottom:8px;display:flex;align-items:center;gap:10px}
-.chart-bar .label{width:50px;text-align:right;font-size:.78rem;color:#8892b0;flex-shrink:0}
-.chart-bar .track{flex:1;background:#2a2a4a;border-radius:4px;height:22px;overflow:hidden}
-.chart-bar .fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#e94560,#533483);transition:width .5s}
-.chart-bar .count{width:36px;font-size:.75rem;color:#8892b0;flex-shrink:0}
+.chart-section h2{font-size:1.3rem;color:#c44dff;margin-bottom:16px;text-shadow:2px 2px 0 rgba(196,77,255,.15)}
+.chart-bar{margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.chart-bar .label{width:50px;text-align:right;font-size:.78rem;color:#999;flex-shrink:0;font-weight:600}
+.chart-bar .track{flex:1;background:#f5f5f5;border-radius:6px 14px 10px 8px;height:28px;overflow:hidden;border:2px solid #e0e0e0;box-shadow:inset 2px 2px 4px rgba(0,0,0,.04)}
+.chart-bar .fill{height:100%;border-radius:4px 12px 8px 6px;background:linear-gradient(90deg,#ff6b9d,#ffd93d 40%,#4dc9f6 70%,#c44dff);transition:width .5s}
+.chart-bar .count{width:36px;font-size:.75rem;color:#999;flex-shrink:0;font-weight:600}
 
 /* ===== Footer ===== */
-.no-result{text-align:center;padding:60px;color:#8892b0;grid-column:1/-1}
-.count-info{text-align:center;padding:8px;color:#8892b0;font-size:.8rem}
+.no-result{text-align:center;padding:60px;color:#bbb;grid-column:1/-1;font-size:1.1rem}
+.count-info{text-align:center;padding:8px;color:#bbb;font-size:.85rem}
 
-/* ===== Chat ===== */
-.chat-bubble{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:#e94560;border:none;cursor:pointer;z-index:998;box-shadow:0 4px 16px rgba(233,69,96,.4);display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;transition:transform .2s}
-.chat-bubble:hover{transform:scale(1.1)}
-.chat-panel{position:fixed;bottom:96px;right:24px;width:360px;height:500px;background:#1a1a2e;border-radius:16px;border:1px solid #2a2a4a;z-index:997;display:none;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+/* ===== Robot ===== */
+.robot-wrap{position:fixed;bottom:16px;right:16px;cursor:pointer;z-index:998;width:130px;height:190px;transition:transform .3s cubic-bezier(.34,1.56,.64,1);animation:robotFloat 3s ease-in-out infinite}
+.robot-wrap:hover{transform:scale(1.1)}
+.robot-wrap:hover .pupil,.robot-wrap:hover .evo-eye{transform:translate(2px,-2px)}
+.robot-wrap:hover .robot-mouth{border-radius:50%;height:8px;width:10px}
+.robot-wrap:hover .evo-mouth-grill{height:6px;width:14px}
+@keyframes robotFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+.robot{position:relative;width:110px;height:170px;margin:0 auto}
+.robot-mode{position:absolute;top:0;left:0;width:100%;height:100%;transition:opacity .4s,transform .4s}
+.robot-mode.normal-mode{opacity:1;transform:scale(1)}
+.robot-mode.evolved-mode{opacity:0;transform:scale(.5) rotate(-15deg);pointer-events:none}
+.robot.evolved .normal-mode{opacity:0;transform:scale(.5) rotate(15deg);pointer-events:none}
+.robot.evolved .evolved-mode{opacity:1;transform:scale(1) rotate(0);pointer-events:auto}
+.robot.evolved .robot-wrap{animation:robotFloatEvo 2s ease-in-out infinite}
+@keyframes robotFloatEvo{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+
+.robot-shadow{width:80px;height:14px;background:rgba(0,0,0,.08);border-radius:50%;margin:0 auto;animation:shadowPulse 3s ease-in-out infinite;transition:all .4s}
+.robot.evolved~.robot-shadow{background:rgba(74,222,128,.3);width:95px}
+@keyframes shadowPulse{0%,100%{transform:scale(1);opacity:.08}50%{transform:scale(.7);opacity:.04}}
+
+/* --- Normal Mode --- */
+.robot-antenna{position:absolute;top:-22px;left:50%;transform:translateX(-50%);width:4px;height:22px;background:#333;border-radius:2px}
+.antenna-ball{position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:14px;height:14px;background:#ff6b9d;border:2px solid #333;border-radius:60% 40% 50% 50% / 50% 60% 40% 50%;animation:antennaGlow 1.5s ease-in-out infinite}
+@keyframes antennaGlow{0%,100%{background:#ff6b9d}50%{background:#ffd93d}}
+
+.robot-head{position:absolute;top:0;left:50%;transform:translateX(-50%);width:68px;height:58px;background:#fff;border:3px solid #333;border-radius:45% 55% 50% 50% / 50% 45% 55% 50%;box-shadow:inset 0 -4px 0 rgba(255,107,157,.1)}
+
+.robot-eye{position:absolute;top:16px;width:18px;height:20px;background:#fff;border:2px solid #333;border-radius:60% 40% 55% 45% / 50% 55% 45% 50%}
+.robot-eye.left{left:10px}.robot-eye.right{right:10px}
+.pupil{position:absolute;top:6px;left:5px;width:6px;height:7px;background:#333;border-radius:50%;transition:transform .2s}
+
+.robot-mouth{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);width:14px;height:5px;background:#333;border-radius:0 0 8px 8px;transition:all .3s}
+
+.robot-blush{position:absolute;top:26px;width:10px;height:6px;background:rgba(255,107,157,.35);border-radius:50%}
+.left-blush{left:4px}.right-blush{right:4px}
+
+.robot-body-box{position:absolute;top:60px;left:50%;transform:translateX(-50%);width:62px;height:52px;background:#fff;border:3px solid #333;border-radius:40% 60% 50% 50% / 45% 40% 60% 55%}
+.robot-heart{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:22px;color:#ff6b9d;animation:heartBeat 1.2s ease-in-out infinite;text-shadow:1px 1px 0 #333}
+@keyframes heartBeat{0%,100%{transform:translate(-50%,-50%) scale(1)}15%{transform:translate(-50%,-50%) scale(1.2)}30%{transform:translate(-50%,-50%) scale(1)}}
+
+.robot-arm{position:absolute;top:68px;width:8px;height:36px;background:#fff;border:2px solid #333;border-radius:4px;transform-origin:top center}
+.left-arm{left:0;border-radius:4px 6px 6px 12px;transform:rotate(15deg)}
+.right-arm{right:0;border-radius:6px 4px 12px 6px;transform:rotate(-15deg)}
+
+.robot-leg{position:absolute;top:112px;width:10px;height:30px;background:#fff;border:2px solid #333;border-radius:4px 4px 8px 8px}
+.left-leg{left:20px;transform:rotate(3deg)}.right-leg{right:20px;transform:rotate(-3deg)}
+
+/* --- Evolved Mode --- */
+.evo-antenna{position:absolute;top:-28px;left:50%;transform:translateX(-50%);width:3px;height:26px;background:#333;border-radius:2px}
+.evo-ant-ball{position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:16px;height:16px;background:#4ade80;border:2px solid #333;border-radius:40% 60% 55% 45%;animation:evoPulse .8s ease-in-out infinite;box-shadow:0 0 8px rgba(74,222,128,.6)}
+.evo-ant-spark{position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:4px;height:10px;background:#ffd93d;border-radius:2px;animation:spark .3s ease-in-out infinite}
+@keyframes evoPulse{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.3)}}
+@keyframes spark{0%,100%{opacity:1;top:-8px}50%{opacity:0;top:-14px}}
+
+.evo-head{position:absolute;top:0;left:50%;transform:translateX(-50%);width:74px;height:56px;background:linear-gradient(180deg,#374151,#1f2937);border:3px solid #333;border-radius:45% 50% 55% 48% / 48% 52% 50% 55%;box-shadow:inset 0 2px 0 rgba(74,222,128,.3)}
+.evo-visor{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:54px;height:16px;background:linear-gradient(180deg,rgba(74,222,128,.4),rgba(74,222,128,.15));border:2px solid #4ade80;border-radius:50%;box-shadow:0 0 6px rgba(74,222,128,.3)}
+.evo-eye{position:absolute;top:18px;width:14px;height:8px;background:#4ade80;border:2px solid #333;border-radius:50%;box-shadow:0 0 6px rgba(74,222,128,.8)}
+.left-evo{left:14px}.right-evo{right:14px}
+.evo-mouth-grill{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);width:16px;height:4px;background:#4ade80;border:2px solid #333;border-radius:2px;box-shadow:0 0 4px rgba(74,222,128,.5);transition:all .3s}
+
+.evo-body{position:absolute;top:58px;left:50%;transform:translateX(-50%);width:68px;height:50px;background:linear-gradient(180deg,#374151,#1f2937);border:3px solid #333;border-radius:35% 45% 50% 50% / 45% 40% 55% 50%}
+.evo-core{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:24px;height:24px;background:radial-gradient(circle,#4ade80,#166534);border:2px solid #333;border-radius:50%;animation:coreGlow 1.5s ease-in-out infinite;box-shadow:0 0 12px rgba(74,222,128,.6)}
+@keyframes coreGlow{0%,100%{box-shadow:0 0 8px rgba(74,222,128,.4)}50%{box-shadow:0 0 20px rgba(74,222,128,.9)}}
+.evo-armor{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:50px;height:14px;background:#4ade80;border:2px solid #333;border-radius:4px;opacity:.6}
+
+.evo-arm{position:absolute;top:66px;width:10px;height:38px;background:linear-gradient(180deg,#374151,#1f2937);border:2px solid #333;transform-origin:top center}
+.left-evo-arm{left:-2px;border-radius:4px 4px 6px 10px;transform:rotate(18deg)}
+.right-evo-arm{right:-2px;border-radius:4px 4px 10px 6px;transform:rotate(-18deg)}
+.evo-cannon{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:12px;height:16px;background:#4ade80;border:2px solid #333;border-radius:50% 50% 3px 3px;box-shadow:0 0 6px rgba(74,222,128,.5);animation:cannonFire 2s ease-in-out infinite}
+@keyframes cannonFire{0%,90%,100%{box-shadow:0 0 6px rgba(74,222,128,.5)}95%{box-shadow:0 0 16px rgba(255,217,61,.9),0 0 24px rgba(255,107,157,.5)}}
+.evo-shield{position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:18px;height:22px;background:#c44dff;border:2px solid #333;border-radius:6px;opacity:.8;box-shadow:0 0 6px rgba(196,77,255,.4)}
+
+.evo-leg{position:absolute;top:110px;width:12px;height:32px;background:linear-gradient(180deg,#374151,#1f2937);border:2px solid #333;border-radius:4px}
+.left-evo-leg{left:18px;transform:rotate(2deg)}.right-evo-leg{right:18px;transform:rotate(-2deg)}
+.evo-thruster{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:14px;height:10px;background:#ffd93d;border:2px solid #333;border-radius:3px;animation:thrust .6s ease-in-out infinite}
+@keyframes thrust{0%,100%{box-shadow:0 0 4px rgba(255,217,61,.5)}50%{box-shadow:0 0 12px rgba(255,107,157,.8),0 4px 8px rgba(255,107,157,.3)}}
+
+.evo-jetpack{position:absolute;top:40px;left:50%;transform:translateX(-50%);width:50px;height:24px;background:linear-gradient(180deg,#4ade80,#166534);border:2px solid #333;border-radius:30% 40% 10px 10px / 40% 30% 8px 8px;box-shadow:0 0 8px rgba(74,222,128,.4)}
+
+/* ===== Chat Panel ===== */
+.chat-panel{position:fixed;bottom:200px;right:16px;width:370px;height:480px;background:#fff;border-radius:26px 30px 22px 28px;border:4px solid #333;z-index:997;display:none;flex-direction:column;overflow:hidden;box-shadow:6px 6px 0 #333,10px 10px 0 rgba(0,0,0,.06)}
 .chat-panel.open{display:flex}
-.chat-header{background:linear-gradient(135deg,#e94560,#533483);padding:14px 18px;font-weight:700;font-size:1rem;display:flex;justify-content:space-between;align-items:center}
-.chat-header button{background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer}
-.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
-.chat-msg{max-width:85%;padding:10px 14px;border-radius:14px;font-size:.82rem;line-height:1.5;animation:fadeIn .3s}
-.chat-msg.bot{background:#2a2a4a;align-self:flex-start;border-bottom-left-radius:4px}
-.chat-msg.user{background:#e94560;align-self:flex-end;border-bottom-right-radius:4px}
-.chat-msg .movie-link{cursor:pointer;color:#7cb7ff;text-decoration:underline}
-.chat-quick{display:flex;flex-wrap:wrap;gap:6px;padding:8px 16px;border-top:1px solid #2a2a4a}
-.chat-quick button{background:#2a2a4a;border:1px solid #3a3a5a;color:#e0e0e0;padding:6px 12px;border-radius:16px;font-size:.72rem;cursor:pointer;transition:background .2s}
-.chat-quick button:hover{background:#e94560;border-color:#e94560}
-.chat-input-wrap{display:flex;padding:10px 16px;border-top:1px solid #2a2a4a;gap:8px}
-.chat-input-wrap input{flex:1;background:#2a2a4a;border:1px solid #3a3a5a;color:#e0e0e0;padding:10px 14px;border-radius:20px;font-size:.82rem;outline:none}
-.chat-input-wrap input:focus{border-color:#e94560}
-.chat-input-wrap button{background:#e94560;border:none;color:#fff;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:1rem;flex-shrink:0}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-@media(max-width:480px){.chat-panel{width:calc(100vw - 32px);right:16px;bottom:88px;height:420px}}
+.chat-header{background:linear-gradient(135deg,#ff6b9d,#c44dff);padding:16px 20px;font-weight:700;font-size:1rem;display:flex;justify-content:space-between;align-items:center;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.1)}
+.chat-header button{background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer;font-weight:700}
+
+/* API Key Bar */
+.chat-apikey{display:flex;align-items:center;gap:6px;padding:6px 16px;background:#fafafa;border-bottom:2px dotted #e0e0e0}
+.apikey-toggle{background:#fff;border:2px solid #333;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:.9rem;box-shadow:2px 2px 0 #ddd;transition:all .2s}
+.apikey-toggle:hover{background:#ffd93d;transform:rotate(30deg)}
+.apikey-toggle.active{background:#4ade80;color:#fff}
+.apikey-form{display:flex;gap:4px;align-items:center;flex:1}
+.apikey-form input{flex:1;background:#fff;border:2px solid #333;color:#555;padding:5px 10px;border-radius:6px 12px 4px 10px;font-size:.72rem;outline:none;font-family:inherit;box-shadow:2px 2px 0 #e0e0e0}
+.apikey-form input:focus{border-color:#c44dff}
+.apikey-form button{background:#fff;border:2px solid #333;color:#333;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:.7rem;font-weight:700;box-shadow:2px 2px 0 #ddd;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.apikey-form button:hover{background:#ffd93d;transform:scale(1.1)}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#fffdf5;background-image:linear-gradient(#f0e8d8 1px,transparent 1px);background-size:100% 28px}
+.chat-msg{max-width:85%;padding:12px 16px;border-radius:14px 18px 10px 16px;font-size:.82rem;line-height:1.5;animation:popIn .3s;border:2px solid #333;box-shadow:3px 3px 0 rgba(0,0,0,.06)}
+.chat-msg.bot{background:#fff;align-self:flex-start;border-bottom-left-radius:4px}
+.chat-msg.user{background:#fff0d5;color:#555;align-self:flex-end;border-bottom-right-radius:4px;border-radius:18px 14px 16px 10px}
+.chat-quick{display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px;border-top:3px dotted #e0e0e0;background:#fff}
+.chat-quick button{background:#fff;border:2px solid #333;color:#666;padding:6px 14px;border-radius:8px 16px 8px 14px;font-size:.72rem;cursor:pointer;font-weight:600;transition:all .2s;font-family:inherit;box-shadow:2px 2px 0 #ddd}
+.chat-quick button:hover{background:#ffd93d;color:#444;transform:rotate(-2deg) scale(1.05);box-shadow:3px 3px 0 #333}
+.chat-input-wrap{display:flex;padding:12px 16px;border-top:3px dotted #e0e0e0;gap:8px;background:#fff}
+.chat-input-wrap input{flex:1;background:#fffdf5;border:2px solid #333;color:#555;padding:10px 16px;border-radius:10px 20px 8px 18px;font-size:.82rem;outline:none;font-family:inherit;box-shadow:3px 3px 0 #e0e0e0}
+.chat-input-wrap input:focus{border-color:#ff6b9d;box-shadow:3px 3px 0 #ffd0e0}
+.chat-input-wrap button{background:#fff;border:2px solid #333;color:#333;width:42px;height:42px;border-radius:50% 40% 60% 45% / 55% 45% 40% 60%;cursor:pointer;font-size:1rem;flex-shrink:0;box-shadow:3px 3px 0 #333;transition:all .2s;font-weight:700}
+.chat-input-wrap button:hover{background:#ffd93d;transform:rotate(-10deg) scale(1.1)}
+@keyframes popIn{from{opacity:0;transform:scale(.85) rotate(-3deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+@media(max-width:480px){.chat-panel{width:calc(100vw - 32px);right:16px;bottom:220px;height:420px}.robot-wrap{bottom:8px;right:8px;width:100px;height:150px}.robot{transform:scale(.75);transform-origin:bottom center}}
 </style>
 </head>
 <body>
 
 <!-- Hero -->
 <div class="hero">
-  <h1>Movie Database</h1>
-  <p>Scrape Center SSR1 — 100 部經典電影</p>
+  <div class="lang-toggle">
+    <button class="active" onclick="setLang('zh')">繁中</button>
+    <button onclick="setLang('en')">EN</button>
+  </div>
+  <h1 data-i18n="title">Movie Database</h1>
+  <p data-i18n="subtitle">Scrape Center SSR1 — 100 部經典電影</p>
   <div class="stats-bar" id="statsBar"></div>
 </div>
 
 <!-- Toolbar -->
 <div class="toolbar">
-  <input type="text" id="search" placeholder="搜尋電影名稱..." oninput="render()">
+  <input type="text" id="search" data-i18n-placeholder="search_placeholder" placeholder="搜尋電影名稱..." oninput="render()">
   <select id="categoryFilter" onchange="render()">
-    <option value="">全部類別</option>
+    <option value="" data-i18n="all_categories">全部類別</option>
   </select>
   <select id="countryFilter" onchange="render()">
-    <option value="">全部國家</option>
+    <option value="" data-i18n="all_countries">全部國家</option>
   </select>
   <select id="sortBy" onchange="render()">
-    <option value="id">預設排序</option>
-    <option value="score">評分高→低</option>
-    <option value="score_asc">評分低→高</option>
-    <option value="name">名稱 A→Z</option>
+    <option value="id" data-i18n="sort_default">預設排序</option>
+    <option value="score" data-i18n="sort_score_desc">評分高→低</option>
+    <option value="score_asc" data-i18n="sort_score_asc">評分低→高</option>
+    <option value="name" data-i18n="sort_name">名稱 A→Z</option>
   </select>
 </div>
 
@@ -133,7 +253,7 @@ a{color:#7cb7ff;text-decoration:none}
 
 <!-- Category Chart -->
 <div class="chart-section">
-  <h2>類別分布</h2>
+  <h2 data-i18n="category_chart">類別分布</h2>
   <div id="categoryChart"></div>
 </div>
 
@@ -142,26 +262,91 @@ a{color:#7cb7ff;text-decoration:none}
   <div class="modal" id="modal" onclick="event.stopPropagation()"></div>
 </div>
 
-<!-- Chat Bubble -->
-<button class="chat-bubble" id="chatBubble" onclick="toggleChat()">💬</button>
+<!-- Chat Robot -->
+<div class="robot-wrap" id="chatBubble" onclick="toggleChat()">
+  <div class="robot" id="robotBody">
+    <!-- 一般模式：可愛愛心機器人 -->
+    <div class="robot-mode normal-mode">
+      <div class="robot-antenna">
+        <div class="antenna-ball"></div>
+      </div>
+      <div class="robot-head">
+        <div class="robot-eye left"><div class="pupil"></div></div>
+        <div class="robot-eye right"><div class="pupil"></div></div>
+        <div class="robot-mouth"></div>
+        <div class="robot-blush left-blush"></div>
+        <div class="robot-blush right-blush"></div>
+      </div>
+      <div class="robot-body-box">
+        <div class="robot-heart">♥</div>
+      </div>
+      <div class="robot-arm left-arm"></div>
+      <div class="robot-arm right-arm"></div>
+      <div class="robot-leg left-leg"></div>
+      <div class="robot-leg right-leg"></div>
+    </div>
+
+    <!-- 進化模式：武裝機器人 -->
+    <div class="robot-mode evolved-mode">
+      <div class="evo-antenna">
+        <div class="evo-ant-ball"></div>
+        <div class="evo-ant-spark"></div>
+      </div>
+      <div class="evo-head">
+        <div class="evo-visor"></div>
+        <div class="evo-eye left-evo"></div>
+        <div class="evo-eye right-evo"></div>
+        <div class="evo-mouth-grill"></div>
+      </div>
+      <div class="evo-body">
+        <div class="evo-core"></div>
+        <div class="evo-armor"></div>
+      </div>
+      <div class="evo-arm left-evo-arm">
+        <div class="evo-cannon"></div>
+      </div>
+      <div class="evo-arm right-evo-arm">
+        <div class="evo-shield"></div>
+      </div>
+      <div class="evo-leg left-evo-leg">
+        <div class="evo-thruster"></div>
+      </div>
+      <div class="evo-leg right-evo-leg">
+        <div class="evo-thruster"></div>
+      </div>
+      <div class="evo-jetpack"></div>
+    </div>
+  </div>
+  <div class="robot-shadow"></div>
+</div>
+
+<!-- Chat Panel -->
 <div class="chat-panel" id="chatPanel">
   <div class="chat-header">
-    <span>🎬 電影小幫手</span>
+    <span data-i18n="chat_title">🎬 電影小幫手</span> <small id="chatMode" style="font-size:.7rem;opacity:.8"></small>
     <button onclick="toggleChat()">✕</button>
   </div>
+  <div class="chat-apikey" id="chatApiKeyBar">
+    <button class="apikey-toggle" onclick="toggleApiKey()" title="設定 Gemini API Key">⚙️</button>
+    <div class="apikey-form" id="apikeyForm" style="display:none">
+      <input type="password" id="apikeyInput" placeholder="貼上 Gemini API Key...">
+      <button onclick="saveApiKey()">✓</button>
+      <button onclick="clearApiKey()">✕</button>
+    </div>
+  </div>
   <div class="chat-messages" id="chatMessages">
-    <div class="chat-msg bot">嗨！我可以幫你查詢電影資料 👋<br>試試下方快捷鍵或直接輸入關鍵字～</div>
+    <div class="chat-msg bot" data-i18n="chat_welcome">嗨！我可以幫你查詢電影資料 👋<br>試試下方快捷鍵或直接輸入關鍵字～</div>
   </div>
   <div class="chat-quick" id="chatQuick">
-    <button onclick="askQuick('評分最高')">🏆 評分最高</button>
-    <button onclick="askQuick('動畫')">🎨 動畫</button>
-    <button onclick="askQuick('日本')">🗾 日本電影</button>
-    <button onclick="askQuick('stats')">📊 統計數據</button>
-    <button onclick="askQuick('最長')">⏱ 片長最長</button>
-    <button onclick="askQuick('年份')">📅 年份分布</button>
+    <button onclick="askQuick('評分最高')" data-i18n="quick_top">🏆 評分最高</button>
+    <button onclick="askQuick('動畫')" data-i18n="quick_anime">🎨 動畫</button>
+    <button onclick="askQuick('日本')" data-i18n="quick_japan">🗾 日本電影</button>
+    <button onclick="askQuick('stats')" data-i18n="quick_stats">📊 統計數據</button>
+    <button onclick="askQuick('最長')" data-i18n="quick_longest">⏱ 片長最長</button>
+    <button onclick="askQuick('年份')" data-i18n="quick_years">📅 年份分布</button>
   </div>
   <div class="chat-input-wrap">
-    <input type="text" id="chatInput" placeholder="輸入關鍵字..." onkeydown="if(event.key==='Enter')sendMsg()">
+    <input type="text" id="chatInput" data-i18n-placeholder="chat_placeholder" placeholder="輸入關鍵字..." onkeydown="if(event.key==='Enter')sendMsg()">
     <button onclick="sendMsg()">➤</button>
   </div>
 </div>
@@ -170,51 +355,109 @@ a{color:#7cb7ff;text-decoration:none}
 // ===== Data =====
 const DATA = {{DATA}};
 let filteredData = [...DATA];
+let currentLang = 'zh';
+
+// ===== i18n =====
+const I18N = {
+  zh: {
+    title:'Movie Database',subtitle:'Scrape Center SSR1 — 100 部經典電影',
+    total_movies:'總電影數',avg_score:'平均評分',total_cats:'類別數',total_countries:'國家/地區',
+    search_placeholder:'搜尋電影名稱...',all_categories:'全部類別',all_countries:'全部國家',
+    sort_default:'預設排序',sort_score_desc:'評分高→低',sort_score_asc:'評分低→高',sort_name:'名稱 A→Z',
+    category_chart:'類別分布',count_info:'顯示 {0} / {1} 部電影',no_result:'沒有符合的電影',
+    modal_detail:'查看原始頁面',unknown_date:'上映日未知',
+    chat_title:'🎬 電影小幫手',chat_welcome:'嗨！我可以幫你查詢電影資料 👋<br>試試下方快捷鍵或直接輸入關鍵字～',
+    chat_placeholder:'輸入關鍵字...',
+    quick_top:'🏆 評分最高',quick_anime:'🎨 動畫',quick_japan:'🗾 日本電影',
+    quick_stats:'📊 統計數據',quick_longest:'⏱ 片長最長',quick_years:'📅 年份分布',
+    mode_gemini:'| ✨ Gemini',mode_keyword:'| 🔍 關鍵字',
+    kw_top:'🏆 評分最高 Top 5:',kw_top8:'🎨 動畫類電影，共 {0} 部:',kw_more:'...還有 {0} 部',
+    kw_japan:'🗾 日本電影，共 {0} 部:',kw_korea:'🇰🇷 韓國電影，共 {0} 部:',kw_usa:'🇺🇸 美國電影，共 {0} 部:',
+    kw_longest:'⏱ 片長最長 Top 5:',kw_shortest:'⏱ 片長最短 Top 5:',
+    kw_years:'📅 年份分布:',kw_cats:'📂 類別分布:',kw_cat:'📌 {0}類電影，共 {1} 部:',
+    kw_stats:'📊 電影資料庫統計:\n  總電影: {0} 部\n  平均分: {1}\n  最高分: {2}\n  最低分: {3}\n  類別: {4} 種\n  國家: {5} 個',
+    kw_detail:'🎬 {0} ({1})\n  評分: {2} | {3}\n  國家: {4}\n  類別: {5}\n  上映: {6}',
+    kw_found:'🔍 找到 {0} 部:',kw_notfound:'😅 找不到相關電影，請換個關鍵字試試～',
+    kw_thinking:'思考中...',
+  },
+  en: {
+    title:'Movie Database',subtitle:'Scrape Center SSR1 — 100 Classic Movies',
+    total_movies:'Total Movies',avg_score:'Avg Score',total_cats:'Categories',total_countries:'Countries',
+    search_placeholder:'Search movies...',all_categories:'All Categories',all_countries:'All Countries',
+    sort_default:'Default',sort_score_desc:'Score High→Low',sort_score_asc:'Score Low→High',sort_name:'Name A→Z',
+    category_chart:'Category Distribution',count_info:'Showing {0} / {1} movies',no_result:'No movies found',
+    modal_detail:'View Original Page',unknown_date:'Release date unknown',
+    chat_title:'🎬 Movie Helper',chat_welcome:'Hi! I can help you find movies 👋<br>Try the buttons below or ask me anything~',
+    chat_placeholder:'Type a keyword...',
+    quick_top:'🏆 Top Rated',quick_anime:'🎨 Anime',quick_japan:'🗾 Japanese',
+    quick_stats:'📊 Stats',quick_longest:'⏱ Longest',quick_years:'📅 By Year',
+    mode_gemini:'| ✨ Gemini',mode_keyword:'| 🔍 Keyword',
+    kw_top:'🏆 Top 5 Rated:',kw_top8:'🎨 Anime Movies ({0}):',kw_more:'...and {0} more',
+    kw_japan:'🗾 Japanese Movies ({0}):',kw_korea:'🇰🇷 Korean Movies ({0}):',kw_usa:'🇺🇸 American Movies ({0}):',
+    kw_longest:'⏱ Longest 5:',kw_shortest:'⏱ Shortest 5:',
+    kw_years:'📅 By Decade:',kw_cats:'📂 Categories:',kw_cat:'📌 {0} Movies ({1}):',
+    kw_stats:'📊 Database Stats:\n  Total: {0}\n  Avg Score: {1}\n  Highest: {2}\n  Lowest: {3}\n  Categories: {4}\n  Countries: {5}',
+    kw_detail:'🎬 {0} ({1})\n  Score: {2} | {3}\n  Country: {4}\n  Categories: {5}\n  Released: {6}',
+    kw_found:'🔍 Found {0}:',kw_notfound:'😅 No movies found. Try another keyword~',
+    kw_thinking:'Thinking...',
+  }
+};
+
+function t(key, ...args) {
+  let s = (I18N[currentLang] && I18N[currentLang][key]) || I18N['zh'][key] || key;
+  args.forEach((a,i) => { s = s.replace(`{${i}}`, a); });
+  return s;
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-toggle button').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.lang-toggle button[onclick="setLang('${lang}')"]`)?.classList.add('active');
+  applyI18n();
+  updateStats();
+  updateChart();
+  render();
+  // 更新聊天歡迎訊息
+  const welcome = document.querySelector('#chatMessages .chat-msg.bot');
+  if (welcome) welcome.innerHTML = t('chat_welcome');
+}
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (key) el.textContent = t(key);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (key) el.placeholder = t(key);
+  });
+}
 
 // ===== Init =====
-function init() {
-  // Stats
-  const total = DATA.length;
-  const scores = DATA.map(m => m.score);
-  const avg = (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(2);
-  const allCats = new Set();
-  const allCountries = new Set();
-  DATA.forEach(m => {
-    m.categories.split('、').filter(Boolean).forEach(c => allCats.add(c));
-    m.country.split('、').filter(Boolean).forEach(c => allCountries.add(c.trim()));
-  });
-
+let statsCache = null;
+function updateStats() {
+  if (!statsCache) {
+    const scores = DATA.map(m => m.score);
+    statsCache = {
+      total: DATA.length,
+      avg: (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(2),
+      cats: new Set(DATA.flatMap(m => m.categories.split('、').filter(Boolean))),
+      countries: new Set(DATA.flatMap(m => m.country.split('、').map(s=>s.trim()))),
+    };
+  }
+  const s = statsCache;
   document.getElementById('statsBar').innerHTML = `
-    <div class="stat-item"><div class="num">${total}</div><div class="label">總電影數</div></div>
-    <div class="stat-item"><div class="num">${avg}</div><div class="label">平均評分</div></div>
-    <div class="stat-item"><div class="num">${allCats.size}</div><div class="label">類別數</div></div>
-    <div class="stat-item"><div class="num">${allCountries.size}</div><div class="label">國家/地區</div></div>
+    <div class="stat-item"><div class="num">${s.total}</div><div class="label">${t('total_movies')}</div></div>
+    <div class="stat-item"><div class="num">${s.avg}</div><div class="label">${t('avg_score')}</div></div>
+    <div class="stat-item"><div class="num">${s.cats.size}</div><div class="label">${t('total_cats')}</div></div>
+    <div class="stat-item"><div class="num">${s.countries.size}</div><div class="label">${t('total_countries')}</div></div>
   `;
+}
 
-  // Category filter
-  const catSel = document.getElementById('categoryFilter');
-  [...allCats].sort().forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c; opt.textContent = c;
-    catSel.appendChild(opt);
-  });
-
-  // Country filter
-  const ctrySel = document.getElementById('countryFilter');
-  [...allCountries].sort().forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c; opt.textContent = c;
-    ctrySel.appendChild(opt);
-  });
-
-  // Chart
-  const catCount = {};
-  DATA.forEach(m => {
-    m.categories.split('、').filter(Boolean).forEach(c => {
-      catCount[c] = (catCount[c]||0) + 1;
-    });
-  });
-  const sorted = Object.entries(catCount).sort((a,b) => b[1] - a[1]);
+function updateChart() {
+  const cats = {};
+  DATA.forEach(m => m.categories.split('、').filter(Boolean).forEach(c => { cats[c] = (cats[c]||0) + 1; }));
+  const sorted = Object.entries(cats).sort((a,b) => b[1] - a[1]);
   const maxCnt = sorted[0]?.[1] || 1;
   document.getElementById('categoryChart').innerHTML = sorted.map(([name,cnt]) => `
     <div class="chart-bar">
@@ -223,7 +466,27 @@ function init() {
       <span class="count">${cnt}</span>
     </div>
   `).join('');
+}
 
+function init() {
+  updateStats();
+
+  // Filters
+  const catSel = document.getElementById('categoryFilter');
+  [...statsCache.cats].sort().forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    catSel.appendChild(opt);
+  });
+  const ctrySel = document.getElementById('countryFilter');
+  [...statsCache.countries].sort().forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    ctrySel.appendChild(opt);
+  });
+
+  updateChart();
+  applyI18n();
   render();
 }
 
@@ -252,16 +515,18 @@ function applyFilters() {
 function render() {
   applyFilters();
   const grid = document.getElementById('grid');
-  document.getElementById('countInfo').textContent = `顯示 ${filteredData.length} / ${DATA.length} 部電影`;
+  document.getElementById('countInfo').textContent = t('count_info', filteredData.length, DATA.length);
 
   if (!filteredData.length) {
-    grid.innerHTML = '<div class="no-result">沒有符合的電影</div>';
+    grid.innerHTML = `<div class="no-result">${t('no_result')}</div>`;
     return;
   }
 
   grid.innerHTML = filteredData.map(m => {
     const cats = m.categories.split('、').filter(Boolean).map(c => `<span>${c}</span>`).join('');
     const poster = m.poster_file ? `posters/${m.poster_file}` : m.cover_url;
+    const dateText = m.release_date || t('unknown_date');
+    const scoreUnit = currentLang === 'en' ? '' : ' 分';
     return `
     <div class="card" onclick="openModal(${m.id})">
       <img class="card-img" src="${poster}" alt="${m.name_cn}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22300%22><rect fill=%22%231a1a2e%22 width=%22200%22 height=%22300%22/><text fill=%22%238892b0%22 x=%22100%22 y=%22150%22 text-anchor=%22middle%22 font-size=%2214%22>No Image</text></svg>'">
@@ -269,9 +534,9 @@ function render() {
         <div class="card-title">${m.name_cn}</div>
         <div class="card-en">${m.name_en}</div>
         <div class="card-cats">${cats}</div>
-        <div class="card-meta">${m.duration} | ${m.release_date || '上映日未知'}</div>
+        <div class="card-meta">${m.duration} | ${dateText}</div>
         <div class="card-footer">
-          <div class="card-score">${m.score}<small> 分</small></div>
+          <div class="card-score">${m.score}<small>${scoreUnit}</small></div>
           <div class="card-country">${m.country}</div>
         </div>
       </div>
@@ -285,6 +550,9 @@ function openModal(id) {
   if (!m) return;
   const cats = m.categories.split('、').filter(Boolean).map(c => `<span>${c}</span>`).join(' ');
   const poster = m.poster_file ? `posters/${m.poster_file}` : m.cover_url;
+  const labels = currentLang === 'en'
+    ? { category:'Category', country:'Country', duration:'Duration', release:'Release' }
+    : { category:'類別', country:'國家', duration:'片長', release:'上映' };
   document.getElementById('modal').innerHTML = `
     <div class="modal-header">
       <img src="${poster}" alt="${m.name_cn}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22700%22 height=%22400%22><rect fill=%22%231a1a2e%22 width=%22700%22 height=%22400%22/></svg>'">
@@ -294,12 +562,12 @@ function openModal(id) {
       <h2>${m.name_cn} <small class="en-name">${m.name_en}</small></h2>
       <div class="score-big">${m.score}</div>
       <div class="info-row">
-        <div class="info-item"><strong>類別</strong> ${cats}</div>
-        <div class="info-item"><strong>國家</strong> ${m.country}</div>
-        <div class="info-item"><strong>片長</strong> ${m.duration}</div>
-        <div class="info-item"><strong>上映</strong> ${m.release_date || '-'}</div>
+        <div class="info-item"><strong>${labels.category}</strong> ${cats}</div>
+        <div class="info-item"><strong>${labels.country}</strong> ${m.country}</div>
+        <div class="info-item"><strong>${labels.duration}</strong> ${m.duration}</div>
+        <div class="info-item"><strong>${labels.release}</strong> ${m.release_date || '-'}</div>
       </div>
-      <a href="${m.detail_url}" target="_blank" style="display:inline-block;margin-top:12px;padding:8px 20px;background:#e94560;color:#fff;border-radius:8px;">查看原始頁面</a>
+      <a href="${m.detail_url}" target="_blank" style="display:inline-block;margin-top:12px;padding:8px 20px;background:#e94560;color:#fff;border-radius:8px;">${t('modal_detail')}</a>
     </div>
   `;
   document.getElementById('modalOverlay').classList.add('active');
@@ -314,6 +582,187 @@ function closeModal(e) {
 
 // ===== Start =====
 init();
+
+// ===== Chat Bot =====
+let chatMode = 'keyword';
+let userApiKey = localStorage.getItem('gemini_api_key') || '';
+const modeEl = document.getElementById('chatMode');
+
+function setMode(mode) {
+  chatMode = mode;
+  const robot = document.getElementById('robotBody');
+  if (mode === 'gemini') {
+    modeEl.textContent = t('mode_gemini');
+    robot.classList.add('evolved');
+  } else {
+    modeEl.textContent = t('mode_keyword');
+    robot.classList.remove('evolved');
+  }
+}
+
+function updateApiKeyUI() {
+  const btn = document.querySelector('.apikey-toggle');
+  const input = document.getElementById('apikeyInput');
+  if (userApiKey) {
+    btn.classList.add('active');
+    input.value = userApiKey.slice(0,8) + '...';
+  } else {
+    btn.classList.remove('active');
+    input.value = '';
+  }
+}
+
+function toggleApiKey() {
+  const form = document.getElementById('apikeyForm');
+  form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+  if (form.style.display === 'flex') document.getElementById('apikeyInput').focus();
+}
+
+function saveApiKey() {
+  const val = document.getElementById('apikeyInput').value.trim();
+  if (!val) return;
+  userApiKey = val;
+  localStorage.setItem('gemini_api_key', val);
+  updateApiKeyUI();
+  document.getElementById('apikeyForm').style.display = 'none';
+  detectMode();
+}
+
+function clearApiKey() {
+  userApiKey = '';
+  localStorage.removeItem('gemini_api_key');
+  updateApiKeyUI();
+  document.getElementById('apikeyForm').style.display = 'none';
+  setMode('keyword');
+}
+
+async function detectMode() {
+  if (!userApiKey) { setMode('keyword'); return; }
+  try {
+    const resp = await fetch('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'ping', api_key: userApiKey }),
+    });
+    if (resp.ok) setMode('gemini');
+    else setMode('keyword');
+  } catch (e) { setMode('keyword'); }
+}
+updateApiKeyUI();
+detectMode();
+
+function toggleChat() {
+  document.getElementById('chatPanel').classList.toggle('open');
+}
+
+function addMsg(text, type) {
+  const div = document.getElementById('chatMessages');
+  const msg = document.createElement('div');
+  msg.className = `chat-msg ${type}`;
+  msg.textContent = text;
+  div.appendChild(msg);
+  div.scrollTop = div.scrollHeight;
+}
+
+function sendMsg() {
+  const input = document.getElementById('chatInput');
+  const q = input.value.trim();
+  if (!q) return;
+  addMsg(q, 'user');
+  input.value = '';
+  processQuery(q);
+}
+
+function askQuick(q) { addMsg(q, 'user'); processQuery(q); }
+
+async function processQuery(q) {
+  const loading = addMsg(t('kw_thinking'), 'bot');
+  try {
+    const resp = await fetch('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: q, api_key: userApiKey }),
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      document.getElementById('chatMessages').removeChild(loading);
+      addMsg(data.reply, 'bot');
+      setMode('gemini');
+      return;
+    }
+    if (resp.status === 503) {
+      document.getElementById('chatMessages').removeChild(loading);
+      setMode('keyword');
+      processKeyword(q);
+      return;
+    }
+  } catch (e) {}
+  document.getElementById('chatMessages').removeChild(loading);
+  setMode('keyword');
+  processKeyword(q);
+}
+
+function processKeyword(q) {
+  q = q.toLowerCase();
+  let result = '';
+  const scores = DATA.map(m => m.score).sort((a,b) => b-a);
+  const durations = DATA.map(m => parseInt(m.duration) || 0);
+  const years = DATA.map(m => {const m2=m.release_date.match(/(\d{4})/);return m2?parseInt(m2[1]):null;}).filter(Boolean);
+  const allCats = [...new Set(DATA.flatMap(m => m.categories.split('、').filter(Boolean)))];
+
+  if (q.includes('最高') || q.includes('top') || q.includes('best')) {
+    const top5 = DATA.sort((a,b) => b.score - a.score).slice(0,5);
+    result = t('kw_top') + '\n' + top5.map(m => `  ${m.score} — ${m.name_cn} (${m.name_en})`).join('\n');
+  } else if (q.includes('動畫') || q.includes('动画') || q.includes('anime')) {
+    const list = DATA.filter(m => m.categories.includes('动画') || m.categories.includes('動畫')).sort((a,b)=>b.score-a.score);
+    result = t('kw_top8', list.length) + '\n' + list.slice(0,8).map(m => `  ${m.score} — ${m.name_cn}`).join('\n');
+    if (list.length>8) result += '\n  ' + t('kw_more', list.length-8);
+  } else if (q.includes('日本') || q.includes('japan')) {
+    const list = DATA.filter(m => m.country.includes('日本')).sort((a,b)=>b.score-a.score);
+    result = t('kw_japan', list.length) + '\n' + list.slice(0,8).map(m => `  ${m.score} — ${m.name_cn}`).join('\n');
+  } else if (q.includes('韓國') || q.includes('韩国') || q.includes('korea')) {
+    const list = DATA.filter(m => m.country.includes('韓')||m.country.includes('韩')).sort((a,b)=>b.score-a.score);
+    result = t('kw_korea', list.length) + '\n' + list.slice(0,8).map(m => `  ${m.score} — ${m.name_cn}`).join('\n');
+  } else if (q.includes('美國') || q.includes('美国') || q.includes('america')) {
+    const list = DATA.filter(m => m.country.includes('美')).sort((a,b)=>b.score-a.score);
+    result = t('kw_usa', list.length) + '\n' + list.slice(0,8).map(m => `  ${m.score} — ${m.name_cn}`).join('\n');
+  } else if (q.includes('最長') || q.includes('最長片長') || q.includes('longest')) {
+    const top5 = [...DATA].sort((a,b) => (parseInt(b.duration)||0) - (parseInt(a.duration)||0)).slice(0,5);
+    result = t('kw_longest') + '\n' + top5.map(m => `  ${m.duration} — ${m.name_cn}`).join('\n');
+  } else if (q.includes('最短') || q.includes('shortest')) {
+    const top5 = [...DATA].sort((a,b) => (parseInt(a.duration)||999) - (parseInt(b.duration)||999)).slice(0,5);
+    result = t('kw_shortest') + '\n' + top5.map(m => `  ${m.duration} — ${m.name_cn}`).join('\n');
+  } else if (q.includes('年份') || q.includes('年代') || q.includes('year') || q.includes('decade')) {
+    const decades = {};
+    years.forEach(y => { const d = Math.floor(y/10)*10; decades[d+'s'] = (decades[d+'s']||0)+1; });
+    result = t('kw_years') + '\n' + Object.entries(decades).sort().map(([k,v])=>`  ${k}: ${v}`).join('\n');
+  } else if (q.includes('統計') || q.includes('stats') || q.includes('stat')) {
+    const countries = [...new Set(DATA.flatMap(m=>m.country.split('、').map(s=>s.trim())))];
+    result = t('kw_stats', DATA.length, (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(2), Math.max(...scores), Math.min(...scores), allCats.length, countries.length);
+  } else if (q.includes('類別') || q.includes('类別') || q.includes('類型') || q.includes('categor')) {
+    const cats = {};
+    DATA.forEach(m => m.categories.split('、').filter(Boolean).forEach(c=>{cats[c]=(cats[c]||0)+1;}));
+    result = t('kw_cats') + '\n' + Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`  ${k}: ${v}`).join('\n');
+  } else if (allCats.some(c => q.includes(c))) {
+    const cat = allCats.find(c => q.includes(c));
+    const list = DATA.filter(m => m.categories.includes(cat)).sort((a,b)=>b.score-a.score);
+    result = t('kw_cat', cat, list.length) + '\n' + list.slice(0,8).map(m => `  ${m.score} — ${m.name_cn}`).join('\n');
+  } else {
+    const matches = DATA.filter(m => m.name_cn.includes(q) || m.name_en.toLowerCase().includes(q) || m.country.includes(q));
+    if (matches.length > 0) {
+      if (matches.length === 1) {
+        const m = matches[0];
+        result = t('kw_detail', m.name_cn, m.name_en, m.score, m.duration, m.country, m.categories, m.release_date || '-');
+      } else {
+        result = t('kw_found', matches.length) + '\n' + matches.slice(0,6).map(m => `  ${m.score} — ${m.name_cn}`).join('\n');
+        if (matches.length>6) result += '\n  ' + t('kw_more', matches.length-6);
+      }
+    } else {
+      result = t('kw_notfound');
+    }
+  }
+  setTimeout(() => addMsg(result, 'bot'), 300);
+}
 </script>
 </body>
 </html>

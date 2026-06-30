@@ -1,14 +1,24 @@
 import sqlite3
 import os
 import json
+from dotenv import load_dotenv
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+
+load_dotenv()
+# 同時也讀取 123.env（若存在）
+if os.path.exists("123.env"):
+    load_dotenv("123.env", override=True)
 
 app = FastAPI(title="電影資料庫 API", version="1.0")
 
 DB = "movies.db"
 POSTER_DIR = "posters"
+
+# Gemini API Key（放在 .env 檔案中）
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 # 掛載海報靜態目錄
 if os.path.isdir(POSTER_DIR):
@@ -159,9 +169,75 @@ def stats():
     }
 
 
+class ChatRequest(BaseModel):
+    message: str
+    api_key: str = ""
+
+
+@app.post("/chat")
+def chat(req: ChatRequest):
+    """使用 Gemini 回答電影問題（支援用戶自帶 API Key）"""
+    key = req.api_key or GEMINI_API_KEY
+    if not key:
+        raise HTTPException(status_code=503, detail="尚未設定 GEMINI_API_KEY")
+
+    from google import genai
+
+    client = genai.Client(api_key=key)
+
+    with open("movies.json", "r", encoding="utf-8") as f:
+        movies = json.load(f)
+
+    # 只傳送相關電影摘要，減少 token 消耗
+    total = len(movies)
+    scores = [float(m["score"]) for m in movies]
+    cats_count = {}
+    country_count = {}
+    top5 = sorted(movies, key=lambda m: float(m["score"]), reverse=True)[:5]
+    top5_str = "\n".join(
+        f"{m['id']}.{m['name_cn']}({m['name_en']}) {m['score']}分"
+        for m in top5
+    )
+    for m in movies:
+        c = m.get("categories", [])
+        clist = c if isinstance(c, list) else c.split("、")
+        for cat in clist:
+            cats_count[cat] = cats_count.get(cat, 0) + 1
+        for p in m["country"].split("、"):
+            p = p.strip()
+            if p:
+                country_count[p] = country_count.get(p, 0) + 1
+
+    # 傳送給 Gemini 的精簡摘要
+    context = f"""電影資料庫摘要（共 {total} 部）：
+
+評分: 最高 {max(scores)} / 最低 {min(scores)} / 平均 {sum(scores)/len(scores):.1f}
+
+TOP 5:
+{top5_str}
+
+類別 TOP 10: {", ".join(f"{k}({v})" for k,v in sorted(cats_count.items(), key=lambda x:-x[1])[:10])}
+
+國家 TOP 10: {", ".join(f"{k}({v})" for k,v in sorted(country_count.items(), key=lambda x:-x[1])[:10])}
+
+完整電影清單請參考頁面上的卡片網格。"""
+
+    prompt = f"""你是電影資料庫助手。以下是你知道的電影資料。用繁體中文簡潔回答，50字以內。
+
+{context}
+
+問題：{req.message}"""
+
+    try:
+        resp = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
+        return {"reply": resp.text}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
     print("\n  電影資料庫 API 啟動中...")
-    print("  網頁介面:     http://localhost:8080/")
-    print("  Swagger 文件: http://localhost:8080/docs")
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    print("  網頁介面:     http://localhost:5173/")
+    print("  Swagger 文件: http://localhost:5173/docs")
+    uvicorn.run(app, host="0.0.0.0", port=5173)

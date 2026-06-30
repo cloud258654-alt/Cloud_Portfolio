@@ -6,100 +6,242 @@
 <title>電影資料庫 | Movie Database</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI','微軟正黑體',Arial,sans-serif;background:#0f0f1a;color:#e0e0e0;min-height:100vh}
-a{color:#7cb7ff;text-decoration:none}
+
+/* 手繪素描濾鏡 */
+@font-face{font-family:'Sketch';src:local('Comic Sans MS'),local('微軟正黑體'),local('Segoe UI')}
+body{font-family:'Comic Sans MS','微軟正黑體','Segoe UI',sans-serif;background:#fffdf7;color:#555;min-height:100vh;background-image:radial-gradient(circle,#e8e0d0 1px,transparent 1px);background-size:30px 30px}
+a{color:#ff6b9d;text-decoration:none;font-weight:700}
+
+/* SVG 手繪濾鏡 */
+.sketch{filter:url(#sketchFilter)}
 
 /* ===== Hero ===== */
-.hero{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);padding:40px 20px;text-align:center;border-bottom:2px solid #e94560}
-.hero h1{font-size:2rem;margin-bottom:8px;color:#e94560}
-.hero p{color:#8892b0;font-size:.95rem}
-.stats-bar{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin-top:20px}
-.stat-item{background:rgba(255,255,255,.06);border-radius:12px;padding:16px 24px;min-width:100px}
-.stat-item .num{font-size:1.6rem;font-weight:700;color:#e94560}
-.stat-item .label{font-size:.75rem;color:#8892b0;margin-top:4px}
+.hero{background:linear-gradient(135deg,#ffe0e8 0%,#e8d5f5 30%,#d5eaf8 60%,#fff9d5 100%);padding:48px 20px;text-align:center;border-bottom:5px solid #333;position:relative;overflow:hidden;border-radius:0 0 50% 20% / 0 0 30px 20px}
+.hero::before{content:'';position:absolute;top:-40px;left:-30px;width:100px;height:100px;background:rgba(255,107,157,.12);border-radius:63% 37% 54% 46% / 47% 58% 42% 53%;border:3px solid #ff6b9d;opacity:.4}
+.hero::after{content:'';position:absolute;bottom:-20px;right:-20px;width:80px;height:80px;background:rgba(196,77,255,.1);border-radius:42% 58% 63% 37% / 54% 42% 58% 46%;border:3px solid #c44dff;opacity:.3}
+.hero h1{font-size:2.8rem;margin-bottom:6px;color:#ff6b9d;font-weight:900;letter-spacing:3px;text-shadow:3px 3px 0 #fff,4px 4px 0 #333,5px 5px 0 rgba(0,0,0,.1);transform:rotate(-1deg);-webkit-text-stroke:1px #333}
+.hero p{color:#555;font-size:1.05rem;font-weight:700;letter-spacing:1px;text-shadow:1px 1px 0 #fff}
+.stats-bar{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:24px}
+.stat-item{background:#fff;border-radius:30% 70% 70% 30% / 30% 30% 70% 70%;padding:18px 28px;min-width:110px;border:3px solid #333;box-shadow:4px 4px 0 #333,6px 6px 0 rgba(0,0,0,.06);transition:all .2s;transform:rotate(var(--r,0deg))}
+.stat-item:hover{transform:translateY(-3px) rotate(var(--r,0deg))}
+.stat-item:nth-child(1){--r:-2deg}.stat-item:nth-child(2){--r:1deg}.stat-item:nth-child(3){--r:-1deg}.stat-item:nth-child(4){--r:2deg}
+.stat-item .num{font-size:2rem;font-weight:800;color:#ff6b9d}
+.stat-item .label{font-size:.8rem;color:#888;margin-top:4px;font-weight:600}
+
+/* ===== Language Toggle ===== */
+.lang-toggle{position:absolute;top:16px;right:20px;display:flex;gap:4px;z-index:10}
+.lang-toggle button{background:#fff;border:2px solid #333;color:#555;padding:5px 12px;border-radius:10px 16px 8px 14px;cursor:pointer;font-size:.75rem;font-weight:700;font-family:inherit;box-shadow:2px 2px 0 #ddd;transition:all .2s}
+.lang-toggle button.active{background:#ffd93d;color:#333;box-shadow:2px 2px 0 #333}
+.lang-toggle button:hover{transform:rotate(-1deg) scale(1.05)}
 
 /* ===== Toolbar ===== */
 .toolbar{max-width:1320px;margin:0 auto;padding:20px 20px 0;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.toolbar input,.toolbar select{background:#1a1a2e;border:1px solid #2a2a4a;color:#e0e0e0;padding:10px 14px;border-radius:8px;font-size:.9rem;outline:none}
-.toolbar input:focus,.toolbar select:focus{border-color:#e94560}
+.toolbar input,.toolbar select{background:#fff;border:3px solid #333;color:#555;padding:10px 16px;border-radius:12px 24px 8px 20px;font-size:.9rem;outline:none;font-family:inherit;box-shadow:3px 3px 0 #e0e0e0;transition:all .2s}
+.toolbar input:focus,.toolbar select:focus{border-color:#ff6b9d;box-shadow:3px 3px 0 #ffd0e0}
 .toolbar input{flex:1;min-width:200px}
-.toolbar select{min-width:120px;cursor:pointer}
-.toolbar select option{background:#1a1a2e}
+.toolbar select{min-width:130px;cursor:pointer;border-radius:20px 8px 24px 12px}
+.toolbar select option{background:#fff}
 
 /* ===== Grid ===== */
 .container{max-width:1320px;margin:0 auto;padding:20px}
-.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:18px}
 @media(max-width:1200px){.grid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:540px){.grid{grid-template-columns:1fr}}
 
 /* ===== Card ===== */
-.card{background:#1a1a2e;border-radius:12px;overflow:hidden;transition:transform .2s,box-shadow .2s;border:1px solid #2a2a4a;cursor:pointer}
-.card:hover{transform:translateY(-4px);box-shadow:0 8px 30px rgba(233,69,96,.15);border-color:#e94560}
-.card-img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;background:#0f0f1a}
-.card-body{padding:12px}
-.card-title{font-size:.95rem;font-weight:600;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card-en{font-size:.75rem;color:#8892b0;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card-meta{font-size:.7rem;color:#8892b0;line-height:1.5}
+.card{background:#fff;border-radius:20px 28px 18px 26px;overflow:hidden;transition:all .3s cubic-bezier(.34,1.56,.64,1);border:3px solid #333;cursor:pointer;box-shadow:5px 5px 0 #333,7px 7px 0 rgba(0,0,0,.04)}
+.card:hover{transform:translateY(-5px) rotate(-1deg) scale(1.03);box-shadow:7px 7px 0 #ff6b9d,10px 10px 0 rgba(255,107,157,.15);border-color:#ff6b9d}
+.card:nth-child(odd){border-radius:22px 18px 26px 20px}
+.card:nth-child(3n){border-radius:18px 24px 20px 28px}
+.card:nth-child(5n){transform:rotate(.5deg)}
+.card:nth-child(5n):hover{transform:translateY(-5px) rotate(-.5deg) scale(1.03)}
+.card:nth-child(7n){transform:rotate(-.3deg)}
+.card:nth-child(7n):hover{transform:translateY(-5px) rotate(.3deg) scale(1.03)}
+.card-img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;background:#ffe8d5}
+.card-body{padding:14px}
+.card-title{font-size:.95rem;font-weight:700;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#444}
+.card-en{font-size:.72rem;color:#aaa;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-meta{font-size:.7rem;color:#aaa;line-height:1.5}
 .card-cats{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
-.card-cats span{background:rgba(233,69,96,.2);color:#e94560;padding:2px 6px;border-radius:4px;font-size:.65rem}
-.card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid #2a2a4a}
-.card-score{font-size:1.4rem;font-weight:700;color:#e94560}
-.card-score small{font-size:.7rem;color:#8892b0}
-.card-country{font-size:.68rem;color:#8892b0;max-width:60%;text-align:right}
+.card-cats span{background:#ffe0e8;color:#ff6b9d;padding:3px 9px;border-radius:4px 10px 4px 10px;font-size:.65rem;font-weight:600;border:2px solid #ff6b9d}
+.card-cats span:nth-child(2n){background:#e0f0ff;color:#4dc9f6;border-color:#4dc9f6}
+.card-cats span:nth-child(3n){background:#f0e0ff;color:#c44dff;border-color:#c44dff}
+.card-cats span:nth-child(4n){background:#fff9d5;color:#e8b800;border-color:#e8b800;border-radius:10px 4px 10px 4px}
+.card-cats span:nth-child(5n){background:#e0ffe8;color:#4ade80;border-color:#4ade80}
+.card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:3px dotted #e0e0e0}
+.card-score{font-size:1.6rem;font-weight:800;color:#ff6b9d;text-shadow:2px 2px 0 rgba(0,0,0,.05)}
+.card-score small{font-size:.7rem;color:#bbb;font-weight:400}
+.card-country{font-size:.68rem;color:#aaa;max-width:60%;text-align:right}
 
 /* ===== Modal ===== */
-.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:999;justify-content:center;align-items:center;padding:20px}
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:999;justify-content:center;align-items:center;padding:20px}
 .modal-overlay.active{display:flex}
-.modal{background:#1a1a2e;border-radius:16px;max-width:700px;width:100%;max-height:90vh;overflow-y:auto;border:1px solid #2a2a4a}
+.modal{background:#fff;border-radius:28px 32px 24px 30px;max-width:700px;width:100%;max-height:90vh;overflow-y:auto;border:4px solid #333;box-shadow:8px 8px 0 #333,12px 12px 0 rgba(0,0,0,.06)}
 .modal-header{position:relative}
-.modal-header img{width:100%;max-height:400px;object-fit:cover;border-radius:16px 16px 0 0}
-.modal-close{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.6);color:#fff;border:none;width:36px;height:36px;border-radius:50%;font-size:1.2rem;cursor:pointer;line-height:36px;text-align:center}
-.modal-body{padding:24px}
-.modal-body h2{font-size:1.5rem;margin-bottom:4px}
-.modal-body .en-name{color:#8892b0;margin-bottom:16px}
-.modal-body .score-big{font-size:3rem;font-weight:700;color:#e94560}
+.modal-header img{width:100%;max-height:400px;object-fit:cover;border-radius:24px 28px 0 0}
+.modal-close{position:absolute;top:12px;right:12px;background:#fff;color:#333;border:3px solid #333;width:44px;height:44px;border-radius:60% 40% 50% 50% / 40% 60% 50% 50%;font-size:1.3rem;cursor:pointer;font-weight:700;box-shadow:3px 3px 0 #333;transition:transform .2s}
+.modal-close:hover{transform:scale(1.1) rotate(10deg)}
+.modal-body{padding:28px;color:#555}
+.modal-body h2{font-size:1.6rem;margin-bottom:4px;color:#444;text-shadow:2px 2px 0 rgba(255,107,157,.2)}
+.modal-body .en-name{color:#bbb;margin-bottom:16px}
+.modal-body .score-big{font-size:3.5rem;font-weight:800;color:#ff6b9d;text-shadow:3px 3px 0 #ffe0e8}
 .modal-body .info-row{display:flex;gap:24px;flex-wrap:wrap;margin:16px 0}
-.modal-body .info-item{color:#8892b0;font-size:.85rem}
-.modal-body .info-item strong{color:#e0e0e0;display:block}
+.modal-body .info-item{color:#999;font-size:.85rem}
+.modal-body .info-item strong{color:#666;display:block;font-size:.75rem;text-transform:uppercase}
 
 /* ===== Chart ===== */
 .chart-section{max-width:1320px;margin:0 auto;padding:0 20px 40px}
-.chart-section h2{font-size:1.2rem;color:#e94560;margin-bottom:16px}
-.chart-bar{margin-bottom:8px;display:flex;align-items:center;gap:10px}
-.chart-bar .label{width:50px;text-align:right;font-size:.78rem;color:#8892b0;flex-shrink:0}
-.chart-bar .track{flex:1;background:#2a2a4a;border-radius:4px;height:22px;overflow:hidden}
-.chart-bar .fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#e94560,#533483);transition:width .5s}
-.chart-bar .count{width:36px;font-size:.75rem;color:#8892b0;flex-shrink:0}
+.chart-section h2{font-size:1.3rem;color:#c44dff;margin-bottom:16px;text-shadow:2px 2px 0 rgba(196,77,255,.15)}
+.chart-bar{margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.chart-bar .label{width:50px;text-align:right;font-size:.78rem;color:#999;flex-shrink:0;font-weight:600}
+.chart-bar .track{flex:1;background:#f5f5f5;border-radius:6px 14px 10px 8px;height:28px;overflow:hidden;border:2px solid #e0e0e0;box-shadow:inset 2px 2px 4px rgba(0,0,0,.04)}
+.chart-bar .fill{height:100%;border-radius:4px 12px 8px 6px;background:linear-gradient(90deg,#ff6b9d,#ffd93d 40%,#4dc9f6 70%,#c44dff);transition:width .5s}
+.chart-bar .count{width:36px;font-size:.75rem;color:#999;flex-shrink:0;font-weight:600}
 
 /* ===== Footer ===== */
-.no-result{text-align:center;padding:60px;color:#8892b0;grid-column:1/-1}
-.count-info{text-align:center;padding:8px;color:#8892b0;font-size:.8rem}
+.no-result{text-align:center;padding:60px;color:#bbb;grid-column:1/-1;font-size:1.1rem}
+.count-info{text-align:center;padding:8px;color:#bbb;font-size:.85rem}
+
+/* ===== Robot ===== */
+.robot-wrap{position:fixed;bottom:16px;right:16px;cursor:pointer;z-index:998;width:130px;height:190px;transition:transform .3s cubic-bezier(.34,1.56,.64,1);animation:robotFloat 3s ease-in-out infinite}
+.robot-wrap:hover{transform:scale(1.1)}
+.robot-wrap:hover .pupil,.robot-wrap:hover .evo-eye{transform:translate(2px,-2px)}
+.robot-wrap:hover .robot-mouth{border-radius:50%;height:8px;width:10px}
+.robot-wrap:hover .evo-mouth-grill{height:6px;width:14px}
+@keyframes robotFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+.robot{position:relative;width:110px;height:170px;margin:0 auto}
+.robot-mode{position:absolute;top:0;left:0;width:100%;height:100%;transition:opacity .4s,transform .4s}
+.robot-mode.normal-mode{opacity:1;transform:scale(1)}
+.robot-mode.evolved-mode{opacity:0;transform:scale(.5) rotate(-15deg);pointer-events:none}
+.robot.evolved .normal-mode{opacity:0;transform:scale(.5) rotate(15deg);pointer-events:none}
+.robot.evolved .evolved-mode{opacity:1;transform:scale(1) rotate(0);pointer-events:auto}
+.robot.evolved .robot-wrap{animation:robotFloatEvo 2s ease-in-out infinite}
+@keyframes robotFloatEvo{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+
+.robot-shadow{width:80px;height:14px;background:rgba(0,0,0,.08);border-radius:50%;margin:0 auto;animation:shadowPulse 3s ease-in-out infinite;transition:all .4s}
+.robot.evolved~.robot-shadow{background:rgba(74,222,128,.3);width:95px}
+@keyframes shadowPulse{0%,100%{transform:scale(1);opacity:.08}50%{transform:scale(.7);opacity:.04}}
+
+/* --- Normal Mode --- */
+.robot-antenna{position:absolute;top:-22px;left:50%;transform:translateX(-50%);width:4px;height:22px;background:#333;border-radius:2px}
+.antenna-ball{position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:14px;height:14px;background:#ff6b9d;border:2px solid #333;border-radius:60% 40% 50% 50% / 50% 60% 40% 50%;animation:antennaGlow 1.5s ease-in-out infinite}
+@keyframes antennaGlow{0%,100%{background:#ff6b9d}50%{background:#ffd93d}}
+
+.robot-head{position:absolute;top:0;left:50%;transform:translateX(-50%);width:68px;height:58px;background:#fff;border:3px solid #333;border-radius:45% 55% 50% 50% / 50% 45% 55% 50%;box-shadow:inset 0 -4px 0 rgba(255,107,157,.1)}
+
+.robot-eye{position:absolute;top:16px;width:18px;height:20px;background:#fff;border:2px solid #333;border-radius:60% 40% 55% 45% / 50% 55% 45% 50%}
+.robot-eye.left{left:10px}.robot-eye.right{right:10px}
+.pupil{position:absolute;top:6px;left:5px;width:6px;height:7px;background:#333;border-radius:50%;transition:transform .2s}
+
+.robot-mouth{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);width:14px;height:5px;background:#333;border-radius:0 0 8px 8px;transition:all .3s}
+
+.robot-blush{position:absolute;top:26px;width:10px;height:6px;background:rgba(255,107,157,.35);border-radius:50%}
+.left-blush{left:4px}.right-blush{right:4px}
+
+.robot-body-box{position:absolute;top:60px;left:50%;transform:translateX(-50%);width:62px;height:52px;background:#fff;border:3px solid #333;border-radius:40% 60% 50% 50% / 45% 40% 60% 55%}
+.robot-heart{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:22px;color:#ff6b9d;animation:heartBeat 1.2s ease-in-out infinite;text-shadow:1px 1px 0 #333}
+@keyframes heartBeat{0%,100%{transform:translate(-50%,-50%) scale(1)}15%{transform:translate(-50%,-50%) scale(1.2)}30%{transform:translate(-50%,-50%) scale(1)}}
+
+.robot-arm{position:absolute;top:68px;width:8px;height:36px;background:#fff;border:2px solid #333;border-radius:4px;transform-origin:top center}
+.left-arm{left:0;border-radius:4px 6px 6px 12px;transform:rotate(15deg)}
+.right-arm{right:0;border-radius:6px 4px 12px 6px;transform:rotate(-15deg)}
+
+.robot-leg{position:absolute;top:112px;width:10px;height:30px;background:#fff;border:2px solid #333;border-radius:4px 4px 8px 8px}
+.left-leg{left:20px;transform:rotate(3deg)}.right-leg{right:20px;transform:rotate(-3deg)}
+
+/* --- Evolved Mode --- */
+.evo-antenna{position:absolute;top:-28px;left:50%;transform:translateX(-50%);width:3px;height:26px;background:#333;border-radius:2px}
+.evo-ant-ball{position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:16px;height:16px;background:#4ade80;border:2px solid #333;border-radius:40% 60% 55% 45%;animation:evoPulse .8s ease-in-out infinite;box-shadow:0 0 8px rgba(74,222,128,.6)}
+.evo-ant-spark{position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:4px;height:10px;background:#ffd93d;border-radius:2px;animation:spark .3s ease-in-out infinite}
+@keyframes evoPulse{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.3)}}
+@keyframes spark{0%,100%{opacity:1;top:-8px}50%{opacity:0;top:-14px}}
+
+.evo-head{position:absolute;top:0;left:50%;transform:translateX(-50%);width:74px;height:56px;background:linear-gradient(180deg,#374151,#1f2937);border:3px solid #333;border-radius:45% 50% 55% 48% / 48% 52% 50% 55%;box-shadow:inset 0 2px 0 rgba(74,222,128,.3)}
+.evo-visor{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:54px;height:16px;background:linear-gradient(180deg,rgba(74,222,128,.4),rgba(74,222,128,.15));border:2px solid #4ade80;border-radius:50%;box-shadow:0 0 6px rgba(74,222,128,.3)}
+.evo-eye{position:absolute;top:18px;width:14px;height:8px;background:#4ade80;border:2px solid #333;border-radius:50%;box-shadow:0 0 6px rgba(74,222,128,.8)}
+.left-evo{left:14px}.right-evo{right:14px}
+.evo-mouth-grill{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);width:16px;height:4px;background:#4ade80;border:2px solid #333;border-radius:2px;box-shadow:0 0 4px rgba(74,222,128,.5);transition:all .3s}
+
+.evo-body{position:absolute;top:58px;left:50%;transform:translateX(-50%);width:68px;height:50px;background:linear-gradient(180deg,#374151,#1f2937);border:3px solid #333;border-radius:35% 45% 50% 50% / 45% 40% 55% 50%}
+.evo-core{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:24px;height:24px;background:radial-gradient(circle,#4ade80,#166534);border:2px solid #333;border-radius:50%;animation:coreGlow 1.5s ease-in-out infinite;box-shadow:0 0 12px rgba(74,222,128,.6)}
+@keyframes coreGlow{0%,100%{box-shadow:0 0 8px rgba(74,222,128,.4)}50%{box-shadow:0 0 20px rgba(74,222,128,.9)}}
+.evo-armor{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:50px;height:14px;background:#4ade80;border:2px solid #333;border-radius:4px;opacity:.6}
+
+.evo-arm{position:absolute;top:66px;width:10px;height:38px;background:linear-gradient(180deg,#374151,#1f2937);border:2px solid #333;transform-origin:top center}
+.left-evo-arm{left:-2px;border-radius:4px 4px 6px 10px;transform:rotate(18deg)}
+.right-evo-arm{right:-2px;border-radius:4px 4px 10px 6px;transform:rotate(-18deg)}
+.evo-cannon{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:12px;height:16px;background:#4ade80;border:2px solid #333;border-radius:50% 50% 3px 3px;box-shadow:0 0 6px rgba(74,222,128,.5);animation:cannonFire 2s ease-in-out infinite}
+@keyframes cannonFire{0%,90%,100%{box-shadow:0 0 6px rgba(74,222,128,.5)}95%{box-shadow:0 0 16px rgba(255,217,61,.9),0 0 24px rgba(255,107,157,.5)}}
+.evo-shield{position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:18px;height:22px;background:#c44dff;border:2px solid #333;border-radius:6px;opacity:.8;box-shadow:0 0 6px rgba(196,77,255,.4)}
+
+.evo-leg{position:absolute;top:110px;width:12px;height:32px;background:linear-gradient(180deg,#374151,#1f2937);border:2px solid #333;border-radius:4px}
+.left-evo-leg{left:18px;transform:rotate(2deg)}.right-evo-leg{right:18px;transform:rotate(-2deg)}
+.evo-thruster{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:14px;height:10px;background:#ffd93d;border:2px solid #333;border-radius:3px;animation:thrust .6s ease-in-out infinite}
+@keyframes thrust{0%,100%{box-shadow:0 0 4px rgba(255,217,61,.5)}50%{box-shadow:0 0 12px rgba(255,107,157,.8),0 4px 8px rgba(255,107,157,.3)}}
+
+.evo-jetpack{position:absolute;top:40px;left:50%;transform:translateX(-50%);width:50px;height:24px;background:linear-gradient(180deg,#4ade80,#166534);border:2px solid #333;border-radius:30% 40% 10px 10px / 40% 30% 8px 8px;box-shadow:0 0 8px rgba(74,222,128,.4)}
+
+/* ===== Chat Panel ===== */
+.chat-panel{position:fixed;bottom:200px;right:16px;width:370px;height:480px;background:#fff;border-radius:26px 30px 22px 28px;border:4px solid #333;z-index:997;display:none;flex-direction:column;overflow:hidden;box-shadow:6px 6px 0 #333,10px 10px 0 rgba(0,0,0,.06)}
+.chat-panel.open{display:flex}
+.chat-header{background:linear-gradient(135deg,#ff6b9d,#c44dff);padding:16px 20px;font-weight:700;font-size:1rem;display:flex;justify-content:space-between;align-items:center;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.1)}
+.chat-header button{background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer;font-weight:700}
+
+/* API Key Bar */
+.chat-apikey{display:flex;align-items:center;gap:6px;padding:6px 16px;background:#fafafa;border-bottom:2px dotted #e0e0e0}
+.apikey-toggle{background:#fff;border:2px solid #333;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:.9rem;box-shadow:2px 2px 0 #ddd;transition:all .2s}
+.apikey-toggle:hover{background:#ffd93d;transform:rotate(30deg)}
+.apikey-toggle.active{background:#4ade80;color:#fff}
+.apikey-form{display:flex;gap:4px;align-items:center;flex:1}
+.apikey-form input{flex:1;background:#fff;border:2px solid #333;color:#555;padding:5px 10px;border-radius:6px 12px 4px 10px;font-size:.72rem;outline:none;font-family:inherit;box-shadow:2px 2px 0 #e0e0e0}
+.apikey-form input:focus{border-color:#c44dff}
+.apikey-form button{background:#fff;border:2px solid #333;color:#333;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:.7rem;font-weight:700;box-shadow:2px 2px 0 #ddd;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.apikey-form button:hover{background:#ffd93d;transform:scale(1.1)}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#fffdf5;background-image:linear-gradient(#f0e8d8 1px,transparent 1px);background-size:100% 28px}
+.chat-msg{max-width:85%;padding:12px 16px;border-radius:14px 18px 10px 16px;font-size:.82rem;line-height:1.5;animation:popIn .3s;border:2px solid #333;box-shadow:3px 3px 0 rgba(0,0,0,.06)}
+.chat-msg.bot{background:#fff;align-self:flex-start;border-bottom-left-radius:4px}
+.chat-msg.user{background:#fff0d5;color:#555;align-self:flex-end;border-bottom-right-radius:4px;border-radius:18px 14px 16px 10px}
+.chat-quick{display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px;border-top:3px dotted #e0e0e0;background:#fff}
+.chat-quick button{background:#fff;border:2px solid #333;color:#666;padding:6px 14px;border-radius:8px 16px 8px 14px;font-size:.72rem;cursor:pointer;font-weight:600;transition:all .2s;font-family:inherit;box-shadow:2px 2px 0 #ddd}
+.chat-quick button:hover{background:#ffd93d;color:#444;transform:rotate(-2deg) scale(1.05);box-shadow:3px 3px 0 #333}
+.chat-input-wrap{display:flex;padding:12px 16px;border-top:3px dotted #e0e0e0;gap:8px;background:#fff}
+.chat-input-wrap input{flex:1;background:#fffdf5;border:2px solid #333;color:#555;padding:10px 16px;border-radius:10px 20px 8px 18px;font-size:.82rem;outline:none;font-family:inherit;box-shadow:3px 3px 0 #e0e0e0}
+.chat-input-wrap input:focus{border-color:#ff6b9d;box-shadow:3px 3px 0 #ffd0e0}
+.chat-input-wrap button{background:#fff;border:2px solid #333;color:#333;width:42px;height:42px;border-radius:50% 40% 60% 45% / 55% 45% 40% 60%;cursor:pointer;font-size:1rem;flex-shrink:0;box-shadow:3px 3px 0 #333;transition:all .2s;font-weight:700}
+.chat-input-wrap button:hover{background:#ffd93d;transform:rotate(-10deg) scale(1.1)}
+@keyframes popIn{from{opacity:0;transform:scale(.85) rotate(-3deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+@media(max-width:480px){.chat-panel{width:calc(100vw - 32px);right:16px;bottom:220px;height:420px}.robot-wrap{bottom:8px;right:8px;width:100px;height:150px}.robot{transform:scale(.75);transform-origin:bottom center}}
 </style>
 </head>
 <body>
 
 <!-- Hero -->
 <div class="hero">
-  <h1>Movie Database</h1>
-  <p>Scrape Center SSR1 — 100 部經典電影</p>
+  <div class="lang-toggle">
+    <button class="active" onclick="setLang('zh')">繁中</button>
+    <button onclick="setLang('en')">EN</button>
+  </div>
+  <h1 data-i18n="title">Movie Database</h1>
+  <p data-i18n="subtitle">Scrape Center SSR1 — 100 部經典電影</p>
   <div class="stats-bar" id="statsBar"></div>
 </div>
 
 <!-- Toolbar -->
 <div class="toolbar">
-  <input type="text" id="search" placeholder="搜尋電影名稱..." oninput="render()">
+  <input type="text" id="search" data-i18n-placeholder="search_placeholder" placeholder="搜尋電影名稱..." oninput="render()">
   <select id="categoryFilter" onchange="render()">
-    <option value="">全部類別</option>
+    <option value="" data-i18n="all_categories">全部類別</option>
   </select>
   <select id="countryFilter" onchange="render()">
-    <option value="">全部國家</option>
+    <option value="" data-i18n="all_countries">全部國家</option>
   </select>
   <select id="sortBy" onchange="render()">
-    <option value="id">預設排序</option>
-    <option value="score">評分高→低</option>
-    <option value="score_asc">評分低→高</option>
-    <option value="name">名稱 A→Z</option>
+    <option value="id" data-i18n="sort_default">預設排序</option>
+    <option value="score" data-i18n="sort_score_desc">評分高→低</option>
+    <option value="score_asc" data-i18n="sort_score_asc">評分低→高</option>
+    <option value="name" data-i18n="sort_name">名稱 A→Z</option>
   </select>
 </div>
 
@@ -111,7 +253,7 @@ a{color:#7cb7ff;text-decoration:none}
 
 <!-- Category Chart -->
 <div class="chart-section">
-  <h2>類別分布</h2>
+  <h2 data-i18n="category_chart">類別分布</h2>
   <div id="categoryChart"></div>
 </div>
 
@@ -120,55 +262,202 @@ a{color:#7cb7ff;text-decoration:none}
   <div class="modal" id="modal" onclick="event.stopPropagation()"></div>
 </div>
 
+<!-- Chat Robot -->
+<div class="robot-wrap" id="chatBubble" onclick="toggleChat()">
+  <div class="robot" id="robotBody">
+    <!-- 一般模式：可愛愛心機器人 -->
+    <div class="robot-mode normal-mode">
+      <div class="robot-antenna">
+        <div class="antenna-ball"></div>
+      </div>
+      <div class="robot-head">
+        <div class="robot-eye left"><div class="pupil"></div></div>
+        <div class="robot-eye right"><div class="pupil"></div></div>
+        <div class="robot-mouth"></div>
+        <div class="robot-blush left-blush"></div>
+        <div class="robot-blush right-blush"></div>
+      </div>
+      <div class="robot-body-box">
+        <div class="robot-heart">♥</div>
+      </div>
+      <div class="robot-arm left-arm"></div>
+      <div class="robot-arm right-arm"></div>
+      <div class="robot-leg left-leg"></div>
+      <div class="robot-leg right-leg"></div>
+    </div>
+
+    <!-- 進化模式：武裝機器人 -->
+    <div class="robot-mode evolved-mode">
+      <div class="evo-antenna">
+        <div class="evo-ant-ball"></div>
+        <div class="evo-ant-spark"></div>
+      </div>
+      <div class="evo-head">
+        <div class="evo-visor"></div>
+        <div class="evo-eye left-evo"></div>
+        <div class="evo-eye right-evo"></div>
+        <div class="evo-mouth-grill"></div>
+      </div>
+      <div class="evo-body">
+        <div class="evo-core"></div>
+        <div class="evo-armor"></div>
+      </div>
+      <div class="evo-arm left-evo-arm">
+        <div class="evo-cannon"></div>
+      </div>
+      <div class="evo-arm right-evo-arm">
+        <div class="evo-shield"></div>
+      </div>
+      <div class="evo-leg left-evo-leg">
+        <div class="evo-thruster"></div>
+      </div>
+      <div class="evo-leg right-evo-leg">
+        <div class="evo-thruster"></div>
+      </div>
+      <div class="evo-jetpack"></div>
+    </div>
+  </div>
+  <div class="robot-shadow"></div>
+</div>
+
+<!-- Chat Panel -->
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-header">
+    <span data-i18n="chat_title">🎬 電影小幫手</span> <small id="chatMode" style="font-size:.7rem;opacity:.8"></small>
+    <button onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-apikey" id="chatApiKeyBar">
+    <button class="apikey-toggle" onclick="toggleApiKey()" title="設定 Gemini API Key">⚙️</button>
+    <div class="apikey-form" id="apikeyForm" style="display:none">
+      <input type="password" id="apikeyInput" placeholder="貼上 Gemini API Key...">
+      <button onclick="saveApiKey()">✓</button>
+      <button onclick="clearApiKey()">✕</button>
+    </div>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-msg bot" data-i18n="chat_welcome">嗨！我可以幫你查詢電影資料 👋<br>試試下方快捷鍵或直接輸入關鍵字～</div>
+  </div>
+  <div class="chat-quick" id="chatQuick">
+    <button onclick="askQuick('評分最高')" data-i18n="quick_top">🏆 評分最高</button>
+    <button onclick="askQuick('動畫')" data-i18n="quick_anime">🎨 動畫</button>
+    <button onclick="askQuick('日本')" data-i18n="quick_japan">🗾 日本電影</button>
+    <button onclick="askQuick('stats')" data-i18n="quick_stats">📊 統計數據</button>
+    <button onclick="askQuick('最長')" data-i18n="quick_longest">⏱ 片長最長</button>
+    <button onclick="askQuick('年份')" data-i18n="quick_years">📅 年份分布</button>
+  </div>
+  <div class="chat-input-wrap">
+    <input type="text" id="chatInput" data-i18n-placeholder="chat_placeholder" placeholder="輸入關鍵字..." onkeydown="if(event.key==='Enter')sendMsg()">
+    <button onclick="sendMsg()">➤</button>
+  </div>
+</div>
+
 <script>
 // ===== Data =====
 const DATA = [{"id": 1, "name_cn": "霸王别姬", "name_en": "Farewell My Concubine", "categories": "剧情、爱情", "country": "中国内地、中国香港", "duration": "171 分钟", "release_date": "1993-07-26 上映", "score": 9.5, "cover_url": "https://p0.meituan.net/movie/ce4da3e03e655b5b88ed31b5cd7896cf62472.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/1", "poster_file": "001_霸王别姬.jpg"}, {"id": 2, "name_cn": "这个杀手不太冷", "name_en": "Léon", "categories": "剧情、动作、犯罪", "country": "法国", "duration": "110 分钟", "release_date": "1994-09-14 上映", "score": 9.5, "cover_url": "https://p1.meituan.net/movie/6bea9af4524dfbd0b668eaa7e187c3df767253.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/2", "poster_file": "002_这个杀手不太冷.jpg"}, {"id": 3, "name_cn": "肖申克的救赎", "name_en": "The Shawshank Redemption", "categories": "剧情、犯罪", "country": "美国", "duration": "142 分钟", "release_date": "1994-09-10 上映", "score": 9.5, "cover_url": "https://p0.meituan.net/movie/283292171619cdfd5b240c8fd093f1eb255670.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/3", "poster_file": "003_肖申克的救赎.jpg"}, {"id": 4, "name_cn": "泰坦尼克号", "name_en": "Titanic", "categories": "剧情、爱情、灾难", "country": "美国", "duration": "194 分钟", "release_date": "1998-04-03 上映", "score": 9.5, "cover_url": "https://p1.meituan.net/movie/b607fba7513e7f15eab170aac1e1400d878112.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/4", "poster_file": "004_泰坦尼克号.jpg"}, {"id": 5, "name_cn": "罗马假日", "name_en": "Roman Holiday", "categories": "剧情、喜剧、爱情", "country": "美国", "duration": "118 分钟", "release_date": "1953-08-20 上映", "score": 9.5, "cover_url": "https://p0.meituan.net/movie/289f98ceaa8a0ae737d3dc01cd05ab052213631.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/5", "poster_file": "005_罗马假日.jpg"}, {"id": 6, "name_cn": "唐伯虎点秋香", "name_en": "Flirting Scholar", "categories": "喜剧、爱情、古装", "country": "中国香港", "duration": "102 分钟", "release_date": "1993-07-01 上映", "score": 9.5, "cover_url": "https://p0.meituan.net/movie/da64660f82b98cdc1b8a3804e69609e041108.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/6", "poster_file": "006_唐伯虎点秋香.jpg"}, {"id": 7, "name_cn": "乱世佳人", "name_en": "Gone with the Wind", "categories": "剧情、爱情、历史、战争", "country": "美国", "duration": "238 分钟", "release_date": "1939-12-15 上映", "score": 9.5, "cover_url": "https://p0.meituan.net/movie/223c3e186db3ab4ea3bb14508c709400427933.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/7", "poster_file": "007_乱世佳人.jpg"}, {"id": 8, "name_cn": "喜剧之王", "name_en": "The King of Comedy", "categories": "剧情、喜剧、爱情", "country": "中国香港", "duration": "85 分钟", "release_date": "1999-02-13 上映", "score": 9.5, "cover_url": "https://p0.meituan.net/movie/1f0d671f6a37f9d7b015e4682b8b113e174332.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/8", "poster_file": "008_喜剧之王.jpg"}, {"id": 9, "name_cn": "楚门的世界", "name_en": "The Truman Show", "categories": "剧情、科幻", "country": "美国", "duration": "103 分钟", "release_date": "", "score": 9.0, "cover_url": "https://p0.meituan.net/movie/8959888ee0c399b0fe53a714bc8a5a17460048.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/9", "poster_file": "009_楚门的世界.jpg"}, {"id": 10, "name_cn": "狮子王", "name_en": "The Lion King", "categories": "动画、歌舞、冒险", "country": "美国", "duration": "89 分钟", "release_date": "1995-07-15 上映", "score": 9.0, "cover_url": "https://p0.meituan.net/movie/27b76fe6cf3903f3d74963f70786001e1438406.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/10", "poster_file": "010_狮子王.jpg"}, {"id": 11, "name_cn": "V字仇杀队", "name_en": "V for Vendetta", "categories": "剧情、动作、科幻、惊悚", "country": "美国、英国、德国", "duration": "132 分钟", "release_date": "2005-12-11 上映", "score": 8.9, "cover_url": "https://p1.meituan.net/movie/06ec3c1c647942b1e40bca84036014e9490863.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/11", "poster_file": "011_V字仇杀队.jpg"}, {"id": 12, "name_cn": "少年派的奇幻漂流", "name_en": "Life of Pi", "categories": "剧情、奇幻、冒险", "country": "美国、中国台湾、英国、加拿大", "duration": "127 分钟", "release_date": "2012-11-22 上映", "score": 8.9, "cover_url": "https://p0.meituan.net/movie/34998e31c6d07475f1add6b8b16fd21d192579.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/12", "poster_file": "012_少年派的奇幻漂流.jpg"}, {"id": 13, "name_cn": "美丽心灵", "name_en": "A Beautiful Mind", "categories": "剧情、传记", "country": "美国", "duration": "135 分钟", "release_date": "2001-12-13 上映", "score": 8.8, "cover_url": "https://p0.meituan.net/movie/7b7d1f8aa36d7a15463ce6942708a1a7265296.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/13", "poster_file": "013_美丽心灵.jpg"}, {"id": 14, "name_cn": "初恋这件小事", "name_en": "สิ่งเล็กเล็กที่เรียกว่า...รัก", "categories": "喜剧、爱情", "country": "泰国", "duration": "118 分钟", "release_date": "2012-06-05 上映", "score": 8.9, "cover_url": "https://p1.meituan.net/movie/05bc2f0ccf97aacfa64fcac4f237cf8082385.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/14", "poster_file": "014_初恋这件小事.jpg"}, {"id": 15, "name_cn": "借东西的小人阿莉埃蒂", "name_en": "借りぐらしのアリエッティ", "categories": "动画、奇幻、冒险", "country": "日本", "duration": "94 分钟", "release_date": "2010-07-17 上映", "score": 8.8, "cover_url": "https://p1.meituan.net/movie/640cc32445df972b066c9a04b194da141104515.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/15", "poster_file": "015_借东西的小人阿莉埃蒂.jpg"}, {"id": 16, "name_cn": "一一", "name_en": "Yi yi: A One and a Two", "categories": "剧情、爱情、家庭", "country": "中国台湾、日本", "duration": "173 分钟", "release_date": "2000-05-15 上映", "score": 8.8, "cover_url": "https://p0.meituan.net/movie/6cb23356f9d8e0b506349561c633310d102189.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/16", "poster_file": "016_一一.jpg"}, {"id": 17, "name_cn": "美丽人生", "name_en": "La vita è bella", "categories": "战争、剧情、爱情", "country": "意大利", "duration": "116 分钟", "release_date": "2020-01-03 上映", "score": 9.1, "cover_url": "https://p1.meituan.net/movie/580d81a2c78bf204f45323ddb4244b6c6821175.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/17", "poster_file": "017_美丽人生.jpg"}, {"id": 18, "name_cn": "海上钢琴师", "name_en": "La leggenda del pianista sull'oceano", "categories": "剧情、爱情、音乐", "country": "意大利", "duration": "126 分钟", "release_date": "2019-11-15 上映", "score": 9.1, "cover_url": "https://p0.meituan.net/movie/609e45bd40346eb8b927381be8fb27a61760914.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/18", "poster_file": "018_海上钢琴师.jpg"}, {"id": 19, "name_cn": "千与千寻", "name_en": "千と千尋の神隠し", "categories": "动画、冒险、奇幻、家庭", "country": "日本", "duration": "125 分钟", "release_date": "2019-06-21 上映", "score": 9.1, "cover_url": "https://p0.meituan.net/movie/30b20139e68c46d02e0893277d633b701292458.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/19", "poster_file": "019_千与千寻.jpg"}, {"id": 20, "name_cn": "迁徙的鸟", "name_en": "The Travelling Birds", "categories": "纪录片", "country": "法国、德国、意大利、西班牙、瑞士", "duration": "98 分钟", "release_date": "2001-12-12 上映", "score": 9.1, "cover_url": "https://p1.meituan.net/movie/a1634f4e49c8517ae0a3e4adcac6b0dc43994.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/20", "poster_file": "020_迁徙的鸟.jpg"}, {"id": 21, "name_cn": "黄金三镖客", "name_en": "Il buono, il brutto, il cattivo.", "categories": "西部、冒险", "country": "意大利、西班牙、西德", "duration": "161 分钟", "release_date": "1966-12-23 上映", "score": 9.1, "cover_url": "https://p0.meituan.net/movie/cd18ed2c5cda9e71e17e5e6ef61ced172912303.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/21", "poster_file": "021_黄金三镖客.jpg"}, {"id": 22, "name_cn": "海洋", "name_en": "Océans", "categories": "纪录片", "country": "法国、瑞士、西班牙、美国、阿联酋", "duration": "104 分钟", "release_date": "2011-08-12 上映", "score": 9.1, "cover_url": "https://p1.meituan.net/movie/a19a7f64a10e133b68de87d2f3bc46f3111417.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/22", "poster_file": "022_海洋.jpg"}, {"id": 23, "name_cn": "我爱你", "name_en": "그대를 사랑합니다", "categories": "剧情、爱情", "country": "韩国", "duration": "118 分钟", "release_date": "2011-02-17 上映", "score": 9.1, "cover_url": "https://p1.meituan.net/movie/ed50b58bf636d207c56989872a91f4cf305138.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/23", "poster_file": "023_我爱你.jpg"}, {"id": 24, "name_cn": "阿飞正传", "name_en": "Days of Being Wild", "categories": "剧情、爱情、犯罪", "country": "中国香港", "duration": "94 分钟", "release_date": "2018-06-25 上映", "score": 9.1, "cover_url": "https://p0.meituan.net/movie/85215b28d568ea8e2c97766edd95f890210522.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/24", "poster_file": "024_阿飞正传.jpg"}, {"id": 36, "name_cn": "7号房的礼物", "name_en": "7번방의 선물", "categories": "剧情、喜剧、家庭", "country": "韩国", "duration": "127 分钟", "release_date": "2013-01-23 上映", "score": 8.8, "cover_url": "https://p1.meituan.net/movie/a53a0200eba15ba483c905c872db9bf4331099.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/36", "poster_file": "036_7号房的礼物.jpg"}, {"id": 25, "name_cn": "爱·回家", "name_en": "집으로...", "categories": "剧情、家庭", "country": "韩国", "duration": "80 分钟", "release_date": "2002-04-05 上映", "score": 9.1, "cover_url": "https://p0.meituan.net/movie/de1142a5dceb901eb939eb0bcfc2f88470909.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/25", "poster_file": "025_爱·回家.jpg"}, {"id": 26, "name_cn": "龙猫", "name_en": "となりのトトロ", "categories": "动画、冒险、奇幻、家庭", "country": "日本", "duration": "86 分钟", "release_date": "2018-12-14 上映", "score": 9.1, "cover_url": "https://p0.meituan.net/movie/c304c687e287c7c2f9e22cf78257872d277201.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/26", "poster_file": "026_龙猫.jpg"}, {"id": 27, "name_cn": "七武士", "name_en": "七人の侍", "categories": "剧情、动作、冒险", "country": "日本", "duration": "207 分钟", "release_date": "1954-04-26 上映", "score": 8.8, "cover_url": "https://p1.meituan.net/movie/4ffca83fd972f71e291f8ea8d78a4b58594878.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/27", "poster_file": "027_七武士.jpg"}, {"id": 28, "name_cn": "美国往事", "name_en": "Once Upon a Time in America", "categories": "剧情、犯罪", "country": "意大利、美国", "duration": "229 分钟", "release_date": "2015-04-23 上映", "score": 8.8, "cover_url": "https://p1.meituan.net/movie/92198a6fc8c3f5d13aa1bdf203572c0f99438.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/28", "poster_file": "028_美国往事.jpg"}, {"id": 29, "name_cn": "完美的世界", "name_en": "A Perfect World", "categories": "剧情、犯罪", "country": "美国", "duration": "138 分钟", "release_date": "1993-11-24 上映", "score": 8.8, "cover_url": "https://p1.meituan.net/movie/30310858fdab34c7a17cfd7ec8ad8bfc112201.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/29", "poster_file": "029_完美的世界.jpg"}, {"id": 30, "name_cn": "上帝之城", "name_en": "Cidade de Deus", "categories": "剧情、犯罪", "country": "巴西、法国", "duration": "130 分钟", "release_date": "", "score": 8.8, "cover_url": "https://p1.meituan.net/movie/b553d13f30100db731ab6cf45668e52d94703.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/30", "poster_file": "030_上帝之城.jpg"}, {"id": 31, "name_cn": "辩护人", "name_en": "변호인", "categories": "剧情", "country": "韩国", "duration": "127 分钟", "release_date": "2013-12-18 上映", "score": 8.8, "cover_url": "https://p0.meituan.net/movie/1433d81b10d116239dbbf02a06ac3c19265682.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/31", "poster_file": "031_辩护人.jpg"}, {"id": 32, "name_cn": "忠犬八公物语", "name_en": "ハチ公物語", "categories": "剧情", "country": "日本", "duration": "107 分钟", "release_date": "1987-08-01 上映", "score": 8.8, "cover_url": "https://p0.meituan.net/movie/2d42e00d7ee59ff5bd574f93b8558aa726665.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/32", "poster_file": "032_忠犬八公物语.jpg"}, {"id": 33, "name_cn": "海豚湾", "name_en": "The Cove", "categories": "纪录片", "country": "美国", "duration": "92 分钟", "release_date": "2009-07-31 上映", "score": 8.8, "cover_url": "https://p0.meituan.net/movie/eb2ea56996f21e7fb47b1a0736c7f177258901.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/33", "poster_file": "033_海豚湾.jpg"}, {"id": 34, "name_cn": "英雄本色", "name_en": "A Better Tomorrow", "categories": "剧情、动作、犯罪", "country": "中国香港", "duration": "95 分钟", "release_date": "2017-11-17 上映", "score": 8.8, "cover_url": "https://p0.meituan.net/movie/3e5f5f3aa4b7e5576521e26c2c7c894d253975.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/34", "poster_file": "034_英雄本色.jpg"}, {"id": 35, "name_cn": "恐怖直播", "name_en": "더 테러 라이브", "categories": "剧情、悬疑、犯罪", "country": "韩国", "duration": "97 分钟", "release_date": "2013-07-31 上映", "score": 8.8, "cover_url": "https://p0.meituan.net/movie/1da0af2570fe697d38c4a37fdfded19b254936.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/35", "poster_file": "035_恐怖直播.jpg"}, {"id": 37, "name_cn": "窃听风暴", "name_en": "Das Leben der Anderen", "categories": "剧情、悬疑", "country": "德国", "duration": "137 分钟", "release_date": "2006-03-23 上映", "score": 8.8, "cover_url": "https://p0.meituan.net/movie/3985eaf3858bea0f2a3d966bf7ee2103178217.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/37", "poster_file": "037_窃听风暴.jpg"}, {"id": 38, "name_cn": "时空恋旅人", "name_en": "About Time", "categories": "喜剧、爱情、奇幻", "country": "英国", "duration": "123 分钟", "release_date": "2013-09-04 上映", "score": 8.8, "cover_url": "https://p0.meituan.net/movie/6d8491386d07cda91967a6fbbd0d0788294693.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/38", "poster_file": "038_时空恋旅人.jpg"}, {"id": 39, "name_cn": "穿条纹睡衣的男孩", "name_en": "The Boy in the Striped Pajamas", "categories": "剧情、战争", "country": "英国、美国", "duration": "94 分钟", "release_date": "2008-08-28 上映", "score": 8.8, "cover_url": "https://p1.meituan.net/movie/d5970e36c8868a4b746c80f3b3f8a404174615.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/39", "poster_file": "039_穿条纹睡衣的男孩.jpg"}, {"id": 40, "name_cn": "教父", "name_en": "The Godfather", "categories": "剧情、犯罪", "country": "美国", "duration": "175 分钟", "release_date": "2015-04-18 上映", "score": 8.8, "cover_url": "https://p0.meituan.net/movie/1199dc6273680f175fd9b06c9c36d08a219658.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/40", "poster_file": "040_教父.jpg"}, {"id": 41, "name_cn": "萤火之森", "name_en": "蛍火の杜へ", "categories": "剧情、爱情、动画、奇幻", "country": "日本", "duration": "45 分钟", "release_date": "2011-09-17 上映", "score": 8.8, "cover_url": "https://p1.meituan.net/movie/4c55f3bf5fa9660db3cb7014651a0950267034.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/41", "poster_file": "041_萤火之森.jpg"}, {"id": 42, "name_cn": "素媛", "name_en": "소원", "categories": "剧情", "country": "韩国", "duration": "123 分钟", "release_date": "2013-10-02 上映", "score": 8.8, "cover_url": "https://p0.meituan.net/movie/19653e8af59cf473cd40f9ccc0658d93692304.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/42", "poster_file": "042_素媛.jpg"}, {"id": 43, "name_cn": "小鞋子", "name_en": "بچههای آسمان", "categories": "剧情、家庭", "country": "伊朗", "duration": "89 分钟", "release_date": "", "score": 8.8, "cover_url": "https://p1.meituan.net/movie/135c612860fae899df2220149664d97a173555.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/43", "poster_file": "043_小鞋子.jpg"}, {"id": 44, "name_cn": "熔炉", "name_en": "도가니", "categories": "剧情", "country": "韩国", "duration": "125 分钟", "release_date": "2011-09-22 上映", "score": 8.8, "cover_url": "https://p1.meituan.net/movie/2a0783b4fd95566568f24adfad2181bb5392280.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/44", "poster_file": "044_熔炉.jpg"}, {"id": 45, "name_cn": "大话西游之大圣娶亲", "name_en": "A Chinese Odyssey Part Two - Cinderella", "categories": "喜剧、爱情、奇幻", "country": "中国香港、中国大陆", "duration": "110 分钟", "release_date": "2014-10-24 上映", "score": 8.9, "cover_url": "https://p1.meituan.net/moviemachine/508056769092059fe43a611b949f27d14863831.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/45", "poster_file": "045_大话西游之大圣娶亲.jpg"}, {"id": 46, "name_cn": "新龙门客栈", "name_en": "New Dragon Gate Inn", "categories": "动作、爱情、武侠、古装", "country": "中国香港、中国大陆", "duration": "88 分钟", "release_date": "2012-02-24 上映", "score": 8.9, "cover_url": "https://p1.meituan.net/movie/7833126c8c21a11571bb52fbdece0acb811449.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/46", "poster_file": "046_新龙门客栈.jpg"}, {"id": 47, "name_cn": "触不可及", "name_en": "Intouchables", "categories": "剧情、喜剧", "country": "法国", "duration": "112 分钟", "release_date": "2011-11-02 上映", "score": 8.9, "cover_url": "https://p1.meituan.net/movie/1e700e53e4fe29dd5942381bb353c8532239179.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/47", "poster_file": "047_触不可及.jpg"}, {"id": 48, "name_cn": "钢琴家", "name_en": "The Pianist", "categories": "剧情、音乐、传记、历史、战争", "country": "法国、德国、英国、波兰", "duration": "150 分钟", "release_date": "2002-05-24 上映", "score": 8.9, "cover_url": "https://p0.meituan.net/movie/bcbe59fc51580317adf94537a61a1a26142090.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/48", "poster_file": "048_钢琴家.jpg"}, {"id": 49, "name_cn": "本杰明·巴顿奇事", "name_en": "The Curious Case of Benjamin Button", "categories": "剧情、爱情、奇幻", "country": "美国", "duration": "166 分钟", "release_date": "2008-12-25 上映", "score": 8.9, "cover_url": "https://p0.meituan.net/movie/2526f77c650bf7cf3d5ee2dccdeac332244951.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/49", "poster_file": "049_本杰明·巴顿奇事.jpg"}, {"id": 50, "name_cn": "倩女幽魂", "name_en": "A Chinese Ghost Story", "categories": "爱情、奇幻、武侠、古装", "country": "中国香港", "duration": "98 分钟", "release_date": "2011-04-30 上映", "score": 8.9, "cover_url": "https://p1.meituan.net/movie/96d98200d2afb4b87ff189f9c15b6545568339.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/50", "poster_file": "050_倩女幽魂.jpg"}, {"id": 51, "name_cn": "哈利·波特与死亡圣器（下）", "name_en": "Harry Potter and the Deathly Hallows: Part 2", "categories": "剧情、悬疑、奇幻、冒险", "country": "英国、美国", "duration": "130 分钟", "release_date": "2011-08-04 上映", "score": 8.9, "cover_url": "https://p1.meituan.net/movie/bb0eca029cd25329776a4549b3fbe262924727.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/51", "poster_file": "051_哈利·波特与死亡圣器（下）.jpg"}, {"id": 52, "name_cn": "甜蜜蜜", "name_en": "Comrades: Almost a Love Story", "categories": "剧情、爱情", "country": "中国香港", "duration": "118 分钟", "release_date": "2015-02-13 上映", "score": 8.9, "cover_url": "https://p1.meituan.net/movie/0b0d45b58946078dd24d4945dd6be3b51329411.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/52", "poster_file": "052_甜蜜蜜.jpg"}, {"id": 53, "name_cn": "蝙蝠侠：黑暗骑士崛起", "name_en": "The Dark Knight Rises", "categories": "剧情、动作、科幻、惊悚、犯罪", "country": "美国、英国", "duration": "165 分钟", "release_date": "2012-08-27 上映", "score": 8.9, "cover_url": "https://p0.meituan.net/movie/f7f4b4099773268f8290ed033f49dc01377512.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/53", "poster_file": "053_蝙蝠侠：黑暗骑士崛起.jpg"}, {"id": 54, "name_cn": "鬼子来了", "name_en": "Devils on the Doorstep", "categories": "剧情、战争", "country": "中国大陆", "duration": "139 分钟", "release_date": "2000-05-13 上映", "score": 8.8, "cover_url": "https://p0.meituan.net/movie/34f9202c5e823f490ffec4c69d5d0028137395.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/54", "poster_file": "054_鬼子来了.jpg"}, {"id": 55, "name_cn": "无敌破坏王", "name_en": "Wreck-It Ralph", "categories": "喜剧、动画、奇幻、冒险", "country": "美国", "duration": "101 分钟", "release_date": "2012-11-06 上映", "score": 8.8, "cover_url": "https://p1.meituan.net/movie/70a574550c4bb928dcc6a40641294785150838.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/55", "poster_file": "055_无敌破坏王.jpg"}, {"id": 56, "name_cn": "致命魔术", "name_en": "The Prestige", "categories": "剧情、悬疑、惊悚", "country": "美国、英国", "duration": "130 分钟", "release_date": "2006-10-17 上映", "score": 8.8, "cover_url": "https://p0.meituan.net/movie/83df1c541e6e0696e67ce7da81cb1e1a251258.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/56", "poster_file": "056_致命魔术.jpg"}, {"id": 57, "name_cn": "神偷奶爸", "name_en": "Despicable Me", "categories": "喜剧、动画、冒险", "country": "美国、法国", "duration": "95 分钟", "release_date": "2010-06-20 上映", "score": 8.8, "cover_url": "https://p0.meituan.net/movie/85c2bfba6025bfbfb53291ae5924c215308805.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/57", "poster_file": "057_神偷奶爸.jpg"}, {"id": 58, "name_cn": "断背山", "name_en": "Brokeback Mountain", "categories": "剧情、爱情、家庭", "country": "美国、加拿大", "duration": "134 分钟", "release_date": "2005-09-02 上映", "score": 8.8, "cover_url": "https://p0.meituan.net/movie/e71affe126eeb4f8bfcc738cbddeebc8288766.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/58", "poster_file": "058_断背山.jpg"}, {"id": 59, "name_cn": "怦然心动", "name_en": "Flipped", "categories": "剧情、喜剧、爱情", "country": "美国", "duration": "90 分钟", "release_date": "2010-07-26 上映", "score": 8.8, "cover_url": "https://p0.meituan.net/movie/15f1ac49b6d1ff7b71207672993ed6901536456.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/59", "poster_file": "059_怦然心动.jpg"}, {"id": 60, "name_cn": "驯龙高手", "name_en": "How to Train Your Dragon", "categories": "喜剧、动画、奇幻、冒险", "country": "美国", "duration": "98 分钟", "release_date": "2010-05-14 上映", "score": 8.8, "cover_url": "https://p0.meituan.net/movie/b0d97e4158b47d653d7a81d66f7dd3092146907.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/60", "poster_file": "060_驯龙高手.jpg"}, {"id": 61, "name_cn": "飞屋环游记", "name_en": "Up", "categories": "剧情、喜剧、动画、冒险", "country": "美国", "duration": "96 分钟", "release_date": "2009-08-04 上映", "score": 8.8, "cover_url": "https://p0.meituan.net/movie/f9356a376358f1576da3263d998eca7a94624.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/61", "poster_file": "061_飞屋环游记.jpg"}, {"id": 62, "name_cn": "黑客帝国3：矩阵革命", "name_en": "The Matrix Revolutions", "categories": "动作、科幻", "country": "美国、澳大利亚", "duration": "129 分钟", "release_date": "2003-11-05 上映", "score": 8.8, "cover_url": "https://p0.meituan.net/movie/2e383b5f5f306f10f9f26d9f1c28cf1d825537.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/62", "poster_file": "062_黑客帝国3：矩阵革命.jpg"}, {"id": 63, "name_cn": "速度与激情5", "name_en": "Fast Five", "categories": "动作、犯罪", "country": "美国", "duration": "130 分钟", "release_date": "2011-05-12 上映", "score": 8.9, "cover_url": "https://p0.meituan.net/movie/845ce32778a1b3f258de089f91a3979b5766154.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/63", "poster_file": "063_速度与激情5.jpg"}, {"id": 64, "name_cn": "勇敢的心", "name_en": "Braveheart", "categories": "剧情、动作、传记、历史、战争", "country": "美国", "duration": "177 分钟", "release_date": "1995-05-18 上映", "score": 8.9, "cover_url": "https://p1.meituan.net/movie/f8e9d5a90224746d15dfdbd53d4fae3d209420.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/64", "poster_file": "064_勇敢的心.jpg"}, {"id": 65, "name_cn": "三傻大闹宝莱坞", "name_en": "3 Idiots", "categories": "剧情、喜剧、爱情、歌舞", "country": "印度", "duration": "171 分钟", "release_date": "2011-12-08 上映", "score": 8.9, "cover_url": "https://p1.meituan.net/movie/ca4a128a5a54d5b5e35ceba622636c831810197.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/65", "poster_file": "065_三傻大闹宝莱坞.jpg"}, {"id": 66, "name_cn": "闻香识女人", "name_en": "Scent of a Woman", "categories": "剧情", "country": "美国", "duration": "157 分钟", "release_date": "1992-12-23 上映", "score": 8.9, "cover_url": "https://p1.meituan.net/movie/8d7b0b902afd4ec1a3dd7a9c6149463c187734.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/66", "poster_file": "066_闻香识女人.jpg"}, {"id": 67, "name_cn": "末代皇帝", "name_en": "The Last Emperor", "categories": "剧情、传记、历史", "country": "英国、意大利、中国大陆、法国、美国", "duration": "163 分钟", "release_date": "1987-10-23 上映", "score": 8.9, "cover_url": "https://p1.meituan.net/movie/21b9211eb1094af360842472018db634286646.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/67", "poster_file": "067_末代皇帝.jpg"}, {"id": 68, "name_cn": "风之谷", "name_en": "風の谷のナウシカ", "categories": "动画、奇幻、冒险", "country": "日本", "duration": "117 分钟", "release_date": "", "score": 8.9, "cover_url": "https://p0.meituan.net/movie/4f9638ba234c3fb673f23a09968db875371576.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/68", "poster_file": "068_风之谷.jpg"}, {"id": 69, "name_cn": "大话西游之月光宝盒", "name_en": "A Chinese Odyssey", "categories": "喜剧、爱情、奇幻、古装", "country": "中国香港、中国大陆", "duration": "87 分钟", "release_date": "2014-10-24 上映", "score": 8.9, "cover_url": "https://p0.meituan.net/movie/396266d8b711958841b3536a3fa7b868211445.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/69", "poster_file": "069_大话西游之月光宝盒.jpg"}, {"id": 70, "name_cn": "放牛班的春天", "name_en": "Les choristes", "categories": "剧情、音乐", "country": "法国、德国、瑞士", "duration": "97 分钟", "release_date": "2004-10-16 上映", "score": 8.9, "cover_url": "https://p0.meituan.net/movie/70de97ebb6b5251ecb7c3f6d7a782a7f189340.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/70", "poster_file": "070_放牛班的春天.jpg"}, {"id": 71, "name_cn": "当幸福来敲门", "name_en": "The Pursuit of Happyness", "categories": "剧情、家庭、传记", "country": "美国", "duration": "117 分钟", "release_date": "2008-01-17 上映", "score": 8.9, "cover_url": "https://p1.meituan.net/movie/7d1d85610651dbe1c8687781a87d1008184950.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/71", "poster_file": "071_当幸福来敲门.jpg"}, {"id": 72, "name_cn": "幽灵公主", "name_en": "もののけ姫", "categories": "动画、奇幻、冒险", "country": "日本", "duration": "134 分钟", "release_date": "1998-05-01 上映", "score": 8.9, "cover_url": "https://p0.meituan.net/movie/a08f65e6cb50fab32df5da69ff116f593095363.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/72", "poster_file": "072_幽灵公主.jpg"}, {"id": 73, "name_cn": "十二怒汉", "name_en": "12 Angry Men", "categories": "剧情", "country": "美国", "duration": "96 分钟", "release_date": "1957-04-13 上映", "score": 8.9, "cover_url": "https://p0.meituan.net/movie/df15efd261060d3094a73ef679888d4f238149.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/73", "poster_file": "073_十二怒汉.jpg"}, {"id": 74, "name_cn": "搏击俱乐部", "name_en": "Fight Club", "categories": "剧情、动作、悬疑、惊悚", "country": "美国、德国", "duration": "139 分钟", "release_date": "1999-09-10 上映", "score": 8.9, "cover_url": "https://p0.meituan.net/movie/b3defc07dfaa1b6f5b74852ce38a3f8f242792.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/74", "poster_file": "074_搏击俱乐部.jpg"}, {"id": 75, "name_cn": "疯狂原始人", "name_en": "The Croods", "categories": "喜剧、动画、冒险", "country": "美国", "duration": "98 分钟", "release_date": "2013-04-20 上映", "score": 8.9, "cover_url": "https://p1.meituan.net/movie/bc022b86345c643ca21d759166f77a553679589.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/75", "poster_file": "075_疯狂原始人.jpg"}, {"id": 76, "name_cn": "阿凡达", "name_en": "Avatar", "categories": "动作、科幻、冒险", "country": "美国、英国", "duration": "162 分钟", "release_date": "2010-01-04 上映", "score": 8.9, "cover_url": "https://p1.meituan.net/movie/e540384dc6c9f63bdb27cc554588a77f44305.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/76", "poster_file": "076_阿凡达.jpg"}, {"id": 77, "name_cn": "哈尔的移动城堡", "name_en": "ハウルの動く城", "categories": "动画、奇幻、冒险", "country": "日本", "duration": "119 分钟", "release_date": "2004-09-05 上映", "score": 8.9, "cover_url": "https://p0.meituan.net/movie/0127b451d5b8f0679c6f81c8ed414bb2432442.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/77", "poster_file": "077_哈尔的移动城堡.jpg"}, {"id": 78, "name_cn": "盗梦空间", "name_en": "Inception", "categories": "剧情、科幻、悬疑、冒险", "country": "美国、英国", "duration": "148 分钟", "release_date": "2010-09-01 上映", "score": 8.9, "cover_url": "https://p1.meituan.net/movie/d40efe1183f29d5900f5c60be3c8a89d339225.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/78", "poster_file": "078_盗梦空间.jpg"}, {"id": 79, "name_cn": "忠犬八公的故事", "name_en": "Hachi: A Dog's Tale", "categories": "剧情", "country": "美国、英国", "duration": "93 分钟", "release_date": "2009-06-13 上映", "score": 8.9, "cover_url": "https://p0.meituan.net/movie/5f0a709378d6b567807aa9685610f818282136.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/79", "poster_file": "079_忠犬八公的故事.jpg"}, {"id": 80, "name_cn": "拯救大兵瑞恩", "name_en": "Saving Private Ryan", "categories": "剧情、历史、战争", "country": "美国", "duration": "169 分钟", "release_date": "1998-11-13 上映", "score": 8.9, "cover_url": "https://p1.meituan.net/movie/a2a287c77415dc1f85b04d288f7d63ab1089754.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/80", "poster_file": "080_拯救大兵瑞恩.jpg"}, {"id": 81, "name_cn": "活着", "name_en": "To Live", "categories": "剧情、家庭、历史", "country": "中国大陆、中国香港", "duration": "132 分钟", "release_date": "1994-05-17 上映", "score": 9.0, "cover_url": "https://p0.meituan.net/movie/4c41068ef7608c1d4fbfbe6016e589f7204391.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/81", "poster_file": "081_活着.jpg"}, {"id": 82, "name_cn": "机器人总动员", "name_en": "WALL·E", "categories": "喜剧、科幻、动画", "country": "美国", "duration": "98 分钟", "release_date": "2008-06-27 上映", "score": 9.0, "cover_url": "https://p0.meituan.net/movie/267dd2483f0fb57081474c00fbea38451415571.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/82", "poster_file": "082_机器人总动员.jpg"}, {"id": 83, "name_cn": "天堂电影院", "name_en": "Nuovo Cinema Paradiso", "categories": "剧情、爱情", "country": "意大利、法国", "duration": "155 分钟", "release_date": "1988-11-17 上映", "score": 9.0, "cover_url": "https://p0.meituan.net/movie/76fc92cfa6c8f2959431b8aa604ef7ae126414.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/83", "poster_file": "083_天堂电影院.jpg"}, {"id": 84, "name_cn": "指环王2：双塔奇兵", "name_en": "The Lord of the Rings: The Two Towers", "categories": "剧情、动作、奇幻、冒险", "country": "美国、新西兰", "duration": "179 分钟", "release_date": "2003-04-25 上映", "score": 9.0, "cover_url": "https://p0.meituan.net/movie/02bb9fd161c05bad6089133098efcdb5546589.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/84", "poster_file": "084_指环王2：双塔奇兵.jpg"}, {"id": 85, "name_cn": "指环王1：护戒使者", "name_en": "The Lord of the Rings: The Fellowship of the Ring", "categories": "剧情、动作、奇幻、冒险", "country": "新西兰、美国", "duration": "178 分钟", "release_date": "2002-04-04 上映", "score": 9.0, "cover_url": "https://p1.meituan.net/movie/dd08154878aac7c8c649fe3eeb8ccd0a2498277.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/85", "poster_file": "085_指环王1：护戒使者.jpg"}, {"id": 86, "name_cn": "射雕英雄传之东成西就", "name_en": "The Eagle Shooting Heroes", "categories": "喜剧、奇幻、武侠、古装", "country": "中国香港", "duration": "113 分钟", "release_date": "1993-02-05 上映", "score": 9.0, "cover_url": "https://p0.meituan.net/movie/86c5190ba1d1236093c13f2fe9ed8dd4150050.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/86", "poster_file": "086_射雕英雄传之东成西就.jpg"}, {"id": 87, "name_cn": "蝙蝠侠：黑暗骑士", "name_en": "The Dark Knight", "categories": "剧情、动作、科幻、惊悚、犯罪", "country": "美国、英国", "duration": "152 分钟", "release_date": "2008-07-14 上映", "score": 9.0, "cover_url": "https://p0.meituan.net/movie/09658109acfea0e248a63932337d8e6a4268980.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/87", "poster_file": "087_蝙蝠侠：黑暗骑士.jpg"}, {"id": 88, "name_cn": "无间道", "name_en": "Infernal Affairs", "categories": "剧情、悬疑、犯罪", "country": "中国香港", "duration": "101 分钟", "release_date": "2003-09-05 上映", "score": 9.0, "cover_url": "https://p0.meituan.net/movie/606de8f394d40dbcbb9b87943fec71a2130408.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/88", "poster_file": "088_无间道.jpg"}, {"id": 89, "name_cn": "教父2", "name_en": "The Godfather: Part Ⅱ", "categories": "剧情、犯罪", "country": "美国", "duration": "202 分钟", "release_date": "1974-12-12 上映", "score": 9.0, "cover_url": "https://p0.meituan.net/movie/bb1dee5e0b25889a2410211c1d5010ae190824.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/89", "poster_file": "089_教父2.jpg"}, {"id": 90, "name_cn": "加勒比海盗", "name_en": "Pirates of the Caribbean: The Curse of the Black Pearl", "categories": "动作、奇幻、冒险", "country": "美国", "duration": "143 分钟", "release_date": "2003-11-21 上映", "score": 9.0, "cover_url": "https://p0.meituan.net/movie/b05b94b28eca53f325ae8d807fcd4ce01798036.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/90", "poster_file": "090_加勒比海盗.jpg"}, {"id": 91, "name_cn": "哈利·波特与魔法石", "name_en": "Harry Potter and the Sorcerer's Stone", "categories": "奇幻、冒险", "country": "美国、英国", "duration": "152 分钟", "release_date": "2002-01-26 上映", "score": 9.0, "cover_url": "https://p0.meituan.net/movie/d66b56b77b55aa3da5987b68948444c9106742.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/91", "poster_file": "091_哈利·波特与魔法石.jpg"}, {"id": 92, "name_cn": "指环王3：王者无敌", "name_en": "The Lord of the Rings: The Return of the King", "categories": "剧情、动作、奇幻、冒险", "country": "美国、新西兰", "duration": "201 分钟", "release_date": "2004-03-15 上映", "score": 9.0, "cover_url": "https://p0.meituan.net/movie/932bdfbef5be3543e6b136246aeb99b8123736.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/92", "poster_file": "092_指环王3：王者无敌.jpg"}, {"id": 93, "name_cn": "黑客帝国", "name_en": "The Matrix", "categories": "动作、科幻", "country": "美国、澳大利亚", "duration": "136 分钟", "release_date": "2000-01-14 上映", "score": 9.0, "cover_url": "https://p1.meituan.net/movie/ad974d3527879f00be2eec29135118163728582.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/93", "poster_file": "093_黑客帝国.jpg"}, {"id": 94, "name_cn": "剪刀手爱德华", "name_en": "Edward Scissorhands", "categories": "剧情、爱情、奇幻", "country": "美国", "duration": "105 分钟", "release_date": "1990-12-06 上映", "score": 9.0, "cover_url": "https://p1.meituan.net/movie/6a964e9cee699267053bd6a4bf6f2671195394.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/94", "poster_file": "094_剪刀手爱德华.jpg"}, {"id": 95, "name_cn": "春光乍泄", "name_en": "Happy Together", "categories": "剧情、爱情", "country": "中国香港、日本、韩国", "duration": "96 分钟", "release_date": "1997-05-17 上映", "score": 9.0, "cover_url": "https://p0.meituan.net/movie/ae7245920d95c03765fe1615f3a1fe3865785.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/95", "poster_file": "095_春光乍泄.jpg"}, {"id": 96, "name_cn": "大闹天宫", "name_en": "The Monkey King", "categories": "动画、奇幻", "country": "中国大陆", "duration": "114 分钟", "release_date": "1965-12-31 上映", "score": 9.0, "cover_url": "https://p1.meituan.net/movie/14a7b337e8063e3ce05a5993ed80176b74208.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/96", "poster_file": "096_大闹天宫.jpg"}, {"id": 97, "name_cn": "天空之城", "name_en": "天空の城ラピュタ", "categories": "动画、奇幻、冒险", "country": "日本", "duration": "125 分钟", "release_date": "1992-05-01 上映", "score": 9.0, "cover_url": "https://p1.meituan.net/movie/ba1ed511668402605ed369350ab779d6319397.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/97", "poster_file": "097_天空之城.jpg"}, {"id": 98, "name_cn": "音乐之声", "name_en": "The Sound of Music", "categories": "剧情、爱情、歌舞、传记", "country": "美国", "duration": "174 分钟", "release_date": "1965-03-02 上映", "score": 9.0, "cover_url": "https://p0.meituan.net/movie/ef6d7e040278f3d727306745e8df1af5246411.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/98", "poster_file": "098_音乐之声.jpg"}, {"id": 99, "name_cn": "辛德勒的名单", "name_en": "Schindler's List", "categories": "剧情、历史、战争", "country": "美国", "duration": "195 分钟", "release_date": "1993-11-30 上映", "score": 9.5, "cover_url": "https://p0.meituan.net/movie/b0d986a8bf89278afbb19f6abaef70f31206570.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/99", "poster_file": "099_辛德勒的名单.jpg"}, {"id": 100, "name_cn": "魂断蓝桥", "name_en": "Waterloo Bridge", "categories": "剧情、爱情、战争", "country": "美国", "duration": "108 分钟", "release_date": "1940-05-17 上映", "score": 9.5, "cover_url": "https://p0.meituan.net/movie/58782fa5439c25d764713f711ebecd1e201941.jpg@464w_644h_1e_1c", "detail_url": "https://ssr1.scrape.center/detail/100", "poster_file": "100_魂断蓝桥.jpg"}];
 let filteredData = [...DATA];
+let currentLang = 'zh';
+
+// ===== i18n =====
+const I18N = {
+  zh: {
+    title:'Movie Database',subtitle:'Scrape Center SSR1 — 100 部經典電影',
+    total_movies:'總電影數',avg_score:'平均評分',total_cats:'類別數',total_countries:'國家/地區',
+    search_placeholder:'搜尋電影名稱...',all_categories:'全部類別',all_countries:'全部國家',
+    sort_default:'預設排序',sort_score_desc:'評分高→低',sort_score_asc:'評分低→高',sort_name:'名稱 A→Z',
+    category_chart:'類別分布',count_info:'顯示 {0} / {1} 部電影',no_result:'沒有符合的電影',
+    modal_detail:'查看原始頁面',unknown_date:'上映日未知',
+    chat_title:'🎬 電影小幫手',chat_welcome:'嗨！我可以幫你查詢電影資料 👋<br>試試下方快捷鍵或直接輸入關鍵字～',
+    chat_placeholder:'輸入關鍵字...',
+    quick_top:'🏆 評分最高',quick_anime:'🎨 動畫',quick_japan:'🗾 日本電影',
+    quick_stats:'📊 統計數據',quick_longest:'⏱ 片長最長',quick_years:'📅 年份分布',
+    mode_gemini:'| ✨ Gemini',mode_keyword:'| 🔍 關鍵字',
+    kw_top:'🏆 評分最高 Top 5:',kw_top8:'🎨 動畫類電影，共 {0} 部:',kw_more:'...還有 {0} 部',
+    kw_japan:'🗾 日本電影，共 {0} 部:',kw_korea:'🇰🇷 韓國電影，共 {0} 部:',kw_usa:'🇺🇸 美國電影，共 {0} 部:',
+    kw_longest:'⏱ 片長最長 Top 5:',kw_shortest:'⏱ 片長最短 Top 5:',
+    kw_years:'📅 年份分布:',kw_cats:'📂 類別分布:',kw_cat:'📌 {0}類電影，共 {1} 部:',
+    kw_stats:'📊 電影資料庫統計:\n  總電影: {0} 部\n  平均分: {1}\n  最高分: {2}\n  最低分: {3}\n  類別: {4} 種\n  國家: {5} 個',
+    kw_detail:'🎬 {0} ({1})\n  評分: {2} | {3}\n  國家: {4}\n  類別: {5}\n  上映: {6}',
+    kw_found:'🔍 找到 {0} 部:',kw_notfound:'😅 找不到相關電影，請換個關鍵字試試～',
+    kw_thinking:'思考中...',
+  },
+  en: {
+    title:'Movie Database',subtitle:'Scrape Center SSR1 — 100 Classic Movies',
+    total_movies:'Total Movies',avg_score:'Avg Score',total_cats:'Categories',total_countries:'Countries',
+    search_placeholder:'Search movies...',all_categories:'All Categories',all_countries:'All Countries',
+    sort_default:'Default',sort_score_desc:'Score High→Low',sort_score_asc:'Score Low→High',sort_name:'Name A→Z',
+    category_chart:'Category Distribution',count_info:'Showing {0} / {1} movies',no_result:'No movies found',
+    modal_detail:'View Original Page',unknown_date:'Release date unknown',
+    chat_title:'🎬 Movie Helper',chat_welcome:'Hi! I can help you find movies 👋<br>Try the buttons below or ask me anything~',
+    chat_placeholder:'Type a keyword...',
+    quick_top:'🏆 Top Rated',quick_anime:'🎨 Anime',quick_japan:'🗾 Japanese',
+    quick_stats:'📊 Stats',quick_longest:'⏱ Longest',quick_years:'📅 By Year',
+    mode_gemini:'| ✨ Gemini',mode_keyword:'| 🔍 Keyword',
+    kw_top:'🏆 Top 5 Rated:',kw_top8:'🎨 Anime Movies ({0}):',kw_more:'...and {0} more',
+    kw_japan:'🗾 Japanese Movies ({0}):',kw_korea:'🇰🇷 Korean Movies ({0}):',kw_usa:'🇺🇸 American Movies ({0}):',
+    kw_longest:'⏱ Longest 5:',kw_shortest:'⏱ Shortest 5:',
+    kw_years:'📅 By Decade:',kw_cats:'📂 Categories:',kw_cat:'📌 {0} Movies ({1}):',
+    kw_stats:'📊 Database Stats:\n  Total: {0}\n  Avg Score: {1}\n  Highest: {2}\n  Lowest: {3}\n  Categories: {4}\n  Countries: {5}',
+    kw_detail:'🎬 {0} ({1})\n  Score: {2} | {3}\n  Country: {4}\n  Categories: {5}\n  Released: {6}',
+    kw_found:'🔍 Found {0}:',kw_notfound:'😅 No movies found. Try another keyword~',
+    kw_thinking:'Thinking...',
+  }
+};
+
+function t(key, ...args) {
+  let s = (I18N[currentLang] && I18N[currentLang][key]) || I18N['zh'][key] || key;
+  args.forEach((a,i) => { s = s.replace(`{${i}}`, a); });
+  return s;
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-toggle button').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.lang-toggle button[onclick="setLang('${lang}')"]`)?.classList.add('active');
+  applyI18n();
+  updateStats();
+  updateChart();
+  render();
+  // 更新聊天歡迎訊息
+  const welcome = document.querySelector('#chatMessages .chat-msg.bot');
+  if (welcome) welcome.innerHTML = t('chat_welcome');
+}
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (key) el.textContent = t(key);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (key) el.placeholder = t(key);
+  });
+}
 
 // ===== Init =====
-function init() {
-  // Stats
-  const total = DATA.length;
-  const scores = DATA.map(m => m.score);
-  const avg = (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(2);
-  const allCats = new Set();
-  const allCountries = new Set();
-  DATA.forEach(m => {
-    m.categories.split('、').filter(Boolean).forEach(c => allCats.add(c));
-    m.country.split('、').filter(Boolean).forEach(c => allCountries.add(c.trim()));
-  });
-
+let statsCache = null;
+function updateStats() {
+  if (!statsCache) {
+    const scores = DATA.map(m => m.score);
+    statsCache = {
+      total: DATA.length,
+      avg: (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(2),
+      cats: new Set(DATA.flatMap(m => m.categories.split('、').filter(Boolean))),
+      countries: new Set(DATA.flatMap(m => m.country.split('、').map(s=>s.trim()))),
+    };
+  }
+  const s = statsCache;
   document.getElementById('statsBar').innerHTML = `
-    <div class="stat-item"><div class="num">${total}</div><div class="label">總電影數</div></div>
-    <div class="stat-item"><div class="num">${avg}</div><div class="label">平均評分</div></div>
-    <div class="stat-item"><div class="num">${allCats.size}</div><div class="label">類別數</div></div>
-    <div class="stat-item"><div class="num">${allCountries.size}</div><div class="label">國家/地區</div></div>
+    <div class="stat-item"><div class="num">${s.total}</div><div class="label">${t('total_movies')}</div></div>
+    <div class="stat-item"><div class="num">${s.avg}</div><div class="label">${t('avg_score')}</div></div>
+    <div class="stat-item"><div class="num">${s.cats.size}</div><div class="label">${t('total_cats')}</div></div>
+    <div class="stat-item"><div class="num">${s.countries.size}</div><div class="label">${t('total_countries')}</div></div>
   `;
+}
 
-  // Category filter
-  const catSel = document.getElementById('categoryFilter');
-  [...allCats].sort().forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c; opt.textContent = c;
-    catSel.appendChild(opt);
-  });
-
-  // Country filter
-  const ctrySel = document.getElementById('countryFilter');
-  [...allCountries].sort().forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c; opt.textContent = c;
-    ctrySel.appendChild(opt);
-  });
-
-  // Chart
-  const catCount = {};
-  DATA.forEach(m => {
-    m.categories.split('、').filter(Boolean).forEach(c => {
-      catCount[c] = (catCount[c]||0) + 1;
-    });
-  });
-  const sorted = Object.entries(catCount).sort((a,b) => b[1] - a[1]);
+function updateChart() {
+  const cats = {};
+  DATA.forEach(m => m.categories.split('、').filter(Boolean).forEach(c => { cats[c] = (cats[c]||0) + 1; }));
+  const sorted = Object.entries(cats).sort((a,b) => b[1] - a[1]);
   const maxCnt = sorted[0]?.[1] || 1;
   document.getElementById('categoryChart').innerHTML = sorted.map(([name,cnt]) => `
     <div class="chart-bar">
@@ -177,7 +466,27 @@ function init() {
       <span class="count">${cnt}</span>
     </div>
   `).join('');
+}
 
+function init() {
+  updateStats();
+
+  // Filters
+  const catSel = document.getElementById('categoryFilter');
+  [...statsCache.cats].sort().forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    catSel.appendChild(opt);
+  });
+  const ctrySel = document.getElementById('countryFilter');
+  [...statsCache.countries].sort().forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    ctrySel.appendChild(opt);
+  });
+
+  updateChart();
+  applyI18n();
   render();
 }
 
@@ -206,16 +515,18 @@ function applyFilters() {
 function render() {
   applyFilters();
   const grid = document.getElementById('grid');
-  document.getElementById('countInfo').textContent = `顯示 ${filteredData.length} / ${DATA.length} 部電影`;
+  document.getElementById('countInfo').textContent = t('count_info', filteredData.length, DATA.length);
 
   if (!filteredData.length) {
-    grid.innerHTML = '<div class="no-result">沒有符合的電影</div>';
+    grid.innerHTML = `<div class="no-result">${t('no_result')}</div>`;
     return;
   }
 
   grid.innerHTML = filteredData.map(m => {
     const cats = m.categories.split('、').filter(Boolean).map(c => `<span>${c}</span>`).join('');
     const poster = m.poster_file ? `posters/${m.poster_file}` : m.cover_url;
+    const dateText = m.release_date || t('unknown_date');
+    const scoreUnit = currentLang === 'en' ? '' : ' 分';
     return `
     <div class="card" onclick="openModal(${m.id})">
       <img class="card-img" src="${poster}" alt="${m.name_cn}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22300%22><rect fill=%22%231a1a2e%22 width=%22200%22 height=%22300%22/><text fill=%22%238892b0%22 x=%22100%22 y=%22150%22 text-anchor=%22middle%22 font-size=%2214%22>No Image</text></svg>'">
@@ -223,9 +534,9 @@ function render() {
         <div class="card-title">${m.name_cn}</div>
         <div class="card-en">${m.name_en}</div>
         <div class="card-cats">${cats}</div>
-        <div class="card-meta">${m.duration} | ${m.release_date || '上映日未知'}</div>
+        <div class="card-meta">${m.duration} | ${dateText}</div>
         <div class="card-footer">
-          <div class="card-score">${m.score}<small> 分</small></div>
+          <div class="card-score">${m.score}<small>${scoreUnit}</small></div>
           <div class="card-country">${m.country}</div>
         </div>
       </div>
@@ -239,6 +550,9 @@ function openModal(id) {
   if (!m) return;
   const cats = m.categories.split('、').filter(Boolean).map(c => `<span>${c}</span>`).join(' ');
   const poster = m.poster_file ? `posters/${m.poster_file}` : m.cover_url;
+  const labels = currentLang === 'en'
+    ? { category:'Category', country:'Country', duration:'Duration', release:'Release' }
+    : { category:'類別', country:'國家', duration:'片長', release:'上映' };
   document.getElementById('modal').innerHTML = `
     <div class="modal-header">
       <img src="${poster}" alt="${m.name_cn}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22700%22 height=%22400%22><rect fill=%22%231a1a2e%22 width=%22700%22 height=%22400%22/></svg>'">
@@ -248,12 +562,12 @@ function openModal(id) {
       <h2>${m.name_cn} <small class="en-name">${m.name_en}</small></h2>
       <div class="score-big">${m.score}</div>
       <div class="info-row">
-        <div class="info-item"><strong>類別</strong> ${cats}</div>
-        <div class="info-item"><strong>國家</strong> ${m.country}</div>
-        <div class="info-item"><strong>片長</strong> ${m.duration}</div>
-        <div class="info-item"><strong>上映</strong> ${m.release_date || '-'}</div>
+        <div class="info-item"><strong>${labels.category}</strong> ${cats}</div>
+        <div class="info-item"><strong>${labels.country}</strong> ${m.country}</div>
+        <div class="info-item"><strong>${labels.duration}</strong> ${m.duration}</div>
+        <div class="info-item"><strong>${labels.release}</strong> ${m.release_date || '-'}</div>
       </div>
-      <a href="${m.detail_url}" target="_blank" style="display:inline-block;margin-top:12px;padding:8px 20px;background:#e94560;color:#fff;border-radius:8px;">查看原始頁面</a>
+      <a href="${m.detail_url}" target="_blank" style="display:inline-block;margin-top:12px;padding:8px 20px;background:#e94560;color:#fff;border-radius:8px;">${t('modal_detail')}</a>
     </div>
   `;
   document.getElementById('modalOverlay').classList.add('active');
@@ -268,6 +582,187 @@ function closeModal(e) {
 
 // ===== Start =====
 init();
+
+// ===== Chat Bot =====
+let chatMode = 'keyword';
+let userApiKey = localStorage.getItem('gemini_api_key') || '';
+const modeEl = document.getElementById('chatMode');
+
+function setMode(mode) {
+  chatMode = mode;
+  const robot = document.getElementById('robotBody');
+  if (mode === 'gemini') {
+    modeEl.textContent = t('mode_gemini');
+    robot.classList.add('evolved');
+  } else {
+    modeEl.textContent = t('mode_keyword');
+    robot.classList.remove('evolved');
+  }
+}
+
+function updateApiKeyUI() {
+  const btn = document.querySelector('.apikey-toggle');
+  const input = document.getElementById('apikeyInput');
+  if (userApiKey) {
+    btn.classList.add('active');
+    input.value = userApiKey.slice(0,8) + '...';
+  } else {
+    btn.classList.remove('active');
+    input.value = '';
+  }
+}
+
+function toggleApiKey() {
+  const form = document.getElementById('apikeyForm');
+  form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+  if (form.style.display === 'flex') document.getElementById('apikeyInput').focus();
+}
+
+function saveApiKey() {
+  const val = document.getElementById('apikeyInput').value.trim();
+  if (!val) return;
+  userApiKey = val;
+  localStorage.setItem('gemini_api_key', val);
+  updateApiKeyUI();
+  document.getElementById('apikeyForm').style.display = 'none';
+  detectMode();
+}
+
+function clearApiKey() {
+  userApiKey = '';
+  localStorage.removeItem('gemini_api_key');
+  updateApiKeyUI();
+  document.getElementById('apikeyForm').style.display = 'none';
+  setMode('keyword');
+}
+
+async function detectMode() {
+  if (!userApiKey) { setMode('keyword'); return; }
+  try {
+    const resp = await fetch('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'ping', api_key: userApiKey }),
+    });
+    if (resp.ok) setMode('gemini');
+    else setMode('keyword');
+  } catch (e) { setMode('keyword'); }
+}
+updateApiKeyUI();
+detectMode();
+
+function toggleChat() {
+  document.getElementById('chatPanel').classList.toggle('open');
+}
+
+function addMsg(text, type) {
+  const div = document.getElementById('chatMessages');
+  const msg = document.createElement('div');
+  msg.className = `chat-msg ${type}`;
+  msg.textContent = text;
+  div.appendChild(msg);
+  div.scrollTop = div.scrollHeight;
+}
+
+function sendMsg() {
+  const input = document.getElementById('chatInput');
+  const q = input.value.trim();
+  if (!q) return;
+  addMsg(q, 'user');
+  input.value = '';
+  processQuery(q);
+}
+
+function askQuick(q) { addMsg(q, 'user'); processQuery(q); }
+
+async function processQuery(q) {
+  const loading = addMsg(t('kw_thinking'), 'bot');
+  try {
+    const resp = await fetch('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: q, api_key: userApiKey }),
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      document.getElementById('chatMessages').removeChild(loading);
+      addMsg(data.reply, 'bot');
+      setMode('gemini');
+      return;
+    }
+    if (resp.status === 503) {
+      document.getElementById('chatMessages').removeChild(loading);
+      setMode('keyword');
+      processKeyword(q);
+      return;
+    }
+  } catch (e) {}
+  document.getElementById('chatMessages').removeChild(loading);
+  setMode('keyword');
+  processKeyword(q);
+}
+
+function processKeyword(q) {
+  q = q.toLowerCase();
+  let result = '';
+  const scores = DATA.map(m => m.score).sort((a,b) => b-a);
+  const durations = DATA.map(m => parseInt(m.duration) || 0);
+  const years = DATA.map(m => {const m2=m.release_date.match(/(\d{4})/);return m2?parseInt(m2[1]):null;}).filter(Boolean);
+  const allCats = [...new Set(DATA.flatMap(m => m.categories.split('、').filter(Boolean)))];
+
+  if (q.includes('最高') || q.includes('top') || q.includes('best')) {
+    const top5 = DATA.sort((a,b) => b.score - a.score).slice(0,5);
+    result = t('kw_top') + '\n' + top5.map(m => `  ${m.score} — ${m.name_cn} (${m.name_en})`).join('\n');
+  } else if (q.includes('動畫') || q.includes('动画') || q.includes('anime')) {
+    const list = DATA.filter(m => m.categories.includes('动画') || m.categories.includes('動畫')).sort((a,b)=>b.score-a.score);
+    result = t('kw_top8', list.length) + '\n' + list.slice(0,8).map(m => `  ${m.score} — ${m.name_cn}`).join('\n');
+    if (list.length>8) result += '\n  ' + t('kw_more', list.length-8);
+  } else if (q.includes('日本') || q.includes('japan')) {
+    const list = DATA.filter(m => m.country.includes('日本')).sort((a,b)=>b.score-a.score);
+    result = t('kw_japan', list.length) + '\n' + list.slice(0,8).map(m => `  ${m.score} — ${m.name_cn}`).join('\n');
+  } else if (q.includes('韓國') || q.includes('韩国') || q.includes('korea')) {
+    const list = DATA.filter(m => m.country.includes('韓')||m.country.includes('韩')).sort((a,b)=>b.score-a.score);
+    result = t('kw_korea', list.length) + '\n' + list.slice(0,8).map(m => `  ${m.score} — ${m.name_cn}`).join('\n');
+  } else if (q.includes('美國') || q.includes('美国') || q.includes('america')) {
+    const list = DATA.filter(m => m.country.includes('美')).sort((a,b)=>b.score-a.score);
+    result = t('kw_usa', list.length) + '\n' + list.slice(0,8).map(m => `  ${m.score} — ${m.name_cn}`).join('\n');
+  } else if (q.includes('最長') || q.includes('最長片長') || q.includes('longest')) {
+    const top5 = [...DATA].sort((a,b) => (parseInt(b.duration)||0) - (parseInt(a.duration)||0)).slice(0,5);
+    result = t('kw_longest') + '\n' + top5.map(m => `  ${m.duration} — ${m.name_cn}`).join('\n');
+  } else if (q.includes('最短') || q.includes('shortest')) {
+    const top5 = [...DATA].sort((a,b) => (parseInt(a.duration)||999) - (parseInt(b.duration)||999)).slice(0,5);
+    result = t('kw_shortest') + '\n' + top5.map(m => `  ${m.duration} — ${m.name_cn}`).join('\n');
+  } else if (q.includes('年份') || q.includes('年代') || q.includes('year') || q.includes('decade')) {
+    const decades = {};
+    years.forEach(y => { const d = Math.floor(y/10)*10; decades[d+'s'] = (decades[d+'s']||0)+1; });
+    result = t('kw_years') + '\n' + Object.entries(decades).sort().map(([k,v])=>`  ${k}: ${v}`).join('\n');
+  } else if (q.includes('統計') || q.includes('stats') || q.includes('stat')) {
+    const countries = [...new Set(DATA.flatMap(m=>m.country.split('、').map(s=>s.trim())))];
+    result = t('kw_stats', DATA.length, (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(2), Math.max(...scores), Math.min(...scores), allCats.length, countries.length);
+  } else if (q.includes('類別') || q.includes('类別') || q.includes('類型') || q.includes('categor')) {
+    const cats = {};
+    DATA.forEach(m => m.categories.split('、').filter(Boolean).forEach(c=>{cats[c]=(cats[c]||0)+1;}));
+    result = t('kw_cats') + '\n' + Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`  ${k}: ${v}`).join('\n');
+  } else if (allCats.some(c => q.includes(c))) {
+    const cat = allCats.find(c => q.includes(c));
+    const list = DATA.filter(m => m.categories.includes(cat)).sort((a,b)=>b.score-a.score);
+    result = t('kw_cat', cat, list.length) + '\n' + list.slice(0,8).map(m => `  ${m.score} — ${m.name_cn}`).join('\n');
+  } else {
+    const matches = DATA.filter(m => m.name_cn.includes(q) || m.name_en.toLowerCase().includes(q) || m.country.includes(q));
+    if (matches.length > 0) {
+      if (matches.length === 1) {
+        const m = matches[0];
+        result = t('kw_detail', m.name_cn, m.name_en, m.score, m.duration, m.country, m.categories, m.release_date || '-');
+      } else {
+        result = t('kw_found', matches.length) + '\n' + matches.slice(0,6).map(m => `  ${m.score} — ${m.name_cn}`).join('\n');
+        if (matches.length>6) result += '\n  ' + t('kw_more', matches.length-6);
+      }
+    } else {
+      result = t('kw_notfound');
+    }
+  }
+  setTimeout(() => addMsg(result, 'bot'), 300);
+}
 </script>
 </body>
 </html>
