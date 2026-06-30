@@ -28,27 +28,15 @@ class ThreadsConnector(BaseConnector):
         super().__init__("Threads")
 
     def fetch_mentions(self, keyword: str, limit: int = 10) -> List[Dict[str, Any]]:
-        results = []
-        random.seed(hash(keyword + "threads") % 10000)
-
-        for i in range(min(limit, 6)):
-            content = random.choice(THREADS_CONTENTS).format(keyword=keyword)
-            days_ago = random.randint(0, 10)
-            pub_date = datetime.datetime.utcnow() - datetime.timedelta(days=days_ago)
-            post_id = random.randint(100000000, 999999999)
-
-            results.append({
-                "platform": "Threads Import",
-                "keyword": keyword,
+        fallback_templates = [
+            {
                 "title": f"@{random.choice(THREADS_AUTHORS)} · {keyword}",
-                "content": content,
+                "content": c,
                 "author_hash": random.choice(THREADS_AUTHORS),
-                "url": f"https://www.threads.net/@foodie_tw/post/{post_id}",
-                "published_at": pub_date,
-                "likes": random.randint(50, 500),
-                "comments": random.randint(5, 60),
-                "shares": random.randint(2, 30),
-            })
-
-        logger.info(f"Threads: generated {len(results)} mentions for '{keyword}'")
+                "url_template": "https://www.threads.net/@foodie_tw/post/{post_id}"
+            }
+            for c in THREADS_CONTENTS
+        ]
+        results = self.load_from_cache("Threads", keyword, limit, fallback_templates)
+        logger.info(f"Threads: loaded {len(results)} mentions for '{keyword}'")
         return results

@@ -32,6 +32,13 @@ type ExportBundle = {
 };
 
 type ExportScope = "project" | "scene";
+type ExportFormat = "markdown" | "json";
+type StoredSettings = {
+  defaultExportFormat?: ExportFormat;
+  defaultExportScope?: ExportScope;
+};
+
+const settingsKey = "flow-director-settings";
 
 export default function ExportPage() {
   const { language } = useLanguage();
@@ -41,10 +48,15 @@ export default function ExportPage() {
   const [scenes, setScenes] = useState<HeroScene[]>([]);
   const [characters, setCharacters] = useState<CharacterReference[]>([]);
   const [exportScope, setExportScope] = useState<ExportScope>("project");
+  const [defaultExportFormat, setDefaultExportFormat] = useState<ExportFormat>("markdown");
   const [selectedSceneId, setSelectedSceneId] = useState("");
   const [copied, setCopied] = useState<"markdown" | "json" | null>(null);
 
   useEffect(() => {
+    const storedSettings = getStoredSettings();
+    if (storedSettings.defaultExportScope) setExportScope(storedSettings.defaultExportScope);
+    if (storedSettings.defaultExportFormat) setDefaultExportFormat(storedSettings.defaultExportFormat);
+
     async function loadProjects() {
       const loadedProjects = await db.flowProjects.orderBy("updatedAt").reverse().toArray();
       setProjects(loadedProjects);
@@ -191,9 +203,12 @@ export default function ExportPage() {
                 <p>{labels.packageIncludes}</p>
               </div>
               <div className="mt-6 grid gap-3">
-                <AppButton type="button" onClick={() => copyToClipboard("markdown")} disabled={!bundle}>
-                  {copied === "markdown" ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
-                  {labels.copyMarkdown}
+                <p className="text-sm leading-6 text-muted">
+                  {labels.defaultFormat(defaultExportFormat)}
+                </p>
+                <AppButton type="button" onClick={() => copyToClipboard(defaultExportFormat)} disabled={!bundle}>
+                  {copied === defaultExportFormat ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
+                  {labels.copyDefault(defaultExportFormat)}
                 </AppButton>
                 <AppButton type="button" variant="outline" onClick={() => downloadFile("markdown")} disabled={!bundle}>
                   <Download className="h-4 w-4" />
@@ -409,6 +424,14 @@ function slugify(value: string) {
   );
 }
 
+function getStoredSettings(): StoredSettings {
+  try {
+    return JSON.parse(window.localStorage.getItem(settingsKey) ?? "{}") as StoredSettings;
+  } catch {
+    return {};
+  }
+}
+
 const copy = {
   en: {
     title: "Flow Export",
@@ -425,6 +448,8 @@ const copy = {
     noScene: "No scene selected.",
     projectScopeHelp: "Export the full project summary with every scene.",
     sceneScopeHelp: (sceneNumber: number) => `Export Scene ${sceneNumber} as an independent Google Flow package.`,
+    defaultFormat: (format: string) => `Default format from Settings: ${format}.`,
+    copyDefault: (format: string) => `Copy Default ${format.toUpperCase()}`,
     packageTitle: "Export Package",
     packageIncludes: "Includes character references, Hero Image Prompt, Google Flow Prompt, voice over, subtitles, continuity notes, ending frame notes, and QA checks.",
     copyMarkdown: "Copy Markdown",
@@ -450,6 +475,8 @@ const copy = {
     noScene: "尚未選擇 Scene。",
     projectScopeHelp: "匯出整個專案總表，包含所有場景。",
     sceneScopeHelp: (sceneNumber: number) => `將 Scene ${sceneNumber} 獨立匯出成 Google Flow 資料包。`,
+    defaultFormat: (format: string) => `設定頁預設格式：${format}。`,
+    copyDefault: (format: string) => `複製預設 ${format.toUpperCase()}`,
     packageTitle: "匯出資料包",
     packageIncludes: "包含角色參考、Hero Image Prompt、Google Flow Prompt、旁白、字幕、連續性備註、結尾畫面備註與 QA 檢查。",
     copyMarkdown: "複製 Markdown",

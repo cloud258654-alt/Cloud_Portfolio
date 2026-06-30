@@ -28,27 +28,10 @@ class FacebookConnector(BaseConnector):
         super().__init__("Facebook")
 
     def fetch_mentions(self, keyword: str, limit: int = 10) -> List[Dict[str, Any]]:
-        results = []
-        random.seed(hash(keyword) % 10000)
-
-        for i in range(min(limit, 8)):
-            content = random.choice(FB_CONTENTS).format(keyword=keyword)
-            days_ago = random.randint(0, 14)
-            pub_date = datetime.datetime.utcnow() - datetime.timedelta(days=days_ago)
-            post_id = random.randint(1000000, 9999999)
-
-            results.append({
-                "platform": "Facebook Import",
-                "keyword": keyword,
-                "title": f"台南美食推薦 - {keyword}",
-                "content": content,
-                "author_hash": f"fb_user_{random.randint(100,999)}",
-                "url": f"https://www.facebook.com/groups/tainanfood/posts/{post_id}",
-                "published_at": pub_date,
-                "likes": random.randint(10, 200),
-                "comments": random.randint(2, 40),
-                "shares": random.randint(0, 15),
-            })
-
-        logger.info(f"Facebook: generated {len(results)} mentions for '{keyword}'")
+        fallback_templates = [
+            {"title": f"台南美食推薦 - {keyword}", "content": c, "url_template": "https://www.facebook.com/groups/tainanfood/posts/{post_id}"}
+            for c in FB_CONTENTS
+        ]
+        results = self.load_from_cache("Facebook", keyword, limit, fallback_templates)
+        logger.info(f"Facebook: loaded {len(results)} mentions for '{keyword}'")
         return results

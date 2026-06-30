@@ -3,6 +3,7 @@ import re
 import logging
 from typing import List, Dict, Any
 import requests
+from bs4 import BeautifulSoup
 from app.connectors.base import BaseConnector
 
 logger = logging.getLogger("ptt_connector")
@@ -42,7 +43,14 @@ class PTTConnector(BaseConnector):
             return ""
 
     def _parse_search_results(self, html: str) -> List[str]:
-        urls = re.findall(r'href="(/bbs/\w+/M\.\d+\.A\.\w+\.html)"', html)
+        if not html:
+            return []
+        soup = BeautifulSoup(html, "html.parser")
+        urls = []
+        for a in soup.find_all("a", href=True):
+            href = a["href"]
+            if href.startswith("/bbs/") and href.endswith(".html"):
+                urls.append(href)
         seen = set()
         unique = []
         for u in urls:
@@ -53,34 +61,55 @@ class PTTConnector(BaseConnector):
 
     def _parse_article(self, html: str) -> Dict[str, Any]:
         result = {"author": "", "title": "", "content": "", "published_at": None, "push_count": 0}
+        if not html:
+            return result
+        soup = BeautifulSoup(html, "html.parser")
 
-        author_m = re.search(r'<span class="article-meta-value">([^<]+)</span>', html)
-        if author_m:
-            result["author"] = author_m.group(1).strip()
-
-        # Extract metadata lines: author, board, title, time
-        meta_matches = re.findall(r'<span class="article-meta-value">([^<]+)</span>', html)
-        if len(meta_matches) >= 4:
-            result["title"] = meta_matches[2].strip()
-            time_str = meta_matches[3].strip()
+        # Extract metadata
+        meta_values = [el.text.strip() for el in soup.find_all(class_="article-meta-value")]
+        if len(meta_values) >= 4:
+            result["author"] = meta_values[0]
+            result["title"] = meta_values[2]
+            time_str = meta_values[3]
             try:
                 result["published_at"] = datetime.datetime.strptime(time_str, "%a %b %d %H:%M:%S %Y")
             except ValueError:
                 pass
+        else:
+            meta_lines = soup.find_all(class_="article-metaline")
+            for line in meta_lines:
+                label = line.find(class_="article-meta-tag")
+                val = line.find(class_="article-meta-value")
+                if label and val:
+                    tag_text = label.text.strip()
+                    val_text = val.text.strip()
+                    if "作者" in tag_text:
+                        result["author"] = val_text
+                    elif "標題" in tag_text:
+                        result["title"] = val_text
+                    elif "時間" in tag_text:
+                        try:
+                            result["published_at"] = datetime.datetime.strptime(val_text, "%a %b %d %H:%M:%S %Y")
+                        except ValueError:
+                            pass
 
-        # Extract content between -- and ※
-        content_m = re.search(r'(?:<div id="main-content"[^>]*>)(.*?)(?:--\s*\n?※)', html, re.DOTALL)
-        if content_m:
-            raw = content_m.group(1)
-            raw = re.sub(r'<span[^>]*>[^<]*</span>', '', raw)
-            raw = re.sub(r'<[^>]+>', '', raw)
-            raw = re.sub(r'\n{3,}', '\n\n', raw)
-            result["content"] = raw.strip()[:2000]
+        # Main content
+        main_content = soup.find(id="main-content")
+        if main_content:
+            import copy
+            content_copy = copy.copy(main_content)
+            for el in content_copy.find_all(class_=["article-metaline", "article-metalines", "push"]):
+                el.decompose()
+            
+            text = content_copy.text
+            if "--" in text:
+                text = text.split("--")[0]
+            result["content"] = text.strip()[:2000]
         else:
             result["content"] = result["title"]
 
         # Push count
-        pushes = re.findall(r'<span class="(?:push|boo|neutral) [^"]*">', html)
+        pushes = soup.find_all(class_="push")
         result["push_count"] = len(pushes)
 
         return result

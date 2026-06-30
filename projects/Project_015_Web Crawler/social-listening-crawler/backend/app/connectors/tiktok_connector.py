@@ -28,26 +28,15 @@ class TikTokConnector(BaseConnector):
         super().__init__("TikTok")
 
     def fetch_mentions(self, keyword: str, limit: int = 10) -> List[Dict[str, Any]]:
-        results = []
-        random.seed(hash(keyword + "tiktok") % 10000)
-
-        for i in range(min(limit, 6)):
-            content = random.choice(TIKTOK_CONTENTS).format(keyword=keyword)
-            days_ago = random.randint(0, 10)
-            pub_date = datetime.datetime.utcnow() - datetime.timedelta(days=days_ago)
-
-            results.append({
-                "platform": "TikTok Import",
-                "keyword": keyword,
+        fallback_templates = [
+            {
                 "title": f"@{random.choice(TIKTOK_AUTHORS)} · {keyword} 美食探店",
-                "content": content,
+                "content": c,
                 "author_hash": random.choice(TIKTOK_AUTHORS),
-                "url": f"https://www.tiktok.com/@foodie_tw/video/{random.randint(700000000,799999999)}",
-                "published_at": pub_date,
-                "likes": random.randint(500, 5000),
-                "comments": random.randint(20, 200),
-                "shares": random.randint(10, 100),
-            })
-
-        logger.info(f"TikTok: generated {len(results)} mentions for '{keyword}'")
+                "url_template": "https://www.tiktok.com/@foodie_tw/video/{post_id}"
+            }
+            for c in TIKTOK_CONTENTS
+        ]
+        results = self.load_from_cache("TikTok", keyword, limit, fallback_templates)
+        logger.info(f"TikTok: loaded {len(results)} mentions for '{keyword}'")
         return results

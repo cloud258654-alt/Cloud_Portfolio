@@ -10,6 +10,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
+from bs4 import BeautifulSoup
 from app.connectors.base import BaseConnector
 
 logger = logging.getLogger("dcard_connector")
@@ -24,8 +25,14 @@ def _create_driver():
     opts.add_argument("--window-size=1920,1080")
     opts.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36")
     opts.add_argument("--lang=zh-TW")
+    opts.add_argument("--blink-settings=imagesEnabled=false")
     opts.add_experimental_option("excludeSwitches", ["enable-automation"])
     opts.add_experimental_option("useAutomationExtension", False)
+    
+    # Also disable images via preferences
+    chrome_prefs = {"profile.managed_default_content_settings.images": 2}
+    opts.experimental_options["prefs"] = chrome_prefs
+    
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=opts)
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
@@ -43,39 +50,52 @@ class DcardConnector(BaseConnector):
             driver = _create_driver()
             url = f"https://www.dcard.tw/search?query={keyword}&forum=food"
             driver.get(url)
-            time.sleep(3)
 
-            # Try to get post cards
+            # Wait for content to load dynamically
             try:
-                WebDriverWait(driver, 10).until(
+                WebDriverWait(driver, 8).until(
                     EC.presence_of_element_located((By.CSS_SELECTOR, "article, [class*='Post'], [class*='post']"))
                 )
             except Exception:
-                pass
-
-            # Scroll for more content
-            for _ in range(3):
-                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 time.sleep(1.5)
 
-            # Extract post links and titles
-            articles = driver.find_elements(By.CSS_SELECTOR, "article")
+            # Scroll for more content
+            scroll_loops = 2 if limit <= 10 else 3
+            for _ in range(scroll_loops):
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                time.sleep(1.0)
+
+            # Extract post links and titles using BeautifulSoup
+            html = driver.page_source
+            soup = BeautifulSoup(html, "html.parser")
+            
+            articles = soup.find_all("article")
             if not articles:
-                articles = driver.find_elements(By.CSS_SELECTOR, "[class*='PostEntry'], [class*='post_entry'], a[href*='/f/']")
+                articles = soup.find_all(class_=lambda c: c and ("postentry" in c.lower() or "post_entry" in c.lower()))
+            if not articles:
+                articles = soup.find_all("a", href=lambda h: h and "/f/" in h)
 
             seen_urls = set()
-            for article in articles[:limit * 2]:
+            for article in articles:
                 try:
-                    link_el = article.find_element(By.CSS_SELECTOR, "a[href*='/f/']")
-                    href = link_el.get_attribute("href") or ""
+                    if article.name == "a":
+                        link_el = article
+                    else:
+                        link_el = article.find("a", href=lambda h: h and "/f/" in h)
+                    
+                    if not link_el:
+                        continue
+                        
+                    href = link_el.get("href") or ""
+                    if href.startswith("/"):
+                        href = f"https://www.dcard.tw{href}"
+                        
                     title = link_el.text.strip()
                     if not title:
-                        try:
-                            title_el = article.find_element(By.CSS_SELECTOR, "h2, h3, [class*='title']")
+                        title_el = article.find(["h2", "h3"]) or article.find(class_=lambda c: c and "title" in c.lower())
+                        if title_el:
                             title = title_el.text.strip()
-                        except Exception:
-                            title = ""
-
+                            
                     if href and href not in seen_urls and keyword in (title or ""):
                         seen_urls.add(href)
                         results.append({
@@ -83,6 +103,8 @@ class DcardConnector(BaseConnector):
                             "title": title or f"貼文 {len(seen_urls)}",
                             "url": href,
                         })
+                        if len(results) >= limit:
+                            break
                 except Exception:
                     continue
 

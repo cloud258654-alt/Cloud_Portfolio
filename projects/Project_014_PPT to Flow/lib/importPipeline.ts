@@ -9,6 +9,8 @@ export type ImportSceneDraft = {
   title: string;
   source: string;
   storyText: string;
+  heroImageReferenceName?: string;
+  heroImageReferenceDataUrl?: string;
   heroImagePrompt: string;
   flowAnimationPrompt: string;
   voiceOver: string;
@@ -63,6 +65,7 @@ export async function buildImportPlan({
     if (file.type.startsWith("image/")) {
       const title = cleanFileName(file.name);
       const imageText = `Reference image: ${file.name}`;
+      const imageDataUrl = await readFileAsDataUrl(file);
       assets.push({
         id: crypto.randomUUID(),
         name: file.name,
@@ -73,6 +76,8 @@ export async function buildImportPlan({
         title,
         source: file.name,
         storyText: imageText,
+        heroImageReferenceName: file.name,
+        heroImageReferenceDataUrl: imageDataUrl,
         heroImagePrompt: `Use ${file.name} as the visual reference. Preserve the main subject, composition, color mood, lighting direction, and production design.`,
         flowAnimationPrompt: `Animate from the reference image with subtle cinematic movement, coherent subject motion, stable identity, consistent lighting, and a clear beginning-to-ending camera move.`,
         voiceOver: "",
@@ -245,4 +250,13 @@ function readUInt32(bytes: Uint8Array, offset: number) {
     (bytes[offset + 2] << 16) |
     (bytes[offset + 3] << 24)
   ) >>> 0;
+}
+
+function readFileAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
 }

@@ -10,6 +10,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
+from bs4 import BeautifulSoup
 from app.connectors.base import BaseConnector
 
 logger = logging.getLogger("google_maps_connector")
@@ -24,8 +25,14 @@ def _create_driver():
     opts.add_argument("--window-size=1920,1080")
     opts.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36")
     opts.add_argument("--lang=zh-TW")
+    opts.add_argument("--blink-settings=imagesEnabled=false")
     opts.add_experimental_option("excludeSwitches", ["enable-automation"])
     opts.add_experimental_option("useAutomationExtension", False)
+    
+    # Also disable images via preferences
+    chrome_prefs = {"profile.managed_default_content_settings.images": 2}
+    opts.experimental_options["prefs"] = chrome_prefs
+    
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=opts)
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
@@ -43,44 +50,37 @@ class GoogleMapsConnector(BaseConnector):
             driver = _create_driver()
             url = f"https://www.google.com/maps/search/{keyword}"
             driver.get(url)
-            time.sleep(5)
 
             # Wait for search results to load
             try:
-                WebDriverWait(driver, 15).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, "[role='feed'], [aria-label*='結果'], [class*='result']"))
+                WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, "[role='feed'], [aria-label*='結果'], [class*='result'], [class*='review'], [class*='comment']"))
                 )
             except Exception:
-                pass
-
-            # Scroll to load more results
-            for _ in range(3):
-                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 time.sleep(2)
 
-            # Try multiple selectors for review text
-            selectors = [
-                "[class*='review']",
-                "[class*='comment']",
-                "[data-review-id]",
-                "span[class*='wiI7pd']",
-                "div[class*='MyEned']",
-                "[aria-label*='星']",
-            ]
+            # Scroll to load more results
+            scroll_loops = 2 if limit <= 10 else 3
+            for _ in range(scroll_loops):
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                time.sleep(1.0)
 
+            # Try multiple class/attribute selectors using BeautifulSoup
+            html = driver.page_source
+            soup = BeautifulSoup(html, "html.parser")
+            
             found_texts = set()
-            for selector in selectors:
-                try:
-                    elements = driver.find_elements(By.CSS_SELECTOR, selector)
-                    for el in elements:
-                        text = el.text.strip()
-                        if len(text) > 20 and len(text) < 600:
-                            found_texts.add(text)
-                except Exception:
-                    continue
-
+            review_elements = soup.find_all(class_=lambda c: c and ("review" in c.lower() or "comment" in c.lower() or "wiI7pd" in c or "myened" in c.lower()))
+            review_elements.extend(soup.find_all(attrs={"data-review-id": True}))
+            
+            for el in review_elements:
+                text = el.text.strip()
+                if len(text) > 20 and len(text) < 600:
+                    if not text.startswith("407") and "複製" not in text:
+                        found_texts.add(text)
+                        
             reviews = list(found_texts)[:limit]
-            logger.info(f"Google Maps Selenium: found {len(reviews)} review texts")
+            logger.info(f"Google Maps Selenium + BeautifulSoup: found {len(reviews)} review texts")
         except Exception as e:
             logger.warning(f"Google Maps Selenium error: {e}")
         finally:

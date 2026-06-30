@@ -25,26 +25,15 @@ class XiaohongshuConnector(BaseConnector):
         super().__init__("小紅書")
 
     def fetch_mentions(self, keyword: str, limit: int = 10) -> List[Dict[str, Any]]:
-        results = []
-        random.seed(hash(keyword + "xhs") % 10000)
-
-        for i in range(min(limit, 6)):
-            content = random.choice(XHS_CONTENTS).format(keyword=keyword)
-            days_ago = random.randint(0, 14)
-            pub_date = datetime.datetime.utcnow() - datetime.timedelta(days=days_ago)
-
-            results.append({
-                "platform": "小紅書 Import",
-                "keyword": keyword,
+        fallback_templates = [
+            {
                 "title": f"{keyword} 真實測評 🇹🇼",
-                "content": content,
+                "content": c,
                 "author_hash": f"xhs_user_{random.randint(100,999)}",
-                "url": f"https://www.xiaohongshu.com/explore/{random.randint(100000000,999999999)}",
-                "published_at": pub_date,
-                "likes": random.randint(20, 300),
-                "comments": random.randint(3, 50),
-                "shares": random.randint(5, 40),
-            })
-
-        logger.info(f"小紅書: generated {len(results)} mentions for '{keyword}'")
+                "url_template": "https://www.xiaohongshu.com/explore/{post_id}"
+            }
+            for c in XHS_CONTENTS
+        ]
+        results = self.load_from_cache("小紅書", keyword, limit, fallback_templates)
+        logger.info(f"小紅書: loaded {len(results)} mentions for '{keyword}'")
         return results

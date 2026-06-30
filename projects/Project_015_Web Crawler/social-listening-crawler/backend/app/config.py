@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     MOCK_CRAWLER_DELAY: float = 0.5
 
     OPENAI_API_KEY: str = ""
+    GOOGLE_API_KEY: str = ""
+    GOOGLE_CSE_ID: str = ""
     DEMO_MODE: bool = True
     JWT_SECRET: str = "demo_secret_change_in_production"
 

@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { Clipboard, FileText, Save } from "lucide-react";
+import { Clipboard, FileText, Save, Wand2 } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { AppBadge } from "@/components/ui/AppBadge";
 import { AppButton } from "@/components/ui/AppButton";
@@ -11,6 +11,7 @@ import { db } from "@/lib/db";
 import { calculateSceneHealthScore } from "@/lib/engines/sceneHealthEngine";
 import type { FlowProject, FlowScene } from "@/lib/types/flow";
 import type { PromptPackage } from "@/lib/types/prompt";
+import type { ProjectBible } from "@/lib/types/bible";
 import { formatLabel } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
 
@@ -35,12 +36,31 @@ const statusOptions: FlowScene["flowPromptStatus"][] = [
   "needs_revision",
 ];
 
+type NamedReference = {
+  name?: string;
+  role?: string;
+  visualRules?: string;
+  continuityNotes?: string;
+  angles?: string;
+  materials?: string;
+  interiors?: string;
+  logos?: string;
+  forbiddenVariants?: string;
+  location?: string;
+  weather?: string;
+  surfaces?: string;
+  props?: string;
+  lighting?: string;
+  continuity?: string;
+};
+
 export default function PromptsPage() {
   const { language } = useLanguage();
   const labels = copy[language];
   const [projects, setProjects] = useState<FlowProject[]>([]);
   const [scenes, setScenes] = useState<FlowScene[]>([]);
   const [packages, setPackages] = useState<PromptPackage[]>([]);
+  const [projectBible, setProjectBible] = useState<ProjectBible | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [selectedSceneId, setSelectedSceneId] = useState("");
   const [form, setForm] = useState<PromptForm>(emptyForm);
@@ -65,13 +85,15 @@ export default function PromptsPage() {
         return;
       }
 
-      const [loadedScenes, loadedPackages] = await Promise.all([
+      const [loadedScenes, loadedPackages, loadedBible] = await Promise.all([
         db.flowScenes.where("projectId").equals(selectedProjectId).sortBy("sceneNumber"),
         db.promptPackages.where("projectId").equals(selectedProjectId).toArray(),
+        db.projectBibles.where("projectId").equals(selectedProjectId).first(),
       ]);
 
       setScenes(loadedScenes);
       setPackages(loadedPackages);
+      setProjectBible(loadedBible ?? null);
       setSelectedSceneId((current) => {
         if (loadedScenes.some((scene) => scene.id === current)) return current;
         return loadedScenes.at(0)?.id || "";
@@ -179,6 +201,22 @@ export default function PromptsPage() {
       ].join("\n"),
     );
     setMessage(labels.copied);
+  };
+
+  const composePromptDraft = () => {
+    if (!selectedScene) {
+      setMessage(labels.needScene);
+      return;
+    }
+
+    const composed = composeScenePrompt(selectedScene, projectBible, labels.emptyValue);
+    setForm({
+      heroImagePrompt: composed.heroImagePrompt,
+      flowAnimationPrompt: composed.flowAnimationPrompt,
+      negativePrompt: composed.negativePrompt,
+      flowPromptStatus: "drafted",
+    });
+    setMessage(labels.composed);
   };
 
   return (
@@ -292,6 +330,10 @@ export default function PromptsPage() {
                   />
 
                   <div className="flex flex-wrap gap-3">
+                    <AppButton type="button" variant="outline" onClick={composePromptDraft}>
+                      <Wand2 className="h-4 w-4" aria-hidden="true" />
+                      {labels.compose}
+                    </AppButton>
                     <AppButton type="submit">
                       <Save className="h-4 w-4" aria-hidden="true" />
                       {labels.save}
@@ -394,6 +436,97 @@ function PreviewBlock({
   );
 }
 
+function composeScenePrompt(scene: FlowScene, bible: ProjectBible | null, emptyValue: string) {
+  const characters = formatReferences(parseReferences(bible?.characterBible));
+  const props = formatReferences(parseReferences(bible?.vehicleBible));
+  const environments = formatReferences(parseReferences(bible?.environmentBible));
+  const audioRules = parseAudioRules(bible?.audioBible);
+
+  const heroImagePrompt = [
+    `Create a cinematic hero image for Scene ${scene.sceneNumber}: ${scene.title}.`,
+    `Story: ${scene.storyText || emptyValue}`,
+    `Camera: ${scene.camera}. Emotion: ${scene.emotion}.`,
+    bible?.brandBible ? `Brand rules: ${bible.brandBible}` : "",
+    bible?.cameraBible ? `Camera rules: ${bible.cameraBible}` : "",
+    bible?.lightingBible ? `Lighting rules: ${bible.lightingBible}` : "",
+    bible?.colorBible ? `Color rules: ${bible.colorBible}` : "",
+    characters ? `Character continuity: ${characters}` : "",
+    props ? `Prop continuity: ${props}` : "",
+    environments ? `Environment continuity: ${environments}` : "",
+  ].filter(Boolean).join("\n");
+
+  const flowAnimationPrompt = [
+    `Generate a Google Flow video scene for Scene ${scene.sceneNumber}: ${scene.title}.`,
+    `Scene goal: ${scene.goal || emptyValue}`,
+    `Story: ${scene.storyText || emptyValue}`,
+    `Duration: ${scene.durationSec}s. Camera: ${scene.camera}. Emotion: ${scene.emotion}.`,
+    `Motion: ${bible?.motionBible || "Use coherent cinematic movement with stable subject continuity."}`,
+    `Transition / continuity: ${scene.transition || scene.continuityNote || "Maintain continuity from the previous scene and prepare a clear ending frame for the next scene."}`,
+    bible?.brandBible ? `Brand rules: ${bible.brandBible}` : "",
+    bible?.lightingBible ? `Lighting rules: ${bible.lightingBible}` : "",
+    bible?.colorBible ? `Color rules: ${bible.colorBible}` : "",
+    bible?.emotionBible ? `Emotion rules: ${bible.emotionBible}` : "",
+    audioRules ? `Audio rules: ${audioRules}` : "",
+    characters ? `Characters: ${characters}` : "",
+    props ? `Props: ${props}` : "",
+    environments ? `Environment: ${environments}` : "",
+    scene.endingFrameNote ? `Ending frame note: ${scene.endingFrameNote}` : "",
+  ].filter(Boolean).join("\n");
+
+  return {
+    heroImagePrompt,
+    flowAnimationPrompt,
+    negativePrompt: bible?.negativePromptBible || "",
+  };
+}
+
+function parseReferences(value?: string): NamedReference[] {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value) as NamedReference[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function formatReferences(references: NamedReference[]) {
+  return references
+    .map((reference) =>
+      [
+        reference.name,
+        reference.role,
+        reference.visualRules,
+        reference.continuityNotes,
+        reference.angles,
+        reference.materials,
+        reference.interiors,
+        reference.logos,
+        reference.forbiddenVariants,
+        reference.location,
+        reference.weather,
+        reference.surfaces,
+        reference.props,
+        reference.lighting,
+        reference.continuity,
+      ]
+        .filter(Boolean)
+        .join(" | "),
+    )
+    .filter(Boolean)
+    .join("\n");
+}
+
+function parseAudioRules(value?: string) {
+  if (!value) return "";
+  try {
+    const parsed = JSON.parse(value) as { audioRules?: string };
+    return typeof parsed.audioRules === "string" ? parsed.audioRules : "";
+  } catch {
+    return value;
+  }
+}
+
 const copy = {
   en: {
     title: "Flow Prompts",
@@ -414,11 +547,13 @@ const copy = {
     heroImagePrompt: "Hero Image Prompt",
     flowAnimationPrompt: "Google Flow Prompt",
     negativePrompt: "Negative Prompt",
+    compose: "Compose Draft From Project Data",
     save: "Save Prompt",
     copy: "Copy Package",
     needScene: "Select a scene first.",
     saved: (sceneNumber: number) => `Saved prompt package for Scene ${sceneNumber}.`,
     copied: "Prompt package copied.",
+    composed: "Prompt draft composed from Project Bible, references, and scene data.",
     reviewTitle: "Flow Review",
     drafted: "Drafted",
     ready: "Ready",
@@ -449,11 +584,13 @@ const copy = {
     heroImagePrompt: "主視覺圖片提示詞",
     flowAnimationPrompt: "Google Flow 提示詞",
     negativePrompt: "負面提示詞",
+    compose: "從專案資料組合草稿",
     save: "儲存提示詞",
     copy: "複製套件",
     needScene: "請先選擇場景。",
     saved: (sceneNumber: number) => `已儲存場景 ${sceneNumber} 的提示詞套件。`,
     copied: "已複製提示詞套件。",
+    composed: "已依專案聖經、參考資料與場景內容組合提示詞草稿。",
     reviewTitle: "Flow 檢視",
     drafted: "已撰寫",
     ready: "已就緒",

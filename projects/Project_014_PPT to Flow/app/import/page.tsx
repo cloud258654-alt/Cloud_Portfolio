@@ -17,6 +17,11 @@ import { useWorkspaceStore } from "@/lib/stores/workspaceStore";
 import { useLanguage } from "@/lib/i18n";
 
 const emptyPrompt = "";
+const settingsKey = "flow-director-settings";
+
+type StoredSettings = {
+  defaultTargetDurationSec?: string;
+};
 
 export default function ImportPage() {
   const { language } = useLanguage();
@@ -86,7 +91,7 @@ export default function ImportPage() {
         description: importPlan.description,
         brandName: labels.importedBrand,
         targetAudience: labels.importedAudience,
-        targetDurationSec: Math.max(30, importPlan.scenes.length * 8),
+        targetDurationSec: getDefaultTargetDuration(importPlan.scenes.length),
         targetSceneCount: importPlan.scenes.length,
         language: language === "zh-TW" ? "zh-TW" : "en",
         flowStatus: "storyboarding",
@@ -118,7 +123,9 @@ export default function ImportPage() {
           durationSec: 8,
           camera: "medium",
           heroImagePrompt: scene.heroImagePrompt,
-          heroImageStatus: scene.heroImagePrompt ? "drafted" : "not_started",
+          heroImageReferenceName: scene.heroImageReferenceName,
+          heroImageReferenceDataUrl: scene.heroImageReferenceDataUrl,
+          heroImageStatus: scene.heroImageReferenceDataUrl ? "ready" : scene.heroImagePrompt ? "drafted" : "not_started",
           flowAnimationPrompt: scene.flowAnimationPrompt,
           flowPromptStatus: scene.flowAnimationPrompt ? "drafted" : "not_started",
           endingFrameStatus: "not_available",
@@ -285,6 +292,21 @@ function summarizeFiles(files: File[]) {
 function formatSize(size: number) {
   if (size < 1024 * 1024) return `${Math.max(1, Math.round(size / 1024))} KB`;
   return `${(size / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function getStoredSettings(): StoredSettings {
+  try {
+    return JSON.parse(window.localStorage.getItem(settingsKey) ?? "{}") as StoredSettings;
+  } catch {
+    return {};
+  }
+}
+
+function getDefaultTargetDuration(sceneCount: number) {
+  const configured = Number(getStoredSettings().defaultTargetDurationSec);
+  return Number.isFinite(configured) && configured > 0
+    ? configured
+    : Math.max(30, sceneCount * 8);
 }
 
 const copy = {

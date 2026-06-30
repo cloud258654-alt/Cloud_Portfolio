@@ -1,0 +1,76 @@
+{
+  "Facebook": [
+    {
+      "title": "台南美食推薦 - {keyword}",
+      "content": "今天去吃了{keyword}，果然名不虛傳！排隊排了半小時但完全值得，牛肉超嫩湯頭超讚！",
+      "author_hash": "fb_user_101",
+      "url_template": "https://www.facebook.com/groups/tainanfood/posts/{post_id}"
+    },
+    {
+      "title": "品牌評價 - {keyword} 體驗心得",
+      "content": "{keyword}真的CP值很高，服務親切，牛肉新鮮，配上特製沾醬一絕，超級推薦！",
+      "author_hash": "fb_user_202",
+      "url_template": "https://www.facebook.com/posts/{post_id}"
+    },
+    {
+      "title": "避雷分享: {keyword}",
+      "content": "去買了{keyword}，排隊很久就算了，結果店員服務態度超級差，感覺很雷，不會再去第二次！",
+      "author_hash": "fb_user_303",
+      "url_template": "https://www.facebook.com/posts/{post_id}"
+    }
+  ],
+  "Threads": [
+    {
+      "title": "@foodie_tw · {keyword}",
+      "content": "今天終於吃到{keyword}了 🤤 排隊排了40分鐘但真的好好吃，牛肉嫩到不行！ #美食",
+      "author_hash": "foodie_tw",
+      "url_template": "https://www.threads.net/@foodie_tw/post/{post_id}"
+    },
+    {
+      "title": "@social_news · {keyword}",
+      "content": "有沒有人知道{keyword}這家店最近怎麼那麼紅？我看一堆脆友都在打卡 🧐",
+      "author_hash": "social_news",
+      "url_template": "https://www.threads.net/@social_news/post/{post_id}"
+    }
+  ],
+  "TikTok": [
+    {
+      "title": "@tainanfoodie · {keyword} 美食探店",
+      "content": "#台南美食 #牛肉湯 {keyword} 真的名不虛傳！排隊人潮超多但真的值得 🔥",
+      "author_hash": "tainanfoodie",
+      "url_template": "https://www.tiktok.com/@tainanfoodie/video/{post_id}"
+    },
+    {
+      "title": "@social_trends · {keyword} 踩雷實測",
+      "content": "今天來實測超火的{keyword}！吃完覺得根本普普通通，到底為什麼吹這麼大？🙄",
+      "author_hash": "social_trends",
+      "url_template": "https://www.tiktok.com/@social_trends/video/{post_id}"
+    }
+  ],
+  "小紅書": [
+    {
+      "title": "{keyword} 真實測評 🇹🇼",
+      "content": "終於來朝聖{keyword}了！🍜 排隊30分鐘，牛肉超嫩，湯頭超鮮甜，小紅書推薦不踩雷！",
+      "author_hash": "xhs_user_88",
+      "url_template": "https://www.xiaohongshu.com/explore/{post_id}"
+    },
+    {
+      "title": "台南必吃 {keyword} 種草指南",
+      "content": "{keyword}真實測評來了～台南必吃牛肉湯，一碗120元CP值爆炸，大家快去衝！",
+      "author_hash": "xhs_user_99",
+      "url_template": "https://www.xiaohongshu.com/explore/{post_id}"
+    }
+  ],
+  "Google Search": [
+    {
+      "title": "深入探討 {keyword}：原理、應用與未來挑戰",
+      "content": "雖然 {keyword} 帶來了極大的便利，但在資料安全、隱私保護以及合規性上依然存在諸多挑戰，需要業界共同制定標準。",
+      "url_template": "https://www.inside.com.tw/article/{post_id}"
+    },
+    {
+      "title": "二○二六年度最佳 {keyword} 工具推薦與評比",
+      "content": "評測團隊針對市面上熱門的五款 {keyword} 進行了為期一個月的深度測試，從功能、易用性、性價比等維度進行綜合評估。",
+      "url_template": "https://www.bnext.com.tw/article/{post_id}"
+    }
+  ]
+}
