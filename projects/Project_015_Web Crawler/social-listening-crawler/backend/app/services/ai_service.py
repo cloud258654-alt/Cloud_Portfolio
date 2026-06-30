@@ -1,5 +1,7 @@
 import random
 from typing import Dict, Any
+from app.services.root_cause_service import RootCauseService
+from app.services.risk_score_service import RiskScoreService
 
 class AIService:
     NEGATIVES = [
@@ -60,107 +62,53 @@ class AIService:
             sentiment = "Negative"
             score = round(-0.3 - (random.random() * 0.3), 2)
 
-        # ----------------- REPUTATION RISK MODEL (0-100) -----------------
-        # Factor 1: Negative/Neutral Sentiment (max 25)
-        sentiment_score = 0
-        if sentiment == "Negative":
-            sentiment_score = 25
-        elif sentiment == "Neutral":
-            sentiment_score = 10
+        # ----------------- REPUTATION RISK MODEL (v3.0) -----------------
+        # Step 1: Root Cause Analysis
+        root_cause_result = RootCauseService.analyze(text, keyword)
 
-        # Factor 2: Crisis Keywords (max 30)
-        # 詐騙, 出事, 爆炸, 毒, 倒閉, 訴訟, 違法, 雷, 踩雷, 客訴, 退費, 消保會, 爆料 etc.
+        # Step 2: Risk Score Calculation
+        risk_result = RiskScoreService.calculate(
+            sentiment=sentiment,
+            content=text,
+            root_cause_category=root_cause_result["root_cause_category"],
+            likes=likes,
+            comments=comments,
+            shares=shares,
+            is_resolved=is_resolved,
+        )
+
+        risk_score = risk_result["risk_score"]
+        risk_level = risk_result["risk_level"]
+        recommended_priority = risk_result["priority"]
+        risk_reason = root_cause_result["risk_reason"]
+        suggested_action = root_cause_result["suggested_action"]
+        root_cause_category = root_cause_result["root_cause_category"]
+        root_cause_tags = root_cause_result["root_cause_tags"]
+
+        # Legacy crisis keywords matching
         crisis_words = [
             "詐騙", "出事", "爆炸", "毒", "倒閉", "訴訟", "違法", "雷", "踩雷",
             "客訴", "退費", "消保會", "爆料", "致癌", "召回", "中毒", "停業", "崩潰"
         ]
         matched_keywords = [w for w in crisis_words if w in text_lower]
-        keyword_score = 30 if len(matched_keywords) > 0 else 0
-
-        # Factor 3: Engagement (max 15)
-        engagement_score = min(15, (likes + comments * 2 + shares * 3) // 5)
-
-        # Factor 4: Platform Sensitivity (max 10)
-        p_lower = platform.lower() if platform else ""
-        if any(p in p_lower for p in ["facebook", "fb", "threads", "小紅書", "dcard", "tiktok", "import"]):
-            platform_score = 10
-        elif "ptt" in p_lower:
-            platform_score = 8
-        elif any(p in p_lower for p in ["google", "map", "search"]):
-            platform_score = 5
-        else:
-            platform_score = 5
-
-        # Factor 5: Unresolved Status (max 10)
-        status_score = 0 if is_resolved else 10
-
-        # Factor 6: Repeat Keyword Frequency (max 10)
-        if recent_count >= 5:
-            frequency_score = 10
-        elif recent_count >= 2:
-            frequency_score = 5
-        else:
-            frequency_score = 0
-
-        risk_score = sentiment_score + keyword_score + engagement_score + platform_score + status_score + frequency_score
-        risk_score = max(0, min(100, risk_score))
-
-        # Map to Risk Level (Low/Medium/High)
-        if risk_score >= 70:
-            risk_level = "High"
-        elif risk_score >= 30:
-            risk_level = "Medium"
-        else:
-            risk_level = "Low"
-
-        # Map to Recommended Priority (P0-P3)
-        # P0: risk_score >= 90 or matching urgent legal / scam / consumer protection words
-        critical_words = ["詐騙", "違法", "消保會", "爆料", "致癌", "中毒"]
-        has_critical = any(w in matched_keywords for w in critical_words)
-        
-        if risk_score >= 90 or has_critical:
-            recommended_priority = "P0"
-        elif risk_score >= 70:
-            recommended_priority = "P1"
-        elif risk_score >= 30:
-            recommended_priority = "P2"
-        else:
-            recommended_priority = "P3"
-
-        # Construct Risk Reasons description
-        reasons = []
-        if sentiment_score > 0:
-            reasons.append(f"{sentiment}情緒語氣")
-        if keyword_score > 0:
-            reasons.append(f"命中危機詞({', '.join(matched_keywords[:4])})")
-        if engagement_score > 5:
-            reasons.append("社群傳播熱度高")
-        if platform_score == 10:
-            reasons.append(f"高擴散平台({platform or 'Import'})")
-        if status_score > 0:
-            reasons.append("事件尚未處置")
-        if frequency_score > 0:
-            reasons.append("近期出現頻率升溫")
-        
-        risk_reason = "、".join(reasons) if reasons else "無明顯商譽風險"
 
         purchase_intent = any(w in text_lower for w in AIService.PURCHASE_INTENT_WORDS)
 
         if sentiment == "Positive":
-            ai_summary = f"文章對「{keyword}」表達正面評價，整體品質與服務令人滿意。"
+            ai_summary = f"文章對「{keyword}」表達正面評價，{root_cause_category}表現令人滿意。"
         elif sentiment == "Negative":
-            ai_summary = f"文章對「{keyword}」表達批評，命中危機因素。成因：{risk_reason}。"
+            ai_summary = f"文章對「{keyword}」表達批評，主要問題為{root_cause_category}。成因：{risk_reason}。"
         else:
             ai_summary = f"文章中性討論「{keyword}」，用戶進行資訊詢問與交流。"
 
         if recommended_priority == "P0":
-            ai_suggestion = f"⚠ 關鍵品牌商譽危機！命中關鍵字且風險指數極高 ({risk_score}分)。公關團隊應立即召集緊急會議並於 1 小時內發表官方澄清聲明。"
+            ai_suggestion = f"⚠ 關鍵品牌商譽危機！風險指數極高 ({risk_score}分)。{suggested_action}"
         elif recommended_priority == "P1":
-            ai_suggestion = f"🚨 高商譽風險警訊 ({risk_score}分)。建議品牌公關主管於 2 小時內審查並擬定回應策略。"
+            ai_suggestion = f"🚨 高商譽風險警訊 ({risk_score}分)。{suggested_action}"
         elif recommended_priority == "P2":
-            ai_suggestion = f"💬 中商譽風險事件 ({risk_score}分)。建議客服專員主動回覆，協助澄清疑慮並解決客訴。"
+            ai_suggestion = f"💬 中商譽風險事件 ({risk_score}分)。{suggested_action}"
         else:
-            ai_suggestion = f"✅ 低風險訊號 ({risk_score}分)。持續監控該品牌/關鍵字的風險訊號即可。"
+            ai_suggestion = f"✅ 低風險訊號 ({risk_score}分)。{suggested_action}"
 
         return {
             "sentiment": sentiment,
@@ -170,6 +118,9 @@ class AIService:
             "risk_reason": risk_reason,
             "crisis_keywords_matched": ",".join(matched_keywords) if matched_keywords else "",
             "recommended_priority": recommended_priority,
+            "root_cause_category": root_cause_category,
+            "root_cause_tags": root_cause_tags,
+            "suggested_action": suggested_action,
             "purchase_intent": purchase_intent,
             "ai_summary": ai_summary,
             "ai_suggestion": ai_suggestion,

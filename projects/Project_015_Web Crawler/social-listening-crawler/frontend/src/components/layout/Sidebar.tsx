@@ -32,7 +32,7 @@ export default function Sidebar({ activeTab, onTabChange, allowedTabs }: Sidebar
         <div className="bg-gray-50 rounded-xl p-3 text-xs">
           <span className="font-semibold text-gray-700 block mb-2">支援平台</span>
           <div className="flex flex-wrap gap-1">
-            {['PTT','Dcard','Google Search','Google Maps','Facebook','TikTok','小紅書'].map(p=>(
+            {['PTT','Dcard','Google Search','Google Maps','Facebook','Threads','小紅書','TikTok','抖音'].map(p=>(
               <span key={p} className="bg-white text-gray-500 px-1.5 py-0.5 rounded-md border border-gray-200 text-[10px]">{p}</span>
             ))}
           </div>

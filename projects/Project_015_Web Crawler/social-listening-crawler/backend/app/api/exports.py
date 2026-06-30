@@ -13,7 +13,8 @@ CSV_HEADERS = [
     "id", "platform", "keyword", "title", "content", "url", "author",
     "published_at", "sentiment", "sentiment_score", "risk_level", 
     "risk_score", "risk_reason", "crisis_keywords_matched", "recommended_priority",
-    "purchase_intent", "ai_summary", "ai_suggestion", "created_at",
+    "root_cause_category", "suggested_action", "purchase_intent",
+    "ai_summary", "ai_suggestion", "created_at",
 ]
 
 
@@ -65,6 +66,8 @@ def export_mentions_csv(
             m.risk_reason or "",
             m.crisis_keywords_matched or "",
             m.recommended_priority,
+            m.root_cause_category or "",
+            m.suggested_action or "",
             "YES" if m.purchase_intent else "NO",
             m.ai_summary or "",
             m.ai_suggestion or "",

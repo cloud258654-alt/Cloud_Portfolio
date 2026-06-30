@@ -32,6 +32,31 @@ export interface Mention {
   crisis_keywords_matched: string | null;
   recommended_priority: string;
   resolved_at: string | null;
+  root_cause_category: string | null;
+  root_cause_tags: string | null;
+  suggested_action: string | null;
+  brand_health_impact: number;
+}
+
+export interface BrandHealth {
+  brand_health_score: number;
+  previous_score: number;
+  score_change: number;
+  positive_count: number;
+  neutral_count: number;
+  negative_count: number;
+  total_mentions: number;
+  high_risk_count: number;
+  positive_ratio: number;
+  negative_ratio: number;
+  top_root_causes: { category: string; count: number }[];
+  summary: string;
+}
+
+export interface SuggestedAction {
+  action: string;
+  priority: string;
+  title: string;
 }
 
 export interface DashboardSummary {
@@ -51,6 +76,10 @@ export interface DashboardSummary {
   trend: TrendItem[];
   latest_mentions: Mention[];
   high_risk_events: Mention[];
+  brand_health: BrandHealth;
+  root_cause_ranking: Record<string, number>;
+  priority_distribution: Record<string, number>;
+  suggested_actions: SuggestedAction[];
 }
 
 export interface TrendItem {

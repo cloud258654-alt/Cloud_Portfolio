@@ -46,6 +46,7 @@ export default function HighRiskEvents({ events }: HighRiskEventsProps) {
                   </span>
                 </div>
                 <p className="text-gray-600 text-xs leading-relaxed line-clamp-2">{m.content}</p>
+                {m.url && <p className="text-[9px] text-brand-600 truncate mt-1 max-w-[300px]">{m.url}</p>}
                 <div className="flex items-center justify-between mt-2.5">
                   <div className="flex items-center gap-2 text-xs text-gray-400">
                     <span className="bg-white px-2 py-0.5 rounded border border-gray-200">{m.platform}</span>
@@ -54,7 +55,7 @@ export default function HighRiskEvents({ events }: HighRiskEventsProps) {
                   </div>
                   {m.url && (
                     <a href={m.url} target="_blank" rel="noreferrer" className="text-brand-600 hover:text-brand-700 text-xs font-medium flex items-center gap-1">
-                      原始連結
+                      查看原文
                       <ExternalLink className="h-3 w-3" />
                     </a>
                   )}

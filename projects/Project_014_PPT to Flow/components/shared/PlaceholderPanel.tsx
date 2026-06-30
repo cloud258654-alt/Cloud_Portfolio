@@ -14,7 +14,7 @@ const placeholderKeys: Record<string, { title: TranslationKey; description: Tran
     title: "placeholder.characters.title",
     description: "placeholder.characters.description",
   },
-  Vehicles: {
+  Props: {
     title: "placeholder.vehicles.title",
     description: "placeholder.vehicles.description",
   },

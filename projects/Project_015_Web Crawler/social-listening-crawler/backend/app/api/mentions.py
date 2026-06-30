@@ -40,12 +40,15 @@ def _serialize(m) -> dict:
         "replied_at": m.replied_at.isoformat() if m.replied_at else None,
         "raw_data": m.raw_data,
         "keyword_name": m.keyword.name if m.keyword else None,
-        # Reputation Risk fields
         "risk_score": m.risk_score,
         "risk_reason": m.risk_reason,
         "crisis_keywords_matched": m.crisis_keywords_matched,
         "recommended_priority": m.recommended_priority,
         "resolved_at": m.resolved_at.isoformat() if m.resolved_at else None,
+        "root_cause_category": m.root_cause_category,
+        "root_cause_tags": m.root_cause_tags,
+        "suggested_action": m.suggested_action,
+        "brand_health_impact": m.brand_health_impact,
     }
 
 
@@ -56,6 +59,7 @@ def list_mentions(
     sentiment: Optional[str] = None,
     risk_level: Optional[str] = None,
     recommended_priority: Optional[str] = None,
+    root_cause_category: Optional[str] = None,
     status: Optional[str] = None,
     search: Optional[str] = None,
     limit: int = Query(100, ge=1, le=1000),
@@ -75,6 +79,8 @@ def list_mentions(
             query = query.filter(MentionModel.risk_level == risk_level)
         if recommended_priority:
             query = query.filter(MentionModel.recommended_priority == recommended_priority)
+        if root_cause_category:
+            query = query.filter(MentionModel.root_cause_category == root_cause_category)
         if status:
             query = query.filter(MentionModel.status == status)
         if search:

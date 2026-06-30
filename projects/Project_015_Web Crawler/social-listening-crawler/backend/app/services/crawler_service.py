@@ -9,6 +9,11 @@ from app.models.crawl_log import CrawlLog
 from app.connectors.ptt_connector import PTTConnector
 from app.connectors.dcard_connector import DcardConnector
 from app.connectors.google_search_connector import GoogleSearchConnector
+from app.connectors.google_maps_connector import GoogleMapsConnector
+from app.connectors.facebook_connector import FacebookConnector
+from app.connectors.threads_connector import ThreadsConnector
+from app.connectors.xiaohongshu_connector import XiaohongshuConnector
+from app.connectors.tiktok_connector import TikTokConnector
 from app.services.notification_service import NotificationService
 from app.services.llm_service import analyze_with_llm
 
@@ -25,6 +30,11 @@ class CrawlerService:
             "PTT": PTTConnector(),
             "Dcard": DcardConnector(),
             "Google Search": GoogleSearchConnector(),
+            "Google Maps": GoogleMapsConnector(),
+            "Facebook Import": FacebookConnector(),
+            "Threads Import": ThreadsConnector(),
+            "小紅書 Import": XiaohongshuConnector(),
+            "TikTok Import": TikTokConnector(),
         }
 
     def crawl_all_keywords(self, db: Session):
@@ -103,6 +113,9 @@ class CrawlerService:
                     risk_reason=ai_result.get("risk_reason"),
                     crisis_keywords_matched=ai_result.get("crisis_keywords_matched"),
                     recommended_priority=ai_result.get("recommended_priority", "P3"),
+                    root_cause_category=ai_result.get("root_cause_category"),
+                    root_cause_tags=",".join(ai_result.get("root_cause_tags", [])) if ai_result.get("root_cause_tags") else None,
+                    suggested_action=ai_result.get("suggested_action"),
                 )
                 db.add(mention)
                 saved_count += 1
@@ -178,6 +191,9 @@ class CrawlerService:
             risk_reason=ai_result.get("risk_reason"),
             crisis_keywords_matched=ai_result.get("crisis_keywords_matched"),
             recommended_priority=ai_result.get("recommended_priority", "P3"),
+            root_cause_category=ai_result.get("root_cause_category"),
+            root_cause_tags=",".join(ai_result.get("root_cause_tags", [])) if ai_result.get("root_cause_tags") else None,
+            suggested_action=ai_result.get("suggested_action"),
         )
         db.add(mention)
         db.commit()

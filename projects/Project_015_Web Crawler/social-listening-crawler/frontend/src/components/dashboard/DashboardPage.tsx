@@ -1,11 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
-import { MessageSquare, AlertTriangle, Loader2, AlertCircle, Zap, RefreshCw } from 'lucide-react';
+import { MessageSquare, AlertTriangle, Loader2, AlertCircle, Zap, RefreshCw, Lightbulb } from 'lucide-react';
 import StatCard from './StatCard';
 import PlatformChart from './PlatformChart';
 import KeywordRanking from './KeywordRanking';
 import SentimentTrend from './SentimentTrend';
 import LatestMentions from './LatestMentions';
 import HighRiskEvents from './HighRiskEvents';
+import BrandHealthCard from './BrandHealthCard';
+import RootCauseChart from './RootCauseChart';
+import PriorityBadge from './PriorityBadge';
 import { get } from '../../api/client';
 import { postCrawlRun } from '../../api/keywords';
 import type { DashboardSummary } from '../../types';
@@ -55,12 +58,14 @@ export default function DashboardPage() {
     </div>
   );
 
+  const bh = data?.brand_health;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">商譽風險戰情室</h2>
-          <p className="text-gray-500 text-sm mt-0.5">企業商譽風險即時監控與危機處置</p>
+          <h2 className="text-2xl font-bold text-gray-900">AI 商譽風險戰情室</h2>
+          <p className="text-gray-500 text-sm mt-0.5">文章牛肉湯 · 全台分店商譽即時監控</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center bg-gray-100 rounded-xl p-0.5">
@@ -82,6 +87,10 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Row 1: Brand Health Score */}
+      <BrandHealthCard data={bh ?? null} />
+
+      {/* Row 2: KPI Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           label="商譽風險指數"
@@ -90,18 +99,44 @@ export default function DashboardPage() {
           icon={<Zap className="h-6 w-6" />}
           accent={data && (data.reputation_risk_index ?? 0) >= 70 ? "red" : (data && (data.reputation_risk_index ?? 0) >= 30 ? "amber" : "emerald")}
         />
-        <StatCard label="高風險事件數" value={data?.high_risk_count ?? 0} sub="待優先處置 P0/P1" icon={<AlertTriangle className="h-6 w-6" />} accent="red" />
+        <StatCard label="P0/P1 高風險" value={(data?.priority_distribution?.P0 ?? 0) + (data?.priority_distribution?.P1 ?? 0)} sub={`P0: ${data?.priority_distribution?.P0 ?? 0} | P1: ${data?.priority_distribution?.P1 ?? 0}`} icon={<AlertTriangle className="h-6 w-6" />} accent="red" />
         <StatCard label="負面信號比例" value={data ? `${data.negative_ratio ?? 0}%` : "0%"} sub={`總信號: ${data?.total_mentions ?? 0} 筆`} icon={<MessageSquare className="h-6 w-6" />} accent="amber" />
-        <StatCard label="危機字詞命中數" value={data?.crisis_keywords_hit_count ?? 0} sub={`未處理事件: ${data?.unresolved_count ?? 0} 筆`} icon={<AlertTriangle className="h-6 w-6" />} accent="brand" />
+        <StatCard label="昨晚處理事件" value={data?.unresolved_count ?? 0} sub={`P2: ${data?.priority_distribution?.P2 ?? 0} | P3: ${data?.priority_distribution?.P3 ?? 0}`} icon={<AlertTriangle className="h-6 w-6" />} accent="brand" />
       </div>
 
+      {/* Row 3: Root Cause Ranking + Risk Trend */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RootCauseChart data={data?.root_cause_ranking || {}} />
+        <SentimentTrend data={data?.trend || []} />
+      </div>
+
+      {/* Row 4: Platform + Priority Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <PlatformChart data={data?.platform_breakdown || {}} />
         <KeywordRanking data={data?.keyword_breakdown || {}} />
       </div>
 
-      <SentimentTrend data={data?.trend || []} />
+      {/* Row 5: AI Suggested Actions */}
+      {data?.suggested_actions && data.suggested_actions.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <Lightbulb className="h-5 w-5 text-amber-500" />AI 今日建議行動
+          </h3>
+          <div className="space-y-2">
+            {data.suggested_actions.map((a, i) => (
+              <div key={i} className="flex items-start gap-3 bg-amber-50/50 rounded-xl p-3 border border-amber-100">
+                <PriorityBadge priority={a.priority} compact />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-800 truncate">{a.title}</p>
+                  <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{a.action}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
+      {/* Row 6: High Risk Events + Latest Mentions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <LatestMentions mentions={data?.latest_mentions || []} />
         <HighRiskEvents events={data?.high_risk_events || []} />

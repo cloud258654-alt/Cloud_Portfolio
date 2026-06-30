@@ -31,6 +31,8 @@ type ExportBundle = {
   json: string;
 };
 
+type ExportScope = "project" | "scene";
+
 export default function ExportPage() {
   const { language } = useLanguage();
   const labels = copy[language];
@@ -38,6 +40,8 @@ export default function ExportPage() {
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [scenes, setScenes] = useState<HeroScene[]>([]);
   const [characters, setCharacters] = useState<CharacterReference[]>([]);
+  const [exportScope, setExportScope] = useState<ExportScope>("project");
+  const [selectedSceneId, setSelectedSceneId] = useState("");
   const [copied, setCopied] = useState<"markdown" | "json" | null>(null);
 
   useEffect(() => {
@@ -65,19 +69,32 @@ export default function ExportPage() {
 
       setScenes(loadedScenes as HeroScene[]);
       setCharacters(parseCharacters(bible?.characterBible));
+      setSelectedSceneId((current) => {
+        if (loadedScenes.some((scene) => scene.id === current)) return current;
+        return loadedScenes.at(0)?.id || "";
+      });
     }
 
     void loadProjectData();
   }, [selectedProjectId]);
 
   const selectedProject = projects.find((project) => project.id === selectedProjectId) ?? null;
+  const selectedScene = scenes.find((scene) => scene.id === selectedSceneId) ?? null;
+  const exportScenes = exportScope === "scene" && selectedScene ? [selectedScene] : scenes;
   const bundle = useMemo(
-    () => (selectedProject ? createExportBundle(selectedProject, scenes, characters) : null),
-    [selectedProject, scenes, characters],
+    () =>
+      selectedProject
+        ? createExportBundle(selectedProject, exportScenes, characters, exportScope)
+        : null,
+    [selectedProject, exportScenes, characters, exportScope],
   );
 
   const projectOptions = projects.map((project) => project.id);
   const projectLabels = Object.fromEntries(projects.map((project) => [project.id, project.name]));
+  const sceneOptions = scenes.map((scene) => scene.id);
+  const sceneLabels = Object.fromEntries(
+    scenes.map((scene) => [scene.id, `${scene.sceneNumber}. ${scene.title}`]),
+  );
 
   const copyToClipboard = async (kind: "markdown" | "json") => {
     if (!bundle) return;
@@ -94,8 +111,12 @@ export default function ExportPage() {
     const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
+    const sceneSuffix =
+      exportScope === "scene" && selectedScene
+        ? `-scene-${selectedScene.sceneNumber}-${slugify(selectedScene.title)}`
+        : "";
     link.href = url;
-    link.download = `${slugify(bundle.project.name)}-google-flow-package.${extension}`;
+    link.download = `${slugify(bundle.project.name)}${sceneSuffix}-google-flow-package.${extension}`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -120,7 +141,10 @@ export default function ExportPage() {
                 label={labels.projectLabel}
                 value={selectedProjectId}
                 options={projectOptions}
-                onChange={setSelectedProjectId}
+                onChange={(value) => {
+                  setSelectedProjectId(value);
+                  setSelectedSceneId("");
+                }}
               />
               <p className="mt-3 text-sm leading-6 text-muted">
                 {selectedProjectId ? projectLabels[selectedProjectId] : labels.noProject}
@@ -128,9 +152,41 @@ export default function ExportPage() {
             </AppCard>
 
             <AppCard>
+              <SelectField
+                label={labels.scopeLabel}
+                value={exportScope}
+                options={[
+                  { value: "project", label: labels.scopeProject },
+                  { value: "scene", label: labels.scopeScene },
+                ]}
+                onChange={(value) => setExportScope(value as ExportScope)}
+              />
+              {exportScope === "scene" ? (
+                <div className="mt-4">
+                  <SelectField
+                    label={labels.sceneLabel}
+                    value={selectedSceneId}
+                    options={sceneOptions.map((sceneId) => ({
+                      value: sceneId,
+                      label: sceneLabels[sceneId] ?? sceneId,
+                    }))}
+                    onChange={setSelectedSceneId}
+                  />
+                </div>
+              ) : null}
+              <p className="mt-3 text-sm leading-6 text-muted">
+                {exportScope === "scene"
+                  ? selectedScene
+                    ? labels.sceneScopeHelp(selectedScene.sceneNumber)
+                    : labels.noScene
+                  : labels.projectScopeHelp}
+              </p>
+            </AppCard>
+
+            <AppCard>
               <h2 className="card-title">{labels.packageTitle}</h2>
               <div className="mt-4 space-y-3 text-sm leading-6 text-muted">
-                <p>{labels.sceneCount(scenes.length)}</p>
+                <p>{labels.sceneCount(exportScenes.length)}</p>
                 <p>{labels.characterCount(characters.length)}</p>
                 <p>{labels.packageIncludes}</p>
               </div>
@@ -172,6 +228,7 @@ function createExportBundle(
   project: FlowProject,
   scenes: HeroScene[],
   characters: CharacterReference[],
+  scope: ExportScope = "project",
 ): ExportBundle {
   const exportScenes = scenes.map((scene) => ({
     sceneNumber: scene.sceneNumber,
@@ -200,7 +257,7 @@ function createExportBundle(
   }));
 
   const markdown = [
-    `# ${project.name} - Google Flow Package`,
+    `# ${project.name} - ${scope === "scene" ? "Google Flow Scene Package" : "Google Flow Package"}`,
     "",
     `Brand: ${project.brandName || "Imported Source"}`,
     `Audience: ${project.targetAudience || "Google Flow production audience"}`,
@@ -286,6 +343,7 @@ function createExportBundle(
         flowStatus: project.flowStatus,
       },
       characters,
+      exportScope: scope,
       scenes: exportScenes,
     },
     null,
@@ -293,6 +351,35 @@ function createExportBundle(
   );
 
   return { project, scenes, characters, markdown, json };
+}
+
+function SelectField({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: { value: string; label: string }[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label>
+      <span className="caption-text font-semibold">{label}</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="mt-2 h-11 w-full rounded-radius-sm border border-border bg-surface px-3 text-sm outline-none focus:border-toyotaRed"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
 }
 
 function parseCharacters(value?: string) {
@@ -331,6 +418,13 @@ const copy = {
     goImport: "Go to Multimodal Import",
     projectLabel: "Flow Project",
     noProject: "No project selected.",
+    scopeLabel: "Export Scope",
+    scopeProject: "Full Project",
+    scopeScene: "Single Scene",
+    sceneLabel: "Scene",
+    noScene: "No scene selected.",
+    projectScopeHelp: "Export the full project summary with every scene.",
+    sceneScopeHelp: (sceneNumber: number) => `Export Scene ${sceneNumber} as an independent Google Flow package.`,
     packageTitle: "Export Package",
     packageIncludes: "Includes character references, Hero Image Prompt, Google Flow Prompt, voice over, subtitles, continuity notes, ending frame notes, and QA checks.",
     copyMarkdown: "Copy Markdown",
@@ -349,6 +443,13 @@ const copy = {
     goImport: "前往多模態匯入",
     projectLabel: "Flow 專案",
     noProject: "尚未選擇專案。",
+    scopeLabel: "匯出範圍",
+    scopeProject: "全片總表",
+    scopeScene: "單一 Scene",
+    sceneLabel: "Scene",
+    noScene: "尚未選擇 Scene。",
+    projectScopeHelp: "匯出整個專案總表，包含所有場景。",
+    sceneScopeHelp: (sceneNumber: number) => `將 Scene ${sceneNumber} 獨立匯出成 Google Flow 資料包。`,
     packageTitle: "匯出資料包",
     packageIncludes: "包含角色參考、Hero Image Prompt、Google Flow Prompt、旁白、字幕、連續性備註、結尾畫面備註與 QA 檢查。",
     copyMarkdown: "複製 Markdown",

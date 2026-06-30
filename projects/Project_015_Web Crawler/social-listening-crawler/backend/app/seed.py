@@ -1,6 +1,6 @@
 """
-Seed script: python -m app.seed
-Creates sample keywords + demo-quality mentions for presentation.
+Seed script v3.0: python -m app.seed
+文章牛肉湯 安平總店 - AI 商譽風險偵測案例資料
 """
 import random
 import datetime
@@ -18,218 +18,241 @@ logger = logging.getLogger("app.seed")
 
 Base.metadata.create_all(bind=engine)
 
-KEYWORDS = [
-    {"name": "台積電", "group_name": "科技股", "platforms": "PTT,Dcard,Google Search"},
-    {"name": "ChatGPT", "group_name": "AI工具", "platforms": "PTT,Dcard,Google Search"},
-    {"name": "人工智慧", "group_name": "AI主題", "platforms": "PTT,Dcard,Google Search"},
-    {"name": "鼎泰豐", "group_name": "餐飲品牌", "platforms": "Google Maps,Facebook Import,小紅書 Import"},
-    {"name": "電動車", "group_name": "產業趨勢", "platforms": "PTT,Dcard,Google Search"},
-    {"name": "iPhone 16", "group_name": "消費電子", "platforms": "Dcard,PTT,TikTok Import"},
-    {"name": "日本旅遊", "group_name": "生活旅遊", "platforms": "PTT,Dcard,Facebook Import,小紅書 Import"},
-    {"name": "NVIDIA", "group_name": "科技股", "platforms": "PTT,Dcard,Google Search"},
+# Case study: 文章牛肉湯 (all branches)
+BRAND = "文章牛肉湯"
+BRAND_KEYWORD = {"name": BRAND, "group_name": "台南牛肉湯·安平總店·東門店", "platforms": "PTT,Dcard,Google Search,Google Maps,Facebook Import,Threads Import,小紅書 Import,TikTok Import"}
+
+# ----- Realistic review content by theme -----
+REVIEWS_POSITIVE = [
+    "文章牛肉湯真的是台南必吃！牛肉鮮嫩，湯頭超清甜，每次回台南都要來一碗。",
+    "排了20分鐘終於吃到，但完全值得！湯頭濃郁好喝，牛肉軟嫩不柴，大推！",
+    "這家牛肉湯真的名不虛傳，肉質鮮美，湯頭用大骨熬出來的味道就是不一樣。",
+    "安平總店真的比市區其他家好吃！牛肉給得大方，湯頭甘甜，吃完還想再來。",
+    "早上六點就來排隊，第一鍋湯頭最好喝！牛肉切得薄薄的入口即化，CP值超高！",
+    "帶朋友來吃，大家都說讚！牛肉湯一碗才120，這種品質真的很划算。",
+    "服務態度超好！老闆還會問要不要加湯，環境也乾淨明亮。",
+    "吃了十年了，品質一直很穩定。牛肉湯配肉燥飯就是台南人的早餐！",
+    "這次來排隊人雖然多，但動線規劃得很好，很快就吃到了。",
+    "停車雖然要繞一下，但吃到牛肉湯就覺得值了。肉嫩湯鮮，台南之光！",
+    "推！安平店停車場滿方便的，牛肉湯配上蒜泥和辣醬超讚。",
+    "這次點了牛肉湯加大，份量真的很夠！肉多湯多，吃完超滿足。",
+    "台南人認證！文章牛肉湯真的是最道地的，湯頭有淡淡藥材香。",
+    "環境重新裝潢後變得好舒適，冷氣夠強，夏天喝熱湯也不怕。",
+    "服務生很親切，會主動介紹菜單，還建議我們點招牌牛肉湯和牛腩湯。",
+    "價格合理，一碗120元牛肉湯在這種品質下很OK，比台北便宜太多了。",
+    "特地從台北開車下來吃，果然沒失望！停車場很大，停車沒問題。",
+    "必點牛肉湯+肉燥飯套餐！肉燥飯也超好吃，整組吃下來150元有找。",
+    "湯頭真的是靈魂！用中藥和蔬果熬的，喝起來回甘不膩口。",
+    "這次外帶回家吃，老闆還多給了一包湯，超貼心！",
 ]
 
-PLATFORM_TEMPLATES = {
-    "PTT": [
-        {"title": "[討論] 關於{keyword}的最新消息", "sentiment": "Neutral", "risk": "Low"},
-        {"title": "[心得] {keyword}使用經驗分享", "sentiment": "Positive", "risk": "Low"},
-        {"title": "[問卦] {keyword}是不是過譽了？", "sentiment": "Negative", "risk": "High"},
-        {"title": "[新聞] {keyword}營收再創新高", "sentiment": "Positive", "risk": "Low"},
-        {"title": "[爆卦] {keyword}又出包了", "sentiment": "Negative", "risk": "High"},
-        {"title": "Re: [問卦] {keyword}值得入手嗎", "sentiment": "Neutral", "risk": "Medium"},
-        {"title": "[請益] {keyword} vs 競品怎麼選？", "sentiment": "Neutral", "risk": "Low"},
-        {"title": "[標的] {keyword} 多空分析", "sentiment": "Neutral", "risk": "Medium"},
+REVIEWS_NEUTRAL = [
+    "文章牛肉湯還可以，中規中矩的台南牛肉湯，沒有特別驚豔但也不差。",
+    "朋友推薦來的，口味還OK，但排隊排了半小時，可能不值得等這麼久。",
+    "第一次吃台南牛肉湯，不知道這樣的品質算不算好，但湯頭算蠻好喝的。",
+    "人真的很多，中午時間去大概等15-20分鐘，建議避開尖峰。",
+    "牛肉湯表現普通，可能期待太高了，但服務生態度不錯。",
+    "口味中上，但價格比一般牛肉湯貴一點點，CP值普通。",
+    "肉質算嫩，但湯頭沒有傳說中那麼厲害，可能各人口味不同。",
+    "停車場車位不多，繞了兩圈才找到位置，但店內環境乾淨。",
+    "下午兩點去還是很多人，不知道是不是因為假日的關係。",
+    "點了牛肉湯和牛雜湯，牛雜湯反而比較驚豔，牛肉湯就一般的台南水準。",
+]
+
+REVIEWS_WAITING = [
+    "排隊排了40分鐘！雖然好吃，但排隊時間真的太久了，效率可以再提升。",
+    "假日中午來根本惡夢，等了快一個小時！建議店家可以導入號碼牌系統。",
+    "人潮洶湧，排到外面的馬路上，夏天排隊真的會熱死，希望可以改善動線。",
+    "排隊排到我腳酸，出餐速度也偏慢，可能是客人太多了吧。",
+    "每次來都要排半小時以上，雖然好吃但長期下來會降低再訪意願。",
+    "排隊路線沒有遮陽棚，大太陽下排隊真的很痛苦，帶小孩來更辛苦。",
+    "等了大約35分鐘，進店後出餐還要再等10分鐘，總等待時間太長了。",
+    "建議平日來，假日排隊真的太誇張了，大排長龍快排到隔壁去了。",
+    "疫情後人更多了，排隊完全沒改善，建議先網路預約或抽號碼牌。",
+    "等很久就算了，進店後發現座位很擁擠，走道狹窄，不太舒服。",
+]
+
+REVIEWS_PARKING = [
+    "停車真的是最大問題！附近很難找車位，繞了20分鐘才停好。",
+    "安平假日停車超痛苦，店門口車位只有幾個，大部分都要停很遠走過來。",
+    "開車來真的要三思，停車場車位少得可憐，每次都要賭運氣。",
+    "沒有專屬停車場，路邊停車格又都被停滿了，建議騎機車來。",
+    "停車不方便，對外地人來說很困擾，導航帶到巷子裡結果找不到車位。",
+    "這次停在市民活動中心再走過來，大概要走10分鐘，夏天走真的很熱。",
+    "停車場太小了，大概只能停10台車，根本應付不了那麼多客人。",
+    "帶長輩來吃，停車是一大挑戰，長輩走路不便，停在遠處很不方便。",
+    "機車位也不夠，騎機車來也要找一下，假日來安平就是停車地獄。",
+    "希望店家可以跟附近停車場合作，提供停車優惠或接駁服務。",
+]
+
+REVIEWS_SERVICE = [
+    "服務態度真的很差！店員臉色超臭，好像在催你快點吃完快點走。",
+    "員工態度不耐煩，問個問題愛理不理的，這種服務讓人不想再來。",
+    "結帳時被店員兇，只是問說可不可以加點，態度有夠差勁。",
+    "服務生一直在旁邊盯著看，壓力超大的，趕人的感覺很明顯。",
+    "人多的時候服務品質直線下降，店員耐心全失，對客人口氣很差。",
+    "雖然東西好吃，但服務態度真的不敢恭維，吃完心情都不好了。",
+    "老闆不在的時候店員服務特別差，一直滑手機不理客人。",
+    "點餐時店員完全沒介紹，問有什麼推薦也說都差不多，完全不專業。",
+    "收桌子用摔的，湯汁都濺到我們身上了，也沒道歉。",
+    "女店員態度很差，請她幫忙加湯直接翻白眼，有夠沒禮貌。",
+]
+
+REVIEWS_HYGIENE = [
+    "吃到一半發現湯裡有頭髮！跟店員反應態度還很差，真的很噁心。",
+    "吃完回家拉肚子，不知道是不是牛肉不新鮮，以後不敢再去了。",
+    "店內衛生有待加強，桌子和地板都油油的，用餐環境不太舒服。",
+    "廚房看得到的地方還算乾淨，但廁所真的很髒，完全不像餐廳該有的水準。",
+    "調味料區的蒜泥和辣醬瓶子都黏黏的，感覺很久沒清潔了。",
+    "蒼蠅很多！開放式空間的問題，吃飯一直要趕蒼蠅很煩。",
+    "昨天去吃，今天拉肚子拉到不行，同行三個人都中獎，肯定是食安問題。",
+    "湯碗邊緣有破損，醬料碟也沒洗乾淨，衛生把關不確實。",
+    "老鼠在後面巷子跑來跑去，雖然不是在店內看到，但還是很擔心衛生。",
+    "同行朋友吃到一半說肚子怪怪的，懷疑牛肉不新鮮，衛生條件令人擔憂。",
+]
+
+REVIEWS_PRICE = [
+    "牛肉湯一碗120元我覺得偏貴，份量也沒有很多，CP值不高。",
+    "觀光客價格，在地人覺得不值，同樣價格在市區可以吃到更好的。",
+    "漲價了！之前才100元，現在一碗120元，漲幅有點大。",
+    "這個價錢在台南可以吃兩碗別家的牛肉湯了，品質也沒特別好到哪去。",
+    "兩個人隨便點一點就超過500元，以路邊攤等級的環境來說太貴了。",
+    "牛肉湯加大要150元，但加的份量根本沒多少，感覺被坑了。",
+    "價格偏高但在觀光區可以理解，只是希望品質能跟上價格。",
+]
+
+REVIEWS_NEGATIVE_MIX = [
+    "排隊太久、停車難找、服務態度差，三個願望一次滿足。牛肉好吃但不會想再來了。",
+    "整體來說CP值很低，排隊等很久、價錢不便宜、店員臉又臭，一次店。",
+    "被部落客騙來的，等了一小時結果牛肉湯普普通通，真的不值得。",
+    "什麼台南必吃根本過譽！排隊排得要死，結果湯鹹肉少，踩雷了。",
+    "不會再來第二次了，服務態度差到爆，牛肉湯也沒有傳說中那麼好吃。",
+    "跟五年前比品質掉很多，以前真的很好喝，現在就是吃名氣而已。",
+    "建議觀光客不要再來了，讓這間店回歸正常的品質，現在就是被炒作出來的。",
+    "太失望了，原本很期待的台南牛肉湯之旅，結果這家最雷。",
+]
+
+# Platform-specific titles
+PLATFORM_TITLES = {
+    "Google Maps": [
+        "在地人推薦！文章牛肉湯安平總店",
+        "排隊美食體驗分享",
+        "{n}顆星評論",
     ],
     "Dcard": [
-        {"title": "#請益 {keyword} 選擇困難", "sentiment": "Neutral", "risk": "Low"},
-        {"title": "#分享 {keyword} 完整心得", "sentiment": "Positive", "risk": "Low"},
-        {"title": "#黑特 {keyword}後悔的經歷", "sentiment": "Negative", "risk": "High"},
-        {"title": "{keyword} 真的值得買嗎？求評價", "sentiment": "Neutral", "risk": "Medium"},
-        {"title": "開箱！{keyword} 使用一個月心得", "sentiment": "Positive", "risk": "Low"},
-        {"title": "#討論 {keyword} 真實受害者現身說法", "sentiment": "Negative", "risk": "High"},
+        "#食記 文章牛肉湯安平總店 不專業分享",
+        "#台南美食 每次去台南必吃的牛肉湯",
+        "#踩雷 文章牛肉湯真的有那麼好嗎？",
+        "#問 文章vs六千vs阿村 哪家最推？",
+        "#心得 安平文章牛肉湯排隊攻略",
+    ],
+    "PTT": [
+        "[食記] 文章牛肉湯安平總店 排隊實測心得",
+        "[問題] 文章牛肉湯排隊時間請益",
+        "[抱怨] 文章牛肉湯服務態度",
+        "[食記] 台南牛肉湯大評比：文章、六千、阿村",
+        "[討論] 文章牛肉湯是不是過譽了？",
     ],
     "Google Search": [
-        {"title": "{keyword} - 最新新聞總整理 2026", "sentiment": "Neutral", "risk": "Low"},
-        {"title": "{keyword}價格、評價、優缺點比較", "sentiment": "Positive", "risk": "Low"},
-        {"title": "{keyword} 缺點、災情、問題彙整", "sentiment": "Negative", "risk": "Medium"},
-        {"title": "{keyword} 2026 市場分析與展望", "sentiment": "Neutral", "risk": "Low"},
-    ],
-    "Google Maps": [
-        {"title": "{keyword} - 5顆星好評", "sentiment": "Positive", "risk": "Low"},
-        {"title": "{keyword} - 超失望的用餐體驗", "sentiment": "Negative", "risk": "Medium"},
-        {"title": "{keyword} - 值得再訪的好店", "sentiment": "Positive", "risk": "Low"},
-        {"title": "{keyword} - 服務有待加強", "sentiment": "Negative", "risk": "Medium"},
+        "文章牛肉湯安平總店 - 菜單、營業時間、評價",
+        "台南必吃牛肉湯推薦：文章牛肉湯安平總店",
+        "文章牛肉湯安平總店排隊攻略 2026",
+        "文章牛肉湯安平總店最新評論彙整",
     ],
     "Facebook Import": [
-        {"title": "大推！{keyword} 真的好用", "sentiment": "Positive", "risk": "Low"},
-        {"title": "{keyword} 社團討論串：有人遇過這問題嗎？", "sentiment": "Neutral", "risk": "Medium"},
-        {"title": "真心不推薦{keyword}，踩雷心得", "sentiment": "Negative", "risk": "High"},
-    ],
-    "TikTok Import": [
-        {"title": "{keyword} 開箱實測！真的那麼神？", "sentiment": "Positive", "risk": "Low"},
-        {"title": "{keyword} 翻車現場 #討論", "sentiment": "Negative", "risk": "Medium"},
-    ],
-    "小紅書 Import": [
-        {"title": "{keyword} 🇹🇼 真實測評來了！", "sentiment": "Positive", "risk": "Low"},
-        {"title": "避雷！{keyword} 千萬別買❌", "sentiment": "Negative", "risk": "High"},
-        {"title": "{keyword} 種草清單✨分享", "sentiment": "Positive", "risk": "Low"},
-    ],
-    "Threads Import": [
-        {"title": "有人在用{keyword}嗎？求真實心得", "sentiment": "Neutral", "risk": "Low"},
-        {"title": "{keyword} 真的被低估了", "sentiment": "Positive", "risk": "Low"},
+        "台南安平必吃美食推薦 - 文章牛肉湯",
+        "週末台南美食之旅 - 文章牛肉湯真實心得",
+        "有人也覺得文章牛肉湯被高估了嗎？",
+        "台南人私藏的牛肉湯地圖",
     ],
 }
 
-POSITIVE_CONTENTS = [
-    "{keyword}真的是太好用了，服務周到品質穩定，CP值超高，強烈推薦給大家！",
-    "用{keyword}一個月了，各方面表現都很優秀，回購率100%。",
-    "不得不說{keyword}真的超讚，團隊用心看得見，細節處理得很好。",
-    "真心推薦{keyword}！朋友用了也都說棒，物超所值的選擇。",
-    "{keyword}完全超出預期，功能強大又穩定，值得入手！",
-    "被{keyword}圈粉了，之前聽別人說不錯，實際體驗真的很驚豔。",
-    "{keyword}不愧是台灣之光，國際級的水準讓人也感到驕傲。",
-    "{keyword}價格合理服務又好，已經回購第三次了，真的沒話說。",
-]
+AUTHORS = ["美食小王", "台南阿宅", "旅遊達人Amy", "吃貨日記", "安平在地人", "台北來的美食家",
+           "肉燥飯愛好者", "牛肉湯專家", "南部美食通", "Tony的食記", "吃遍台南",
+           "美食部落客CC", "老台南人", "觀光客小陳", "排隊達人", "吃貨小美"]
 
-NEUTRAL_CONTENTS = [
-    "{keyword}使用上還算OK，有些地方可以改進，但整體來說不差。",
-    "關於{keyword}最近討論度蠻高的，想聽聽更多人的真實意見。",
-    "看了{keyword}的規格資料，中規中矩的表現，不知道實際用起來如何？",
-    "有人有{keyword}的詳細比較資訊嗎？考慮入手但還在觀望中。",
-    "{keyword}這個月好像有改版，不確定新版本表現如何，求分享。",
-    "剛開始用{keyword}，還在摸索中，目前感覺還可以。",
-]
+# Platform-specific realistic author names
+PTT_AUTHORS = ["a5566123", "台南囝仔", "beeflover88", "foodhunter_tw", "skylark9527",
+               "PTT美食觀察家", "tncityboy", "pighead3", "鄉民阿德", "lazybone_tw"]
 
-NEGATIVE_CONTENTS = [
-    "{keyword}品質真的越來越差了，價格又貴，客服也愛理不理，下次不買了。",
-    "對{keyword}超級失望的，明明花了不少錢，用不到一個月就出問題。",
-    "{keyword}根本是騙人的吧？廣告講得那麼好，實際體驗整個踩雷。",
-    "看到{keyword}負評這麼多終於懂了，之前不信邪，現在超後悔。",
-    "{keyword}真的讓人很生氣！買來三天就壞掉，退貨流程又拖超久。",
-    "認真覺得{keyword}是雷貨，朋友也都這麼說，大家買之前請三思。",
-    "{keyword}的服務態度有夠敷衍！打電話去問問題被踢皮球踢半天。",
-    "不推薦{keyword}，品質不穩定，買兩次都不一樣，根本在賭運氣。",
-]
+DCARD_AUTHORS = ["美食探險家", "台南女孩", "吃貨日記", "小資吃貨", "深夜食堂",
+                 "安平在地人", "大學生吃什麼", "愛吃鬼小咪", "台南美食通", "流浪食客"]
 
-PURCHASE_CONTENTS = [
-    "看到{keyword}好心動！想問在哪買最划算？最近有優惠嗎？",
-    "被{keyword}燒到了，求推薦入手管道，考慮入手一款試試看。",
-    "有人已經買{keyword}了嗎？求開箱實測分享！考慮要不要下單。",
-    "{keyword}這次折扣真的漂亮，已經下單了，期待到貨！",
-]
+GOOGLE_AUTHORS = ["王小明", "李大同", "陳怡君", "林志明", "張雅婷", "黃建華",
+                  "劉美玲", "周俊傑", "蔡文雄", "許小芬", "吳宗憲", "鄭惠文"]
 
+def _gen_url(platform: str) -> str:
+    pid = random.randint(1000000, 9999999)
+    if platform == "PTT":
+        board = random.choice(["Food", "Tainan", "Gossiping"])
+        return f"https://www.ptt.cc/bbs/{board}/M.{random.randint(1700000000,1720000000)}.A.{random.randint(100,999)}.html"
+    elif platform == "Dcard":
+        return f"https://www.dcard.tw/f/food/p/{random.randint(230000000,240000000)}"
+    elif platform == "Google Maps":
+        return f"https://maps.google.com/maps/place/文章牛肉湯+安平總店/@23.000{random.randint(100,999)},120.16{random.randint(1000,9999)}"
+    elif platform == "Google Search":
+        return f"https://www.google.com/search?q=文章牛肉湯+安平總店+評價"
+    elif platform == "Facebook Import":
+        return f"https://www.facebook.com/groups/tainanfood/posts/{random.randint(1000000,9999999)}"
+    return f"https://example.com/review/{pid}"
+
+def _gen_author(platform: str) -> str:
+    if platform == "PTT":
+        return random.choice(PTT_AUTHORS)
+    elif platform == "Dcard":
+        return random.choice(DCARD_AUTHORS)
+    elif platform == "Google Maps":
+        return random.choice(GOOGLE_AUTHORS)
+    return random.choice(AUTHORS)
 
 def seed():
     db: Session = SessionLocal()
     try:
-        existing_kw = db.query(Keyword).count()
         existing_m = db.query(Mention).count()
 
-        if existing_m > 110:
-            logger.info(f"DB has {existing_m} mentions, skipping seed.")
-            return
+        # Always reseed if mentions < 100 for fresh case study
+        if existing_m >= 100 and existing_m < 140:
+            logger.info(f"DB has {existing_m} mentions, forcing reseed for v3.0 case study.")
+        elif existing_m >= 140:
+            # Check if case study data already present
+            cs_count = db.query(Mention).filter(Mention.keyword.has(name=BRAND)).count()
+            if cs_count >= 130:
+                logger.info(f"Case study already seeded ({cs_count} mentions for {BRAND}). Skipping.")
+                return
 
-        if existing_kw < len(KEYWORDS):
-            db.query(Mention).delete()
-            db.query(CrawlLog).delete()
-            db.query(Keyword).delete()
-            db.commit()
+        # Clear all data
+        db.query(Mention).delete()
+        db.query(CrawlLog).delete()
+        db.query(Keyword).delete()
+        db.commit()
 
-            kw_objs = []
-            for kd in KEYWORDS:
-                kw = Keyword(name=kd["name"], group_name=kd["group_name"], is_active=True, platforms=kd["platforms"])
-                db.add(kw)
-                kw_objs.append(kw)
-            db.commit()
-            for kw in kw_objs:
-                db.refresh(kw)
-            logger.info(f"Seeded {len(kw_objs)} keywords.")
+        # Create case study keyword
+        kw = Keyword(name=BRAND_KEYWORD["name"], group_name=BRAND_KEYWORD["group_name"],
+                     is_active=True, platforms=BRAND_KEYWORD["platforms"])
+        db.add(kw)
+        db.commit()
+        db.refresh(kw)
+        logger.info(f"Seeded keyword: {BRAND}")
 
-        kw_objs = db.query(Keyword).all()
-        random.seed(42)
-        base_date = datetime.datetime.utcnow() - datetime.timedelta(days=30)
+        logger.info("Seed: only keyword created. Real data will come from PTT/Dcard crawl.")
 
-        for kw in kw_objs:
-            platforms = [p.strip() for p in kw.platforms.split(",")]
-            for platform in platforms:
-                templates = PLATFORM_TEMPLATES.get(platform, PLATFORM_TEMPLATES["PTT"])
-                n = random.randint(3, 7)
-                for _ in range(n):
-                    t = random.choice(templates)
-                    s = t["sentiment"]
-                    r = t["risk"]
-                    title = t["title"].format(keyword=kw.name)
-
-                    if s == "Positive":
-                        content = random.choice(POSITIVE_CONTENTS).format(keyword=kw.name)
-                    elif s == "Negative":
-                        content = random.choice(NEGATIVE_CONTENTS).format(keyword=kw.name)
-                    else:
-                        content = random.choice(NEUTRAL_CONTENTS).format(keyword=kw.name)
-
-                    should_purchase = (s == "Positive" and random.random() > 0.5)
-                    if should_purchase and random.random() > 0.3:
-                        content = random.choice(PURCHASE_CONTENTS).format(keyword=kw.name)
-
-                    days_ago = random.randint(0, 30)
-                    hours_ago = random.randint(0, 23)
-                    pub_date = base_date + datetime.timedelta(days=days_ago, hours=hours_ago)
-
-                    likes = random.randint(0, 500)
-                    comments = random.randint(0, 80)
-                    shares = random.randint(0, 60)
-                    recent_count = random.randint(0, 6)
-
-                    from app.services.ai_service import AIService
-                    ai_res = AIService.analyze_content(
-                        content, kw.name, likes=likes, comments=comments, shares=shares,
-                        is_resolved=False, recent_count=recent_count, platform=platform
-                    )
-
-                    mention = Mention(
-                        keyword_id=kw.id, platform=platform, title=title, content=content,
-                        url=f"https://example.com/{platform.lower().replace(' ','')}/{random.randint(1000,9999)}",
-                        author=f"user_{random.randint(100,999)}",
-                        published_at=pub_date,
-                        sentiment=ai_res["sentiment"], sentiment_score=ai_res["sentiment_score"],
-                        risk_level=ai_res["risk_level"], purchase_intent=should_purchase,
-                        ai_summary=ai_res["ai_summary"], ai_suggestion=ai_res["ai_suggestion"],
-                        status="new",
-                        raw_data=json.dumps({"likes": likes, "comments": comments, "shares": shares}),
-                        risk_score=ai_res["risk_score"],
-                        risk_reason=ai_res["risk_reason"],
-                        crisis_keywords_matched=ai_res["crisis_keywords_matched"],
-                        recommended_priority=ai_res["recommended_priority"],
-                    )
-                    db.add(mention)
-
-            db.commit()
-
-        total = db.query(Mention).count()
-        neg = db.query(Mention).filter(Mention.sentiment == "Negative").count()
-        high = db.query(Mention).filter(Mention.risk_level == "High").count()
-        pi = db.query(Mention).filter(Mention.purchase_intent == True).count()
-
-        logger.info(f"Seed complete: {total} mentions | {neg} negative | {high} high-risk | {pi} purchase-intent")
-
-        log_count = db.query(CrawlLog).count()
-        if log_count < 5:
-            for kw in kw_objs[:4]:
-                for _ in range(3):
-                    log = CrawlLog(
-                        keyword_id=kw.id, platform=kw.platforms.split(",")[0].strip(),
-                        status=random.choice(["Success", "Success", "Success", "Failed"]),
-                        items_count=random.randint(1, 8),
-                        started_at=datetime.datetime.utcnow() - datetime.timedelta(hours=random.randint(1, 72)),
-                    )
-                    log.finished_at = log.started_at + datetime.timedelta(seconds=random.randint(5, 60))
-                    db.add(log)
-            db.commit()
-            logger.info(f"Seeded {db.query(CrawlLog).count()} crawl logs.")
+        # Seed crawl logs
+        for _ in range(10):
+            log = CrawlLog(
+                keyword_id=kw.id, platform=random.choice(BRAND_KEYWORD["platforms"].split(",")),
+                status=random.choice(["Success", "Success", "Success", "Failed"]),
+                items_count=random.randint(3, 20),
+                started_at=datetime.datetime.utcnow() - datetime.timedelta(hours=random.randint(1, 72)),
+            )
+            log.finished_at = log.started_at + datetime.timedelta(seconds=random.randint(5, 60))
+            db.add(log)
+        db.commit()
+        logger.info(f"Seeded crawl logs.")
 
     except Exception as e:
         logger.error(f"Seed failed: {e}")
         db.rollback()
+        raise
     finally:
         db.close()
 

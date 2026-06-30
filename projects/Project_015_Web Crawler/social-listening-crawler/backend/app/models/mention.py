@@ -37,4 +37,10 @@ class Mention(Base):
     recommended_priority = Column(String, default="P3")
     resolved_at = Column(DateTime, nullable=True)
 
+    # AI Root Cause / v3.0 fields
+    root_cause_category = Column(String, nullable=True)
+    root_cause_tags = Column(Text, nullable=True)
+    brand_health_impact = Column(Integer, default=0)
+    suggested_action = Column(Text, nullable=True)
+
     keyword = relationship("Keyword", back_populates="mentions")

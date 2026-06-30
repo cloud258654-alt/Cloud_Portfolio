@@ -6,6 +6,7 @@ from typing import Dict, Any, Optional
 from app.database import get_db
 from app.models.keyword import Keyword
 from app.models.mention import Mention
+from app.services.brand_health_service import BrandHealthService
 
 router = APIRouter()
 
@@ -29,6 +30,10 @@ def _serialize_mention(m) -> dict:
         "crisis_keywords_matched": m.crisis_keywords_matched,
         "recommended_priority": m.recommended_priority,
         "resolved_at": m.resolved_at.isoformat() if m.resolved_at else None,
+        "root_cause_category": m.root_cause_category,
+        "root_cause_tags": m.root_cause_tags,
+        "suggested_action": m.suggested_action,
+        "brand_health_impact": m.brand_health_impact,
     }
 
 
@@ -109,7 +114,39 @@ def get_dashboard_summary(
         trend_list = [{"date": k, "count": v} for k, v in sorted(trend.items())]
 
         latest = base.options(joinedload(Mention.keyword)).order_by(Mention.created_at.desc()).limit(20).all()
+        priority_order = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
         high_risks = base.options(joinedload(Mention.keyword)).filter(Mention.risk_level == "High").order_by(Mention.risk_score.desc(), Mention.created_at.desc()).limit(10).all()
+
+        # Brand Health Score
+        brand_health = BrandHealthService.calculate(db, start_date, end_date)
+
+        # Root Cause ranking
+        root_cause_stats = (
+            base.with_entities(Mention.root_cause_category, func.count(Mention.id))
+            .filter(Mention.root_cause_category != None, Mention.root_cause_category != "", Mention.root_cause_category != "其他")
+            .group_by(Mention.root_cause_category)
+            .order_by(func.count(Mention.id).desc())
+            .limit(8)
+            .all()
+        )
+        root_cause_ranking = {rc: cnt for rc, cnt in root_cause_stats}
+
+        # Priority distribution
+        p0_count = base.filter(Mention.recommended_priority == "P0").count()
+        p1_count = base.filter(Mention.recommended_priority == "P1").count()
+        p2_count = base.filter(Mention.recommended_priority == "P2").count()
+        p3_count = base.filter(Mention.recommended_priority == "P3").count()
+        priority_distribution = {"P0": p0_count, "P1": p1_count, "P2": p2_count, "P3": p3_count}
+
+        # AI Suggested Actions (from high-risk mentions)
+        actions = (
+            base.with_entities(Mention.suggested_action, Mention.recommended_priority, Mention.title)
+            .filter(Mention.suggested_action != None, Mention.suggested_action != "")
+            .order_by(Mention.risk_score.desc())
+            .limit(5)
+            .all()
+        )
+        suggested_actions = [{"action": a[0], "priority": a[1], "title": a[2]} for a in actions]
 
         return {
             "total_keywords": total_keywords,
@@ -128,6 +165,10 @@ def get_dashboard_summary(
             "trend": trend_list,
             "latest_mentions": [_serialize_mention(m) for m in latest],
             "high_risk_events": [_serialize_mention(m) for m in high_risks],
+            "brand_health": brand_health,
+            "root_cause_ranking": root_cause_ranking,
+            "priority_distribution": priority_distribution,
+            "suggested_actions": suggested_actions,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Dashboard error: {str(e)}")

@@ -20,6 +20,7 @@ export default function MentionsPage() {
   const [sentiment, setSentiment] = useState('');
   const [riskLevel, setRiskLevel] = useState('');
   const [priority, setPriority] = useState('');
+  const [rootCause, setRootCause] = useState('');
   const [keywordId, setKeywordId] = useState('');
   const [search, setSearch] = useState('');
 
@@ -31,6 +32,7 @@ export default function MentionsPage() {
       if (sentiment) params.sentiment = sentiment;
       if (riskLevel) params.risk_level = riskLevel;
       if (priority) params.recommended_priority = priority;
+      if (rootCause) params.root_cause_category = rootCause;
       if (keywordId) params.keyword_id = Number(keywordId);
       if (search) params.search = search;
       const data = await fetchMentions(params as Parameters<typeof fetchMentions>[0]);
@@ -38,7 +40,7 @@ export default function MentionsPage() {
       setTotal(data.length >= PAGE_SIZE ? (page + 2) * PAGE_SIZE : (page * PAGE_SIZE + data.length));
     } catch { setError('無法載入風險訊號。'); setMentions([]); }
     finally { setLoading(false); }
-  }, [platform, sentiment, riskLevel, priority, keywordId, search, page]);
+  }, [platform, sentiment, riskLevel, priority, rootCause, keywordId, search, page]);
 
   useEffect(() => { fetchKeywords().then(setKeywords).catch(() => {}); load(); }, [load]);
 
@@ -67,8 +69,8 @@ export default function MentionsPage() {
           <select value={platform} onChange={e=>{setPlatform(e.target.value);setPage(0);}} className={sel}>
             <option value="">全部平台</option><option value="PTT">PTT</option><option value="Dcard">Dcard</option>
             <option value="Google Search">Google Search</option><option value="Google Maps">Google Maps</option>
-            <option value="Facebook Import">Facebook</option><option value="TikTok Import">TikTok</option>
-            <option value="小紅書 Import">小紅書</option><option value="Threads Import">Threads</option>
+            <option value="Facebook Import">Facebook</option><option value="Threads Import">Threads</option>
+            <option value="小紅書 Import">小紅書</option><option value="TikTok Import">TikTok / 抖音</option>
           </select>
           <select value={sentiment} onChange={e=>{setSentiment(e.target.value);setPage(0);}} className={sel}>
             <option value="">全部情緒</option><option value="Positive">正面</option><option value="Neutral">中立</option><option value="Negative">負面</option>
@@ -78,6 +80,13 @@ export default function MentionsPage() {
           </select>
           <select value={priority} onChange={e=>{setPriority(e.target.value);setPage(0);}} className={sel}>
             <option value="">全部處置優先級</option><option value="P0">P0 (立即處理)</option><option value="P1">P1 (2小時內)</option><option value="P2">P2 (當日處理)</option><option value="P3">P3 (觀察即可)</option>
+          </select>
+          <select value={rootCause} onChange={e=>{setRootCause(e.target.value);setPage(0);}} className={sel}>
+            <option value="">全部根因</option>
+            <option value="餐點品質">餐點品質</option><option value="排隊等待">排隊等待</option>
+            <option value="服務態度">服務態度</option><option value="停車便利">停車便利</option>
+            <option value="價格">價格</option><option value="環境整潔">環境整潔</option>
+            <option value="衛生疑慮">衛生疑慮</option><option value="份量">份量</option>
           </select>
           <select value={keywordId} onChange={e=>{setKeywordId(e.target.value);setPage(0);}} className={sel}>
             <option value="">全部監測品牌</option>
@@ -106,13 +115,20 @@ export default function MentionsPage() {
                   
                   {/* Recommended Priority Badge */}
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${m.recommended_priority === 'P0' ? 'bg-red-600 text-white border-red-600' : m.recommended_priority === 'P1' ? 'bg-amber-500 text-white border-amber-500' : m.recommended_priority === 'P2' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
-                    優先級: {m.recommended_priority}
+                    {m.recommended_priority}
                   </span>
                   
                   {/* Risk Score Badge */}
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold border bg-rose-50 text-rose-600 border-rose-200">
-                    風險分數: {m.risk_score}
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${m.risk_score >= 70 ? 'bg-red-100 text-red-600 border-red-200' : m.risk_score >= 30 ? 'bg-amber-100 text-amber-600 border-amber-200' : 'bg-emerald-100 text-emerald-600 border-emerald-200'}`}>
+                    風險 {m.risk_score}
                   </span>
+
+                  {/* Root Cause Badge */}
+                  {m.root_cause_category && m.root_cause_category !== '其他' && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-purple-50 text-purple-500 border border-purple-200">
+                      {m.root_cause_category}
+                    </span>
+                  )}
                   
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${m.risk_level==='High'?'bg-red-50 text-red-500 border-red-200':m.risk_level==='Medium'?'bg-amber-50 text-amber-600 border-amber-200':'bg-gray-100 text-gray-400 border-gray-200'}`}>
                     風險: {m.risk_level === 'High' ? '高' : m.risk_level === 'Medium' ? '中' : '低'}
@@ -120,7 +136,14 @@ export default function MentionsPage() {
                   
                   {m.purchase_intent && <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 text-[10px] px-2 py-0.5 rounded-full font-semibold">購買意圖</span>}
                 </div>
-                <h4 className="text-base font-bold text-gray-800">{m.title || '無標題'}</h4>
+                {m.url ? (
+                  <a href={m.url} target="_blank" rel="noreferrer" className="text-base font-bold text-brand-700 hover:text-brand-500 hover:underline transition">
+                    {m.title || '無標題'} <ExternalLink className="h-3.5 w-3.5 inline-block ml-1" />
+                  </a>
+                ) : (
+                  <h4 className="text-base font-bold text-gray-800">{m.title || '無標題'}</h4>
+                )}
+                {m.url && <p className="text-[10px] text-gray-400 truncate max-w-[400px] mt-0.5">{m.url}</p>}
               </div>
               <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border flex-shrink-0 ${sentColors[m.sentiment]||sentColors.Neutral}`}>{m.sentiment === 'Positive' ? '正面' : m.sentiment === 'Negative' ? '負面' : '中立'} ({(m.sentiment_score??0)>0?'+':''}{m.sentiment_score??0})</span>
             </div>

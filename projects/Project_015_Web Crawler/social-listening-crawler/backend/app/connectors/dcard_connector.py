@@ -1,53 +1,120 @@
 import datetime
-import random
+import re
+import logging
+import time
 from typing import List, Dict, Any
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
 from app.connectors.base import BaseConnector
+
+logger = logging.getLogger("dcard_connector")
+
+
+def _create_driver():
+    opts = Options()
+    opts.add_argument("--headless=new")
+    opts.add_argument("--no-sandbox")
+    opts.add_argument("--disable-dev-shm-usage")
+    opts.add_argument("--disable-gpu")
+    opts.add_argument("--window-size=1920,1080")
+    opts.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36")
+    opts.add_argument("--lang=zh-TW")
+    opts.add_experimental_option("excludeSwitches", ["enable-automation"])
+    opts.add_experimental_option("useAutomationExtension", False)
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=opts)
+    driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+    return driver
+
 
 class DcardConnector(BaseConnector):
     def __init__(self):
         super().__init__("Dcard")
 
-    def fetch_mentions(self, keyword: str, limit: int = 10) -> List[Dict[str, Any]]:
-        forums = ["trending", "talk", "makeup", "tech", "money"]
-        templates = [
-            "有人也有關注 {keyword} 嗎？",
-            "關於 {keyword}，大家的心得分享",
-            "求救！有人買過 {keyword} 嗎？",
-            "被推坑的 {keyword} 開箱實測！",
-            "【閒聊】對 {keyword} 的一些看法與疑惑"
-        ]
-        contents = [
-            "最近一直在 Dcard 看到有人推 {keyword}，自己也忍不住入手了。實測下來真的蠻不錯的，質地很好，用起來很舒服！分享給大家。",
-            "大家最近有聽過 {keyword} 嗎？感覺討論度超高耶，可是身邊好像沒什麼人在用，想問問真實的評價，謝謝大家！",
-            "真的快被 {keyword} 氣死... 買回來不到三天就壞了，客服態度又很敷衍。有人有類似經驗嗎？求解決辦法！",
-            "考完試終於有時間整理關於 {keyword} 的心得了。整體來說優點是大於缺點的，特別是它的設計非常貼心。以下是我的詳細分析...",
-            "看到好多人在討論 {keyword}，我覺得這根本是行銷手法吧？實際去店裡看覺得質感普通，真的有值這個價錢嗎？"
-        ]
-        
+    def _scrape_search(self, keyword: str, limit: int = 10) -> List[Dict]:
+        driver = None
         results = []
-        count = min(limit, random.randint(3, 8))
-        for i in range(count):
-            title = random.choice(templates).format(keyword=keyword)
-            content = random.choice(contents).format(keyword=keyword)
-            forum = random.choice(forums)
-            author = "匿名" if random.random() > 0.3 else f"國立台灣大學_{random.randint(100,999)}"
-            
-            days_ago = random.randint(0, 7)
-            hours_ago = random.randint(0, 23)
-            pub_date = datetime.datetime.utcnow() - datetime.timedelta(days=days_ago, hours=hours_ago)
-            
-            likes_val = random.randint(5, 500)
-            comments_val = random.randint(2, 80)
-            results.append({
+        try:
+            driver = _create_driver()
+            url = f"https://www.dcard.tw/search?query={keyword}&forum=food"
+            driver.get(url)
+            time.sleep(3)
+
+            # Try to get post cards
+            try:
+                WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, "article, [class*='Post'], [class*='post']"))
+                )
+            except Exception:
+                pass
+
+            # Scroll for more content
+            for _ in range(3):
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                time.sleep(1.5)
+
+            # Extract post links and titles
+            articles = driver.find_elements(By.CSS_SELECTOR, "article")
+            if not articles:
+                articles = driver.find_elements(By.CSS_SELECTOR, "[class*='PostEntry'], [class*='post_entry'], a[href*='/f/']")
+
+            seen_urls = set()
+            for article in articles[:limit * 2]:
+                try:
+                    link_el = article.find_element(By.CSS_SELECTOR, "a[href*='/f/']")
+                    href = link_el.get_attribute("href") or ""
+                    title = link_el.text.strip()
+                    if not title:
+                        try:
+                            title_el = article.find_element(By.CSS_SELECTOR, "h2, h3, [class*='title']")
+                            title = title_el.text.strip()
+                        except Exception:
+                            title = ""
+
+                    if href and href not in seen_urls and keyword in (title or ""):
+                        seen_urls.add(href)
+                        results.append({
+                            "id": href.split("/")[-1] if "/" in href else "",
+                            "title": title or f"貼文 {len(seen_urls)}",
+                            "url": href,
+                        })
+                except Exception:
+                    continue
+
+            logger.info(f"Dcard Selenium: found {len(results)} posts for '{keyword}'")
+        except Exception as e:
+            logger.warning(f"Dcard Selenium error: {e}")
+        finally:
+            if driver:
+                driver.quit()
+        return results
+
+    def fetch_mentions(self, keyword: str, limit: int = 10) -> List[Dict[str, Any]]:
+        posts = self._scrape_search(keyword, limit)
+
+        if not posts:
+            logger.info(f"Dcard: no results for '{keyword}'")
+            return []
+
+        mentions = []
+        for post in posts[:limit]:
+            mentions.append({
                 "platform": "Dcard",
                 "keyword": keyword,
-                "title": title,
-                "content": content,
-                "author_hash": f"mock_dcard_user_{hash(author)}",
-                "url": f"https://www.dcard.tw/f/{forum}/p/{random.randint(200000000, 299999999)}",
-                "published_at": pub_date,
-                "likes": likes_val,
-                "comments": comments_val,
-                "shares": 0
+                "title": post["title"],
+                "content": post["title"],
+                "author_hash": "dcard_user",
+                "url": post["url"],
+                "published_at": datetime.datetime.utcnow(),
+                "likes": 0,
+                "comments": 0,
+                "shares": 0,
             })
-        return results
+
+        logger.info(f"Dcard: returning {len(mentions)} mentions")
+        return mentions

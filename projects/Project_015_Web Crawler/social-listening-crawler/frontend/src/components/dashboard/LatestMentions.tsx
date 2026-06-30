@@ -60,7 +60,14 @@ export default function LatestMentions({ mentions }: LatestMentionsProps) {
                     <span className="text-xs text-gray-400">#{m.keyword_name}</span>
                   )}
                 </div>
-                <p className="font-semibold text-gray-800 text-sm mb-1 truncate">{m.title || '無標題'}</p>
+                {m.url ? (
+                  <a href={m.url} target="_blank" rel="noreferrer" className="font-semibold text-gray-800 hover:text-brand-600 text-sm mb-1 truncate block">
+                    {m.title || '無標題'} <ExternalLink className="h-3 w-3 inline-block" />
+                  </a>
+                ) : (
+                  <p className="font-semibold text-gray-800 text-sm mb-1 truncate">{m.title || '無標題'}</p>
+                )}
+                {m.url && <p className="text-[9px] text-gray-400 truncate max-w-[250px] mb-1">{m.url}</p>}
                 <p className="text-gray-500 text-xs line-clamp-2">{m.content}</p>
                 <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
                   <span className="flex items-center gap-1">
@@ -70,11 +77,6 @@ export default function LatestMentions({ mentions }: LatestMentionsProps) {
                   {m.author && <span>作者: {m.author}</span>}
                 </div>
               </div>
-              {m.url && (
-                <a href={m.url} target="_blank" rel="noreferrer" className="text-gray-300 hover:text-brand-600 transition flex-shrink-0">
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-              )}
             </div>
           </div>
         ))}

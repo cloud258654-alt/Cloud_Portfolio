@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Volume2, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { login } from '../api/auth';
-import type { AuthState } from '../components/auth/AuthContext';
+import type { AuthState } from '../components/auth/useAuth';
 
 interface LoginPageProps {
   onLogin: (user: AuthState) => void;
