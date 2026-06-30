@@ -140,6 +140,27 @@ store_name,rating,review_text,author,published_at
 
 ---
 
+---
+
+## Live Demo 快速體驗
+
+```powershell
+# 終端機 1：啟動後端
+cd backend
+pip install -r requirements.txt
+python -m app.seed
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# 終端機 2：啟動前端
+cd frontend
+npm install
+npm run dev
+```
+
+瀏覽器開啟 **http://localhost:5173**，使用下方 Demo 帳號登入即可體驗商譽風險戰情室。
+
+---
+
 ## Demo 帳號
 
 | 帳號 | 密碼 | 角色 | 權限 |
