@@ -1,6 +1,6 @@
 # Data Flow
 
-This document details the flow of data within the **Taiwan Social Media Keyword Monitoring System** from data ingestion to user presentation.
+This document details the flow of data within the **AI Reputation Risk Detection Platform** from data ingestion to user presentation.
 
 ## Keyword Crawling and Processing Flow
 

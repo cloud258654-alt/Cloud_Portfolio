@@ -27,6 +27,11 @@ export interface Mention {
   status: string;
   raw_data: string | null;
   keyword_name?: string | null;
+  risk_score: number;
+  risk_reason: string | null;
+  crisis_keywords_matched: string | null;
+  recommended_priority: string;
+  resolved_at: string | null;
 }
 
 export interface DashboardSummary {
@@ -36,6 +41,10 @@ export interface DashboardSummary {
   high_risk_count: number;
   medium_risk_count: number;
   purchase_intent_count: number;
+  reputation_risk_index: number;
+  negative_ratio: number;
+  unresolved_count: number;
+  crisis_keywords_hit_count: number;
   platform_breakdown: Record<string, number>;
   sentiment_breakdown: Record<string, number>;
   keyword_breakdown: Record<string, number>;

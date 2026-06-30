@@ -58,6 +58,8 @@ class CrawlerService:
         try:
             raw_mentions = connector.fetch_mentions(keyword.name)
             saved_count = 0
+            twenty_four_hours_ago = datetime.datetime.utcnow() - datetime.timedelta(hours=24)
+            recent_count = db.query(Mention).filter(Mention.keyword_id == keyword.id, Mention.created_at >= twenty_four_hours_ago).count()
 
             for raw in raw_mentions:
                 url = raw.get("url", "")
@@ -74,7 +76,14 @@ class CrawlerService:
                 if dup:
                     continue
 
-                ai_result = analyze_with_llm(ct, keyword.name)
+                likes = raw.get("likes", 0)
+                comments = raw.get("comments", 0)
+                shares = raw.get("shares", 0)
+
+                ai_result = analyze_with_llm(
+                    ct, keyword.name, likes=likes, comments=comments, shares=shares,
+                    is_resolved=False, recent_count=recent_count, platform=platform
+                )
                 now = datetime.datetime.utcnow()
 
                 mention = Mention(
@@ -88,17 +97,22 @@ class CrawlerService:
                     assigned_to=None,
                     model_name=ai_result.get("model_name"),
                     analyzed_at=now,
-                    raw_data=json.dumps({"likes": raw.get("likes", 0), "comments": raw.get("comments", 0), "shares": raw.get("shares", 0), "content_hash": ch}),
+                    raw_data=json.dumps({"likes": likes, "comments": comments, "shares": shares, "content_hash": ch}),
+                    # Reputation Risk fields
+                    risk_score=ai_result.get("risk_score", 0),
+                    risk_reason=ai_result.get("risk_reason"),
+                    crisis_keywords_matched=ai_result.get("crisis_keywords_matched"),
+                    recommended_priority=ai_result.get("recommended_priority", "P3"),
                 )
                 db.add(mention)
                 saved_count += 1
 
-                if ai_result.get("risk_level") == "High":
+                if ai_result.get("recommended_priority") in ("P0", "P1"):
                     NotificationService.create(
                         mention_id=None,
-                        title=f"高風險事件: {keyword.name}",
-                        content=title[:200] if title else ct[:200],
-                        level="warning",
+                        title=f"【商譽危機警報 - {ai_result.get('recommended_priority')}】品牌: {keyword.name}",
+                        content=f"商譽風險指數：{ai_result.get('risk_score')}分 | 原因：{ai_result.get('risk_reason')} | 貼文：{title or ct[:100]}",
+                        level="warning" if ai_result.get("recommended_priority") == "P1" else "error",
                     )
 
             log_entry.status = "Success"
@@ -129,7 +143,16 @@ class CrawlerService:
         if dup:
             return False
 
-        ai_result = analyze_with_llm(ct, kw_obj.name)
+        twenty_four_hours_ago = datetime.datetime.utcnow() - datetime.timedelta(hours=24)
+        recent_count = db.query(Mention).filter(Mention.keyword_id == kw_obj.id, Mention.created_at >= twenty_four_hours_ago).count()
+        likes = item.get("likes", 0)
+        comments = item.get("comments", 0)
+        shares = item.get("shares", 0)
+
+        ai_result = analyze_with_llm(
+            ct, kw_obj.name, likes=likes, comments=comments, shares=shares,
+            is_resolved=False, recent_count=recent_count, platform=item["platform"]
+        )
         now = datetime.datetime.utcnow()
         sentiment = item.get("sentiment") or ai_result["sentiment"]
         score = item.get("sentiment_score")
@@ -149,17 +172,22 @@ class CrawlerService:
             assigned_to=None,
             model_name=ai_result.get("model_name"),
             analyzed_at=now,
-            raw_data=json.dumps({"likes": item.get("likes", 0), "comments": item.get("comments", 0), "shares": item.get("shares", 0)}),
+            raw_data=json.dumps({"likes": likes, "comments": comments, "shares": shares}),
+            # Reputation Risk fields
+            risk_score=ai_result.get("risk_score", 0),
+            risk_reason=ai_result.get("risk_reason"),
+            crisis_keywords_matched=ai_result.get("crisis_keywords_matched"),
+            recommended_priority=ai_result.get("recommended_priority", "P3"),
         )
         db.add(mention)
         db.commit()
 
-        if ai_result.get("risk_level") == "High":
+        if ai_result.get("recommended_priority") in ("P0", "P1"):
             NotificationService.create(
                 mention_id=None,
-                title=f"高風險事件: {kw_obj.name}",
-                content=title[:200] if title else ct[:200],
-                level="warning",
+                title=f"【商譽危機警報 - {ai_result.get('recommended_priority')}】品牌: {kw_obj.name}",
+                content=f"商譽風險指數：{ai_result.get('risk_score')}分 | 原因：{ai_result.get('risk_reason')} | 貼文：{title or ct[:100]}",
+                level="warning" if ai_result.get("recommended_priority") == "P1" else "error",
             )
 
         return True

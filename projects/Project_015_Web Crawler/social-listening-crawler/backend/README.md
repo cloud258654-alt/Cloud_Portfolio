@@ -1,6 +1,6 @@
-# Social Listening Crawler - Backend
+# AI Reputation Risk Detection Platform - Backend
 
-This is the backend for the Taiwan Social Media Keyword Monitoring System.
+This is the backend for the AI Reputation Risk Detection Platform (AI 商譽風險偵測平台).
 
 ## Stack
 - **Python**

@@ -30,7 +30,16 @@ class AIService:
     ]
 
     @staticmethod
-    def analyze_content(text: str, keyword: str) -> Dict[str, Any]:
+    def analyze_content(
+        text: str,
+        keyword: str,
+        likes: int = 0,
+        comments: int = 0,
+        shares: int = 0,
+        is_resolved: bool = False,
+        recent_count: int = 0,
+        platform: str = ""
+    ) -> Dict[str, Any]:
         text_lower = text.lower()
 
         neg_count = sum(1 for w in AIService.NEGATIVES if w in text_lower)
@@ -51,41 +60,120 @@ class AIService:
             sentiment = "Negative"
             score = round(-0.3 - (random.random() * 0.3), 2)
 
-        risk_level = "Low"
+        # ----------------- REPUTATION RISK MODEL (0-100) -----------------
+        # Factor 1: Negative/Neutral Sentiment (max 25)
+        sentiment_score = 0
         if sentiment == "Negative":
-            if any(w in text_lower for w in AIService.HIGH_RISK_WORDS):
-                risk_level = "High"
-            else:
-                risk_level = "Medium"
+            sentiment_score = 25
+        elif sentiment == "Neutral":
+            sentiment_score = 10
+
+        # Factor 2: Crisis Keywords (max 30)
+        # 詐騙, 出事, 爆炸, 毒, 倒閉, 訴訟, 違法, 雷, 踩雷, 客訴, 退費, 消保會, 爆料 etc.
+        crisis_words = [
+            "詐騙", "出事", "爆炸", "毒", "倒閉", "訴訟", "違法", "雷", "踩雷",
+            "客訴", "退費", "消保會", "爆料", "致癌", "召回", "中毒", "停業", "崩潰"
+        ]
+        matched_keywords = [w for w in crisis_words if w in text_lower]
+        keyword_score = 30 if len(matched_keywords) > 0 else 0
+
+        # Factor 3: Engagement (max 15)
+        engagement_score = min(15, (likes + comments * 2 + shares * 3) // 5)
+
+        # Factor 4: Platform Sensitivity (max 10)
+        p_lower = platform.lower() if platform else ""
+        if any(p in p_lower for p in ["facebook", "fb", "threads", "小紅書", "dcard", "tiktok", "import"]):
+            platform_score = 10
+        elif "ptt" in p_lower:
+            platform_score = 8
+        elif any(p in p_lower for p in ["google", "map", "search"]):
+            platform_score = 5
+        else:
+            platform_score = 5
+
+        # Factor 5: Unresolved Status (max 10)
+        status_score = 0 if is_resolved else 10
+
+        # Factor 6: Repeat Keyword Frequency (max 10)
+        if recent_count >= 5:
+            frequency_score = 10
+        elif recent_count >= 2:
+            frequency_score = 5
+        else:
+            frequency_score = 0
+
+        risk_score = sentiment_score + keyword_score + engagement_score + platform_score + status_score + frequency_score
+        risk_score = max(0, min(100, risk_score))
+
+        # Map to Risk Level (Low/Medium/High)
+        if risk_score >= 70:
+            risk_level = "High"
+        elif risk_score >= 30:
+            risk_level = "Medium"
+        else:
+            risk_level = "Low"
+
+        # Map to Recommended Priority (P0-P3)
+        # P0: risk_score >= 90 or matching urgent legal / scam / consumer protection words
+        critical_words = ["詐騙", "違法", "消保會", "爆料", "致癌", "中毒"]
+        has_critical = any(w in matched_keywords for w in critical_words)
+        
+        if risk_score >= 90 or has_critical:
+            recommended_priority = "P0"
+        elif risk_score >= 70:
+            recommended_priority = "P1"
+        elif risk_score >= 30:
+            recommended_priority = "P2"
+        else:
+            recommended_priority = "P3"
+
+        # Construct Risk Reasons description
+        reasons = []
+        if sentiment_score > 0:
+            reasons.append(f"{sentiment}情緒語氣")
+        if keyword_score > 0:
+            reasons.append(f"命中危機詞({', '.join(matched_keywords[:4])})")
+        if engagement_score > 5:
+            reasons.append("社群傳播熱度高")
+        if platform_score == 10:
+            reasons.append(f"高擴散平台({platform or 'Import'})")
+        if status_score > 0:
+            reasons.append("事件尚未處置")
+        if frequency_score > 0:
+            reasons.append("近期出現頻率升溫")
+        
+        risk_reason = "、".join(reasons) if reasons else "無明顯商譽風險"
 
         purchase_intent = any(w in text_lower for w in AIService.PURCHASE_INTENT_WORDS)
 
         if sentiment == "Positive":
-            ai_summary = f"文章對「{keyword}」表達正面評價，提到品質、服務、使用體驗令人滿意。"
+            ai_summary = f"文章對「{keyword}」表達正面評價，整體品質與服務令人滿意。"
         elif sentiment == "Negative":
-            ai_summary = f"文章對「{keyword}」表達不滿或批評，涵蓋品質、客服、價格等方面疑慮。"
+            ai_summary = f"文章對「{keyword}」表達批評，命中危機因素。成因：{risk_reason}。"
         else:
-            ai_summary = f"文章中性討論「{keyword}」，用戶尋求資訊或進行客觀交流。"
+            ai_summary = f"文章中性討論「{keyword}」，用戶進行資訊詢問與交流。"
 
-        if risk_level == "High":
-            ai_suggestion = f"⚠ 高風險警訊！「{keyword}」相關負面輿情涉及嚴重品質或公共安全議題。公關團隊應立即評估並在 2 小時內制定回應策略。"
-        elif risk_level == "Medium":
-            ai_suggestion = f"「{keyword}」出現負面討論，建議客服團隊主動追蹤，防止輿情擴大。"
-        elif sentiment == "Positive" and purchase_intent:
-            ai_suggestion = f"正面品牌聲量且具購買意圖！建議行銷部門投放相關優惠資訊以加速轉化。"
-        elif sentiment == "Positive":
-            ai_suggestion = f"正面品牌聲量。社群小編可適度互動，提升品牌忠誠度與曝光。"
+        if recommended_priority == "P0":
+            ai_suggestion = f"⚠ 關鍵品牌商譽危機！命中關鍵字且風險指數極高 ({risk_score}分)。公關團隊應立即召集緊急會議並於 1 小時內發表官方澄清聲明。"
+        elif recommended_priority == "P1":
+            ai_suggestion = f"🚨 高商譽風險警訊 ({risk_score}分)。建議品牌公關主管於 2 小時內審查並擬定回應策略。"
+        elif recommended_priority == "P2":
+            ai_suggestion = f"💬 中商譽風險事件 ({risk_score}分)。建議客服專員主動回覆，協助澄清疑慮並解決客訴。"
         else:
-            ai_suggestion = f"中立輿情。建議將「{keyword}」納入週報追蹤，無需立即介入。"
+            ai_suggestion = f"✅ 低風險訊號 ({risk_score}分)。持續監控該品牌/關鍵字的風險訊號即可。"
 
         return {
             "sentiment": sentiment,
             "sentiment_score": score,
             "risk_level": risk_level,
+            "risk_score": risk_score,
+            "risk_reason": risk_reason,
+            "crisis_keywords_matched": ",".join(matched_keywords) if matched_keywords else "",
+            "recommended_priority": recommended_priority,
             "purchase_intent": purchase_intent,
             "ai_summary": ai_summary,
             "ai_suggestion": ai_suggestion,
-            "status": "Processed",
+            "status": "new" if not is_resolved else "resolved",
         }
 
     @staticmethod

@@ -24,6 +24,11 @@ def _serialize_mention(m) -> dict:
         "handled_at": m.handled_at.isoformat() if m.handled_at else None,
         "replied_at": m.replied_at.isoformat() if m.replied_at else None,
         "keyword_name": m.keyword.name if m.keyword else None,
+        "risk_score": m.risk_score,
+        "risk_reason": m.risk_reason,
+        "crisis_keywords_matched": m.crisis_keywords_matched,
+        "recommended_priority": m.recommended_priority,
+        "resolved_at": m.resolved_at.isoformat() if m.resolved_at else None,
     }
 
 
@@ -59,6 +64,14 @@ def get_dashboard_summary(
         high_risk_count = base.filter(Mention.risk_level == "High").count()
         medium_risk_count = base.filter(Mention.risk_level == "Medium").count()
         purchase_intent_count = base.filter(Mention.purchase_intent == True).count()
+
+        # Reputation Risk Calculations
+        avg_risk = base.with_entities(func.avg(Mention.risk_score)).scalar()
+        reputation_risk_index = round(float(avg_risk), 1) if avg_risk is not None else 0.0
+
+        negative_ratio = round((negative_count / total_mentions) * 100, 1) if total_mentions > 0 else 0.0
+        unresolved_count = base.filter(~Mention.status.in_(["resolved", "ignored"])).count()
+        crisis_keywords_hit_count = base.filter(Mention.crisis_keywords_matched != None, Mention.crisis_keywords_matched != "").count()
 
         sentiment_stats = base.with_entities(Mention.sentiment, func.count(Mention.id)).group_by(Mention.sentiment).all()
         sentiment_breakdown = {"Positive": 0, "Neutral": 0, "Negative": 0}
@@ -96,14 +109,23 @@ def get_dashboard_summary(
         trend_list = [{"date": k, "count": v} for k, v in sorted(trend.items())]
 
         latest = base.options(joinedload(Mention.keyword)).order_by(Mention.created_at.desc()).limit(20).all()
-        high_risks = base.options(joinedload(Mention.keyword)).filter(Mention.risk_level == "High").order_by(Mention.created_at.desc()).limit(10).all()
+        high_risks = base.options(joinedload(Mention.keyword)).filter(Mention.risk_level == "High").order_by(Mention.risk_score.desc(), Mention.created_at.desc()).limit(10).all()
 
         return {
-            "total_keywords": total_keywords, "total_mentions": total_mentions,
-            "negative_count": negative_count, "high_risk_count": high_risk_count,
-            "medium_risk_count": medium_risk_count, "purchase_intent_count": purchase_intent_count,
-            "platform_breakdown": platform_breakdown, "sentiment_breakdown": sentiment_breakdown,
-            "keyword_breakdown": keyword_breakdown, "trend": trend_list,
+            "total_keywords": total_keywords,
+            "total_mentions": total_mentions,
+            "negative_count": negative_count,
+            "high_risk_count": high_risk_count,
+            "medium_risk_count": medium_risk_count,
+            "purchase_intent_count": purchase_intent_count,
+            "reputation_risk_index": reputation_risk_index,
+            "negative_ratio": negative_ratio,
+            "unresolved_count": unresolved_count,
+            "crisis_keywords_hit_count": crisis_keywords_hit_count,
+            "platform_breakdown": platform_breakdown,
+            "sentiment_breakdown": sentiment_breakdown,
+            "keyword_breakdown": keyword_breakdown,
+            "trend": trend_list,
             "latest_mentions": [_serialize_mention(m) for m in latest],
             "high_risk_events": [_serialize_mention(m) for m in high_risks],
         }

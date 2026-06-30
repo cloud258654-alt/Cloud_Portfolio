@@ -175,35 +175,31 @@ def seed():
                     hours_ago = random.randint(0, 23)
                     pub_date = base_date + datetime.timedelta(days=days_ago, hours=hours_ago)
 
-                    score_map = {"Positive": round(random.uniform(0.4, 1.0), 2), "Neutral": round(random.uniform(-0.2, 0.3), 2), "Negative": round(random.uniform(-0.9, -0.3), 2)}
-                    score = score_map[s]
+                    likes = random.randint(0, 500)
+                    comments = random.randint(0, 80)
+                    shares = random.randint(0, 60)
+                    recent_count = random.randint(0, 6)
 
-                    if s == "Positive":
-                        ai_summary = f"文章對「{kw.name}」表達正面評價，提到品質、服務、使用體驗令人滿意。"
-                        if should_purchase:
-                            ai_suggestion = f"正面品牌聲量且具購買意圖！建議行銷部門投放相關優惠資訊以加速轉化。"
-                        else:
-                            ai_suggestion = f"正面品牌聲量。社群小編可適度互動，提升品牌忠誠度與曝光。"
-                    elif s == "Negative":
-                        ai_summary = f"文章對「{kw.name}」表達不滿或批評，涵蓋品質、客服、價格等方面疑慮。"
-                        if r == "High":
-                            ai_suggestion = f"⚠ 高風險警訊！「{kw.name}」相關負面輿情涉及嚴重品質或公共安全議題。公關團隊應立即評估並在 2 小時內制定回應策略。"
-                        else:
-                            ai_suggestion = f"「{kw.name}」出現負面討論，建議客服團隊主動追蹤，防止輿情擴大。"
-                    else:
-                        ai_summary = f"文章中性討論「{kw.name}」，用戶尋求資訊或進行客觀交流。"
-                        ai_suggestion = f"中立輿情。建議將「{kw.name}」納入週報追蹤，無需立即介入。"
+                    from app.services.ai_service import AIService
+                    ai_res = AIService.analyze_content(
+                        content, kw.name, likes=likes, comments=comments, shares=shares,
+                        is_resolved=False, recent_count=recent_count, platform=platform
+                    )
 
                     mention = Mention(
                         keyword_id=kw.id, platform=platform, title=title, content=content,
                         url=f"https://example.com/{platform.lower().replace(' ','')}/{random.randint(1000,9999)}",
                         author=f"user_{random.randint(100,999)}",
                         published_at=pub_date,
-                        sentiment=s, sentiment_score=score,
-                        risk_level=r, purchase_intent=should_purchase,
-                        ai_summary=ai_summary, ai_suggestion=ai_suggestion,
-                        status="Processed",
-                        raw_data=json.dumps({"likes": random.randint(0, 500), "comments": random.randint(0, 80), "shares": random.randint(0, 60)}),
+                        sentiment=ai_res["sentiment"], sentiment_score=ai_res["sentiment_score"],
+                        risk_level=ai_res["risk_level"], purchase_intent=should_purchase,
+                        ai_summary=ai_res["ai_summary"], ai_suggestion=ai_res["ai_suggestion"],
+                        status="new",
+                        raw_data=json.dumps({"likes": likes, "comments": comments, "shares": shares}),
+                        risk_score=ai_res["risk_score"],
+                        risk_reason=ai_res["risk_reason"],
+                        crisis_keywords_matched=ai_res["crisis_keywords_matched"],
+                        recommended_priority=ai_res["recommended_priority"],
                     )
                     db.add(mention)
 

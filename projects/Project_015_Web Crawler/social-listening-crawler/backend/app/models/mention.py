@@ -29,5 +29,12 @@ class Mention(Base):
     replied_at = Column(DateTime, nullable=True)
     model_name = Column(String, nullable=True)         # which AI model analyzed
     analyzed_at = Column(DateTime, nullable=True)
+    
+    # Reputation Risk fields
+    risk_score = Column(Integer, default=0)
+    risk_reason = Column(String, nullable=True)
+    crisis_keywords_matched = Column(String, nullable=True)
+    recommended_priority = Column(String, default="P3")
+    resolved_at = Column(DateTime, nullable=True)
 
     keyword = relationship("Keyword", back_populates="mentions")

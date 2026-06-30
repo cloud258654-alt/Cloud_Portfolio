@@ -5,6 +5,7 @@ export function fetchMentions(params?: {
   platform?: string;
   sentiment?: string;
   risk_level?: string;
+  recommended_priority?: string;
   keyword_id?: number;
   search?: string;
   limit?: number;
@@ -14,6 +15,7 @@ export function fetchMentions(params?: {
   if (params?.platform) sp.set('platform', params.platform);
   if (params?.sentiment) sp.set('sentiment', params.sentiment);
   if (params?.risk_level) sp.set('risk_level', params.risk_level);
+  if (params?.recommended_priority) sp.set('recommended_priority', params.recommended_priority);
   if (params?.keyword_id) sp.set('keyword_id', String(params.keyword_id));
   if (params?.search) sp.set('search', params.search);
   if (params?.limit) sp.set('limit', String(params.limit));

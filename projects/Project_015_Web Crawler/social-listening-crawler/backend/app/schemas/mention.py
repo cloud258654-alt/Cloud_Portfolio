@@ -18,6 +18,16 @@ class MentionBase(BaseModel):
     ai_suggestion: Optional[str] = None
     status: Optional[str] = "Processed"
     raw_data: Optional[str] = None
+    
+    # Reputation Risk fields
+    risk_score: Optional[int] = 0
+    risk_reason: Optional[str] = None
+    crisis_keywords_matched: Optional[str] = None
+    recommended_priority: Optional[str] = "P3"
+    assigned_to: Optional[str] = None
+    handled_note: Optional[str] = None
+    handled_at: Optional[datetime] = None
+    resolved_at: Optional[datetime] = None
 
 class MentionCreate(MentionBase):
     pass

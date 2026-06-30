@@ -1,6 +1,6 @@
 # System Architecture
 
-This document describes the high-level architecture of the **Taiwan Social Media Keyword Monitoring System**.
+This document describes the high-level architecture of the **AI Reputation Risk Detection Platform**.
 
 ```mermaid
 graph TD

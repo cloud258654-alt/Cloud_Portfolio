@@ -53,10 +53,36 @@ def _process_import(db: Session, parsed_items: list) -> dict:
     return {"total_rows": total_rows, "imported": imported, "skipped": skipped, "errors": errors}
 
 
-@router.post("/run")
-def trigger_crawl(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+def run_background_crawl_all():
+    from app.database import SessionLocal
+    db_session = SessionLocal()
     try:
-        background_tasks.add_task(crawler_service.crawl_all_keywords, db)
+        crawler_service.crawl_all_keywords(db_session)
+    except Exception as e:
+        import logging
+        logging.getLogger("app.crawler_api").error(f"Background crawl all failed: {e}")
+    finally:
+        db_session.close()
+
+
+def run_background_crawl_keyword_platform(keyword_id: int, platform: str):
+    from app.database import SessionLocal
+    db_session = SessionLocal()
+    try:
+        kw = db_session.query(KeywordModel).filter(KeywordModel.id == keyword_id).first()
+        if kw:
+            crawler_service.crawl_keyword_for_platform(db_session, kw, platform)
+    except Exception as e:
+        import logging
+        logging.getLogger("app.crawler_api").error(f"Background crawl keyword platform failed: {e}")
+    finally:
+        db_session.close()
+
+
+@router.post("/run")
+def trigger_crawl(background_tasks: BackgroundTasks):
+    try:
+        background_tasks.add_task(run_background_crawl_all)
         return {"message": "Crawling triggered in background for all active keywords."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Crawl trigger failed: {str(e)}")
@@ -70,7 +96,7 @@ def trigger_keyword_crawl(keyword_id: int, background_tasks: BackgroundTasks, db
             raise HTTPException(status_code=404, detail="Keyword not found")
         platforms = [p.strip() for p in kw.platforms.split(",") if p.strip()]
         for platform in platforms:
-            background_tasks.add_task(crawler_service.crawl_keyword_for_platform, db, kw, platform)
+            background_tasks.add_task(run_background_crawl_keyword_platform, keyword_id, platform)
         return {"message": f"Crawling triggered for '{kw.name}' across {len(platforms)} platforms."}
     except HTTPException:
         raise
@@ -88,6 +114,12 @@ def list_crawler_logs(limit: int = 50, db: Session = Depends(get_db)):
 
 @router.post("/import-csv/mentions")
 def import_csv_mentions(req: Optional[CSVImportRequest] = None, file: UploadFile = File(None), db: Session = Depends(get_db)):
+    import datetime
+    import json
+    import os
+    from app.models.import_log import ImportLog
+
+    file_name = file.filename if (file and file.filename) else (os.path.basename(req.file_path) if (req and req.file_path) else "unknown_file")
     try:
         if file and file.filename:
             raw = file.file.read()
@@ -98,20 +130,69 @@ def import_csv_mentions(req: Optional[CSVImportRequest] = None, file: UploadFile
             raise HTTPException(status_code=400, detail="Please provide file upload or file_path in JSON body.")
 
         if not parsed:
+            # Log empty file import
+            import_log = ImportLog(
+                file_name=file_name, import_type="mentions", total_rows=0, imported=0, skipped=0,
+                error_count=0, status="completed", created_at=datetime.datetime.utcnow()
+            )
+            db.add(import_log)
+            db.commit()
             return {"message": "No mentions found.", "total_rows": 0, "imported": 0, "skipped": 0, "errors": []}
 
         result = _process_import(db, parsed)
+        
+        # Save import audit log
+        import_log = ImportLog(
+            file_name=file_name,
+            import_type="mentions",
+            total_rows=result.get("total_rows", 0),
+            imported=result.get("imported", 0),
+            skipped=result.get("skipped", 0),
+            error_count=len(result.get("errors", [])),
+            errors_text=json.dumps(result.get("errors", [])) if result.get("errors") else None,
+            status="completed" if len(result.get("errors", [])) == 0 else "partial_success",
+            created_at=datetime.datetime.utcnow()
+        )
+        db.add(import_log)
+        db.commit()
+
         return {"message": "Import complete.", **result}
     except HTTPException:
         raise
     except FileNotFoundError as e:
+        # Save fail log
+        try:
+            import_log = ImportLog(
+                file_name=file_name, import_type="mentions", total_rows=0, imported=0, skipped=0,
+                error_count=1, errors_text=str(e), status="failed", created_at=datetime.datetime.utcnow()
+            )
+            db.add(import_log)
+            db.commit()
+        except Exception:
+            pass
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
+        # Save fail log
+        try:
+            import_log = ImportLog(
+                file_name=file_name, import_type="mentions", total_rows=0, imported=0, skipped=0,
+                error_count=1, errors_text=str(e), status="failed", created_at=datetime.datetime.utcnow()
+            )
+            db.add(import_log)
+            db.commit()
+        except Exception:
+            pass
         raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
 
 
 @router.post("/import-csv/google-reviews")
 def import_csv_google_reviews(req: Optional[CSVImportRequest] = None, file: UploadFile = File(None), db: Session = Depends(get_db)):
+    import datetime
+    import json
+    import os
+    from app.models.import_log import ImportLog
+
+    file_name = file.filename if (file and file.filename) else (os.path.basename(req.file_path) if (req and req.file_path) else "unknown_file")
     try:
         if file and file.filename:
             raw = file.file.read()
@@ -122,13 +203,63 @@ def import_csv_google_reviews(req: Optional[CSVImportRequest] = None, file: Uplo
             raise HTTPException(status_code=400, detail="Please provide file upload or file_path in JSON body.")
 
         if not parsed:
+            # Log empty file import
+            import_log = ImportLog(
+                file_name=file_name, import_type="google-reviews", total_rows=0, imported=0, skipped=0,
+                error_count=0, status="completed", created_at=datetime.datetime.utcnow()
+            )
+            db.add(import_log)
+            db.commit()
             return {"message": "No reviews found.", "total_rows": 0, "imported": 0, "skipped": 0, "errors": []}
 
         result = _process_import(db, parsed)
+
+        # Save import audit log
+        import_log = ImportLog(
+            file_name=file_name,
+            import_type="google-reviews",
+            total_rows=result.get("total_rows", 0),
+            imported=result.get("imported", 0),
+            skipped=result.get("skipped", 0),
+            error_count=len(result.get("errors", [])),
+            errors_text=json.dumps(result.get("errors", [])) if result.get("errors") else None,
+            status="completed" if len(result.get("errors", [])) == 0 else "partial_success",
+            created_at=datetime.datetime.utcnow()
+        )
+        db.add(import_log)
+        db.commit()
+
         return {"message": "Import complete.", **result}
     except HTTPException:
         raise
     except FileNotFoundError as e:
+        try:
+            import_log = ImportLog(
+                file_name=file_name, import_type="google-reviews", total_rows=0, imported=0, skipped=0,
+                error_count=1, errors_text=str(e), status="failed", created_at=datetime.datetime.utcnow()
+            )
+            db.add(import_log)
+            db.commit()
+        except Exception:
+            pass
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
+        try:
+            import_log = ImportLog(
+                file_name=file_name, import_type="google-reviews", total_rows=0, imported=0, skipped=0,
+                error_count=1, errors_text=str(e), status="failed", created_at=datetime.datetime.utcnow()
+            )
+            db.add(import_log)
+            db.commit()
+        except Exception:
+            pass
         raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+
+
+@router.get("/import-logs")
+def list_import_logs(limit: int = 50, db: Session = Depends(get_db)):
+    try:
+        from app.models.import_log import ImportLog
+        return db.query(ImportLog).order_by(ImportLog.created_at.desc()).limit(limit).all()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch import logs: {str(e)}")

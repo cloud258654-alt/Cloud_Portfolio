@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
 import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
@@ -13,7 +13,7 @@ import SchedulerPage from './pages/SchedulerPage';
 import LogsPage from './pages/LogsPage';
 import SettingsPage from './pages/SettingsPage';
 import LoginPage from './pages/LoginPage';
-import { useAuth } from './components/auth/AuthContext';
+import { useAuth } from './components/auth/useAuth';
 import { postCrawlRun } from './api/keywords';
 import { logout as apiLogout } from './api/auth';
 
@@ -31,24 +31,24 @@ export default function App() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const triggerCrawl = useCallback(async () => {
-    setIsCrawling(true); setCrawlMsg('爬取中...');
-    try { await postCrawlRun(); setCrawlMsg('爬取任務已觸發！'); setTimeout(() => { setCrawlMsg(''); setRefreshKey(k => k + 1); }, 3000); }
-    catch { setCrawlMsg('爬取失敗，請確認後端服務是否運行中。'); }
+    setIsCrawling(true); setCrawlMsg('風險掃描中...');
+    try { await postCrawlRun(); setCrawlMsg('風險掃描已啟動！'); setTimeout(() => { setCrawlMsg(''); setRefreshKey(k => k + 1); }, 3000); }
+    catch { setCrawlMsg('掃描失敗，請確認後端服務是否運行中。'); }
     finally { setTimeout(() => setIsCrawling(false), 1500); }
   }, []);
 
   const handleLogout = useCallback(() => { apiLogout(); logout(); }, [logout]);
 
-  if (loading) return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-brand-600" /></div>;
-  if (!user) return <LoginPage onLogin={login} />;
-
-  const allowedTabs = ROLE_TABS[user.role] || ROLE_TABS.viewer;
+  const allowedTabs = useMemo(() => user ? (ROLE_TABS[user.role] || ROLE_TABS.viewer) : [], [user]);
 
   useEffect(() => {
-    if (!allowedTabs.includes(activeTab)) {
+    if (user && allowedTabs.length > 0 && !allowedTabs.includes(activeTab)) {
       setActiveTab(allowedTabs[0]);
     }
-  }, [user.role, activeTab, allowedTabs]);
+  }, [user, activeTab, allowedTabs]);
+
+  if (loading) return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-brand-600" /></div>;
+  if (!user) return <LoginPage onLogin={login} />;
 
   const render = () => {
     const k = `${activeTab}-${refreshKey}`;

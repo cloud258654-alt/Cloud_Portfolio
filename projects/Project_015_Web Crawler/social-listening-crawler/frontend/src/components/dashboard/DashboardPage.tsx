@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { MessageSquare, AlertTriangle, ShoppingCart, Loader2, AlertCircle, Zap, RefreshCw } from 'lucide-react';
+import { MessageSquare, AlertTriangle, Loader2, AlertCircle, Zap, RefreshCw } from 'lucide-react';
 import StatCard from './StatCard';
 import PlatformChart from './PlatformChart';
 import KeywordRanking from './KeywordRanking';
@@ -59,8 +59,8 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">輿情分析儀表板</h2>
-          <p className="text-gray-500 text-sm mt-0.5">社群監測概覽與關鍵洞察</p>
+          <h2 className="text-2xl font-bold text-gray-900">商譽風險戰情室</h2>
+          <p className="text-gray-500 text-sm mt-0.5">企業商譽風險即時監控與危機處置</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center bg-gray-100 rounded-xl p-0.5">
@@ -77,16 +77,22 @@ export default function DashboardPage() {
           </button>
           <button onClick={triggerDemoCrawl} disabled={actionLoading}
             className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white text-sm font-semibold px-3 py-2 rounded-xl shadow-sm transition">
-            {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}Demo 爬取
+            {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}立即分析
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="總聲量" value={data?.total_mentions ?? 0} sub={`關鍵字: ${data?.total_keywords ?? 0} 組`} icon={<MessageSquare className="h-6 w-6" />} accent="brand" />
-        <StatCard label="負面聲量" value={data?.negative_count ?? 0} sub="負面情緒貼文" icon={<AlertTriangle className="h-6 w-6" />} accent="red" />
-        <StatCard label="高風險事件" value={data?.high_risk_count ?? 0} sub={`中風險: ${data?.medium_risk_count ?? 0}`} icon={<AlertTriangle className="h-6 w-6" />} accent="amber" />
-        <StatCard label="購買意圖" value={data?.purchase_intent_count ?? 0} sub="潛在轉換機會" icon={<ShoppingCart className="h-6 w-6" />} accent="emerald" />
+        <StatCard
+          label="商譽風險指數"
+          value={data ? (data.reputation_risk_index ?? 0).toFixed(1) : "0.0"}
+          sub="平均危機分數 (0-100)"
+          icon={<Zap className="h-6 w-6" />}
+          accent={data && (data.reputation_risk_index ?? 0) >= 70 ? "red" : (data && (data.reputation_risk_index ?? 0) >= 30 ? "amber" : "emerald")}
+        />
+        <StatCard label="高風險事件數" value={data?.high_risk_count ?? 0} sub="待優先處置 P0/P1" icon={<AlertTriangle className="h-6 w-6" />} accent="red" />
+        <StatCard label="負面信號比例" value={data ? `${data.negative_ratio ?? 0}%` : "0%"} sub={`總信號: ${data?.total_mentions ?? 0} 筆`} icon={<MessageSquare className="h-6 w-6" />} accent="amber" />
+        <StatCard label="危機字詞命中數" value={data?.crisis_keywords_hit_count ?? 0} sub={`未處理事件: ${data?.unresolved_count ?? 0} 筆`} icon={<AlertTriangle className="h-6 w-6" />} accent="brand" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

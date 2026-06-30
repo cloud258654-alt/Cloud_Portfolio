@@ -29,12 +29,12 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-brand-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-xl border border-gray-100 w-full max-w-md p-8 space-y-6">
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-2 mb-6">
           <div className="bg-brand-600 p-3 rounded-2xl text-white inline-flex shadow-lg shadow-brand-200">
             <Volume2 className="h-7 w-7" />
           </div>
-          <h1 className="text-xl font-bold text-gray-900">台灣社群輿情監測系統</h1>
-          <p className="text-sm text-gray-400">品牌商譽監控與 AI 輿情分析平台</p>
+          <h1 className="text-xl font-bold text-gray-900">AI 商譽風險偵測平台</h1>
+          <p className="text-sm text-gray-400">AI Reputation Risk Detection Platform</p>
         </div>
 
         {error && (

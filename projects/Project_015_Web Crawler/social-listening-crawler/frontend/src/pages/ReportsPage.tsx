@@ -40,7 +40,7 @@ export default function ReportsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">每日輿情報告</h2>
+          <h2 className="text-2xl font-bold text-gray-900">每日商譽風險報告</h2>
           <p className="text-gray-500 text-sm mt-0.5">{report?.date ? `${report.date} 自動生成報告` : ''}</p>
         </div>
         <div className="flex gap-3">

@@ -3,12 +3,12 @@ import { Grid, Search, MessageSquare, Upload, Settings, Clock, FileText, Bell, S
 interface SidebarProps { activeTab: string; onTabChange: (tab: string) => void; allowedTabs: string[]; }
 
 const ALL_TABS = [
-  { id: 'dashboard', label: '輿情儀表板', icon: Grid, roles: ['admin','manager','viewer'] },
-  { id: 'incidents', label: '高風險事件', icon: AlertTriangle, roles: ['admin','manager'] },
-  { id: 'keywords', label: '關鍵字管理', icon: Search, roles: ['admin'] },
-  { id: 'mentions', label: '聲量資料', icon: MessageSquare, roles: ['admin','manager','viewer'] },
+  { id: 'dashboard', label: '商譽風險戰情室', icon: Grid, roles: ['admin','manager','viewer'] },
+  { id: 'incidents', label: '高風險商譽事件', icon: AlertTriangle, roles: ['admin','manager'] },
+  { id: 'keywords', label: '監測品牌設定', icon: Search, roles: ['admin'] },
+  { id: 'mentions', label: '風險訊號', icon: MessageSquare, roles: ['admin','manager','viewer'] },
   { id: 'import', label: 'CSV 匯入', icon: Upload, roles: ['admin'] },
-  { id: 'reports', label: '每日報告', icon: FileText, roles: ['admin','manager'] },
+  { id: 'reports', label: '每日商譽風險報告', icon: FileText, roles: ['admin','manager'] },
   { id: 'notifications', label: '通知中心', icon: Bell, roles: ['admin','manager','viewer'] },
   { id: 'scheduler', label: '排程管理', icon: Clock, roles: ['admin'] },
   { id: 'logs', label: '執行紀錄', icon: Settings, roles: ['admin','manager'] },

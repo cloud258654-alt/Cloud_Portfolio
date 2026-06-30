@@ -1,6 +1,6 @@
 import { RefreshCw, Volume2, LogOut } from 'lucide-react';
-import { UserBadge } from '../auth/AuthContext';
-import type { AuthState } from '../auth/AuthContext';
+import { UserBadge } from './UserBadge';
+import type { AuthState } from '../auth/useAuth';
 
 interface HeaderProps {
   isCrawling: boolean;
@@ -13,13 +13,8 @@ export default function Header({ isCrawling, onTriggerCrawl, user, onLogout }: H
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-3.5 flex items-center justify-between flex-shrink-0">
       <div className="flex items-center gap-3">
-        <div className="bg-brand-600 p-2 rounded-xl text-white shadow-sm">
-          <Volume2 className="h-5 w-5" />
-        </div>
-        <div>
-          <h1 className="text-lg font-bold text-gray-900 tracking-tight">台灣社群輿情監測系統</h1>
-          <p className="text-xs text-gray-400">Social Media & Keyword Listening Platform</p>
-        </div>
+        <Volume2 className="h-6 w-6 text-brand-600" />
+        <h1 className="text-lg font-bold text-gray-900 tracking-tight">AI 商譽風險偵測平台</h1>
       </div>
 
       <div className="flex items-center gap-4">
@@ -32,7 +27,7 @@ export default function Header({ isCrawling, onTriggerCrawl, user, onLogout }: H
           <button onClick={onTriggerCrawl} disabled={isCrawling}
             className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-300 text-white text-sm font-semibold px-4 py-2 rounded-xl shadow-sm transition">
             <RefreshCw className={`h-4 w-4 ${isCrawling ? 'animate-spin' : ''}`} />
-            <span>{isCrawling ? '爬取中...' : '立即爬取'}</span>
+            <span>{isCrawling ? '偵測中...' : '立即掃描'}</span>
           </button>
         )}
 

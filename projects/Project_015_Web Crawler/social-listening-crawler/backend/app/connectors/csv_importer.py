@@ -41,10 +41,29 @@ def _open_csv(source: Union[str, bytes, io.StringIO]) -> csv.DictReader:
     if isinstance(source, str):
         if not os.path.exists(source):
             raise FileNotFoundError(f"File not found: {source}")
-        f = open(source, mode='r', encoding='utf-8-sig')
-        return csv.DictReader(f), f
+        try:
+            f = open(source, mode='r', encoding='utf-8-sig')
+            # Read snippet to test decoding compatibility
+            f.read(100)
+            f.seek(0)
+            return csv.DictReader(f), f
+        except UnicodeDecodeError:
+            try:
+                f = open(source, mode='r', encoding='cp950')
+                f.read(100)
+                f.seek(0)
+                return csv.DictReader(f), f
+            except UnicodeDecodeError:
+                f = open(source, mode='r', encoding='utf-8', errors='ignore')
+                return csv.DictReader(f), f
     elif isinstance(source, bytes):
-        text = source.decode('utf-8-sig')
+        try:
+            text = source.decode('utf-8-sig')
+        except UnicodeDecodeError:
+            try:
+                text = source.decode('cp950')
+            except UnicodeDecodeError:
+                text = source.decode('utf-8', errors='ignore')
         f = io.StringIO(text)
         return csv.DictReader(f), f
     else:

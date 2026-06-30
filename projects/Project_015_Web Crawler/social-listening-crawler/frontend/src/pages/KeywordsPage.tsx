@@ -35,6 +35,7 @@ export default function KeywordsPage() {
   };
 
   const del = async (id: number) => {
+    if (!window.confirm('確定要刪除此關鍵字嗎？這將會同步刪除該關鍵字的所有監測輿情資料與執行紀錄，此動作無法復原。')) return;
     try { await deleteKeyword(id); await load(); }
     catch { setError('刪除失敗。'); }
   };
@@ -43,7 +44,7 @@ export default function KeywordsPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">關鍵字管理</h2>
+      <h2 className="text-2xl font-bold text-gray-900">監測品牌設定</h2>
 
       {error && <div className="flex items-center gap-2 bg-red-50 text-red-600 text-sm rounded-xl p-3 border border-red-200"><AlertCircle className="h-4 w-4" />{error}<button onClick={()=>setError('')} className="ml-auto text-red-400">×</button></div>}
 

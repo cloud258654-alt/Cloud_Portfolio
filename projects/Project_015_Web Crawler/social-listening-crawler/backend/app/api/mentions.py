@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
+import json
 from app.database import get_db
 from app.models.mention import Mention as MentionModel
 
@@ -39,6 +40,12 @@ def _serialize(m) -> dict:
         "replied_at": m.replied_at.isoformat() if m.replied_at else None,
         "raw_data": m.raw_data,
         "keyword_name": m.keyword.name if m.keyword else None,
+        # Reputation Risk fields
+        "risk_score": m.risk_score,
+        "risk_reason": m.risk_reason,
+        "crisis_keywords_matched": m.crisis_keywords_matched,
+        "recommended_priority": m.recommended_priority,
+        "resolved_at": m.resolved_at.isoformat() if m.resolved_at else None,
     }
 
 
@@ -48,6 +55,7 @@ def list_mentions(
     platform: Optional[str] = None,
     sentiment: Optional[str] = None,
     risk_level: Optional[str] = None,
+    recommended_priority: Optional[str] = None,
     status: Optional[str] = None,
     search: Optional[str] = None,
     limit: int = Query(100, ge=1, le=1000),
@@ -65,6 +73,8 @@ def list_mentions(
             query = query.filter(MentionModel.sentiment == sentiment)
         if risk_level:
             query = query.filter(MentionModel.risk_level == risk_level)
+        if recommended_priority:
+            query = query.filter(MentionModel.recommended_priority == recommended_priority)
         if status:
             query = query.filter(MentionModel.status == status)
         if search:
@@ -84,19 +94,42 @@ def list_mentions(
 @router.post("/{mention_id}/reanalyze")
 def reanalyze_mention(mention_id: int, db: Session = Depends(get_db)):
     try:
-        from app.services.ai_service import AIService
+        from app.services.llm_service import analyze_with_llm
         mention = db.query(MentionModel).options(joinedload(MentionModel.keyword)).filter(MentionModel.id == mention_id).first()
         if not mention:
             raise HTTPException(status_code=404, detail="Mention not found")
 
-        result = AIService.analyze_content(mention.content, mention.keyword.name if mention.keyword else "")
+        try:
+            raw_info = json.loads(mention.raw_data) if mention.raw_data else {}
+        except Exception:
+            raw_info = {}
+        likes = raw_info.get("likes", 0)
+        comments = raw_info.get("comments", 0)
+        shares = raw_info.get("shares", 0)
+
+        twenty_four_hours_ago = datetime.utcnow() - timedelta(hours=24)
+        recent_count = db.query(MentionModel).filter(MentionModel.keyword_id == mention.keyword_id, MentionModel.created_at >= twenty_four_hours_ago).count()
+
+        result = analyze_with_llm(
+            mention.content, mention.keyword.name if mention.keyword else "",
+            likes=likes, comments=comments, shares=shares,
+            is_resolved=(mention.status in ("resolved", "ignored")),
+            recent_count=recent_count, platform=mention.platform
+        )
+        
         mention.sentiment = result["sentiment"]
         mention.sentiment_score = result["sentiment_score"]
         mention.risk_level = result["risk_level"]
+        mention.risk_score = result.get("risk_score", 0)
+        mention.risk_reason = result.get("risk_reason")
+        mention.crisis_keywords_matched = result.get("crisis_keywords_matched")
+        mention.recommended_priority = result.get("recommended_priority", "P3")
         mention.purchase_intent = result["purchase_intent"]
         mention.ai_summary = result["ai_summary"]
         mention.ai_suggestion = result["ai_suggestion"]
-        mention.status = "Processed"
+        mention.status = result.get("status", "new")
+        mention.model_name = result.get("model_name")
+        mention.analyzed_at = datetime.utcnow()
         db.commit()
 
         return _serialize(mention)
@@ -123,7 +156,10 @@ def update_mention(mention_id: int, req: UpdateMentionRequest, db: Session = Dep
             now = datetime.utcnow()
             if req.status == "replied":
                 m.replied_at = now
-            elif req.status in ("resolved", "ignored"):
+            elif req.status == "resolved":
+                m.handled_at = now
+                m.resolved_at = now
+            elif req.status == "ignored":
                 m.handled_at = now
 
         db.commit()

@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Taiwan Social Media Keyword Monitoring System"
+    PROJECT_NAME: str = "AI Reputation Risk Detection Platform"
     API_V1_STR: str = "/api/v1"
     DATABASE_URL: str = "sqlite:///./social_listening.db"
 
@@ -12,6 +12,7 @@ class Settings(BaseSettings):
 
     OPENAI_API_KEY: str = ""
     DEMO_MODE: bool = True
+    JWT_SECRET: str = "demo_secret_change_in_production"
 
     class Config:
         case_sensitive = True

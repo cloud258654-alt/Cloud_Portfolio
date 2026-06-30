@@ -29,15 +29,15 @@ export default function LatestMentions({ mentions }: LatestMentionsProps) {
   if (mentions.length === 0) {
     return (
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h3 className="text-base font-bold text-gray-800 mb-4">最新提及</h3>
-        <div className="py-8 text-center text-gray-400 text-sm">尚無提及資料</div>
+        <h3 className="text-base font-bold text-gray-800 mb-4">最新風險訊號</h3>
+        <div className="py-8 text-center text-gray-400 text-sm">尚無風險訊號資料</div>
       </div>
     );
   }
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-      <h3 className="text-base font-bold text-gray-800 mb-4">最新提及</h3>
+      <h3 className="text-base font-bold text-gray-800 mb-4">最新風險訊號</h3>
       <div className="space-y-3">
         {mentions.map((m) => (
           <div key={m.id} className="border border-gray-100 rounded-xl p-4 hover:border-gray-200 hover:shadow-sm transition duration-150">
@@ -46,6 +46,12 @@ export default function LatestMentions({ mentions }: LatestMentionsProps) {
                 <div className="flex items-center gap-2 flex-wrap mb-1.5">
                   <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${platformBadge(m.platform)}`}>
                     {m.platform}
+                  </span>
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${m.recommended_priority === 'P0' ? 'bg-red-600 text-white' : (m.recommended_priority === 'P1' ? 'bg-amber-600 text-white' : (m.recommended_priority === 'P2' ? 'bg-blue-600 text-white' : 'bg-gray-500 text-white'))}`}>
+                    {m.recommended_priority}
+                  </span>
+                  <span className="text-[10px] font-semibold bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded">
+                    風險 {m.risk_score}
                   </span>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${sentimentBadge(m.sentiment)}`}>
                     {m.sentiment}

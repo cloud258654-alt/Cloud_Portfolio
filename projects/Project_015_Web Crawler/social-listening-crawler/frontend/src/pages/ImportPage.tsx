@@ -65,7 +65,7 @@ export default function ImportPage() {
       <h2 className="text-2xl font-bold text-gray-900">CSV 匯入</h2>
 
       <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm text-amber-700">
-        <strong>合規提醒：</strong> Facebook、TikTok、小紅書、Threads、Google Maps 等平台僅透過 CSV 匯入，不做直接爬取。
+        <strong>合規提醒：</strong> Facebook、TikTok、小紅書、Threads、Google Maps 等平台僅透過 CSV 合規匯入，不進行直接平台掃描。
       </div>
 
       {error && (
@@ -79,7 +79,7 @@ export default function ImportPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5">
         <div className="flex flex-wrap gap-3">
           <button onClick={() => setImportType('mentions')} className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${importType === 'mentions' ? 'bg-brand-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-            標準 Mentions CSV
+            風險訊號 CSV
           </button>
           <button onClick={() => setImportType('google-reviews')} className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${importType === 'google-reviews' ? 'bg-brand-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
             Google Maps 評論 CSV

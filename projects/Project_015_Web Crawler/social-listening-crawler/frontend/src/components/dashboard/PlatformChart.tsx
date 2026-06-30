@@ -14,7 +14,7 @@ export default function PlatformChart({ data }: PlatformChartProps) {
   if (chartData.length === 0) {
     return (
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h3 className="text-base font-bold text-gray-800 mb-4">平台聲量分布</h3>
+        <h3 className="text-base font-bold text-gray-800 mb-4">平台風險分布</h3>
         <div className="h-64 flex items-center justify-center text-gray-400 text-sm">尚無數據</div>
       </div>
     );
@@ -22,7 +22,7 @@ export default function PlatformChart({ data }: PlatformChartProps) {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-      <h3 className="text-base font-bold text-gray-800 mb-4">平台聲量分布</h3>
+      <h3 className="text-base font-bold text-gray-800 mb-4">平台風險分布</h3>
       <ResponsiveContainer width="100%" height={280}>
         <PieChart>
           <Pie

@@ -4,8 +4,9 @@ import datetime
 from typing import Optional, Dict
 import jwt
 from app.models.user import User
+from app.config import settings
 
-JWT_SECRET = "demo_secret_change_in_production"
+JWT_SECRET = settings.JWT_SECRET
 JWT_ALGORITHM = "HS256"
 TOKEN_EXPIRE_HOURS = 24
 

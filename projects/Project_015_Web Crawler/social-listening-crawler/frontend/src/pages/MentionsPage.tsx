@@ -19,6 +19,7 @@ export default function MentionsPage() {
   const [platform, setPlatform] = useState('');
   const [sentiment, setSentiment] = useState('');
   const [riskLevel, setRiskLevel] = useState('');
+  const [priority, setPriority] = useState('');
   const [keywordId, setKeywordId] = useState('');
   const [search, setSearch] = useState('');
 
@@ -29,14 +30,15 @@ export default function MentionsPage() {
       if (platform) params.platform = platform;
       if (sentiment) params.sentiment = sentiment;
       if (riskLevel) params.risk_level = riskLevel;
+      if (priority) params.recommended_priority = priority;
       if (keywordId) params.keyword_id = Number(keywordId);
       if (search) params.search = search;
       const data = await fetchMentions(params as Parameters<typeof fetchMentions>[0]);
       setMentions(data);
       setTotal(data.length >= PAGE_SIZE ? (page + 2) * PAGE_SIZE : (page * PAGE_SIZE + data.length));
-    } catch { setError('無法載入聲量資料。'); setMentions([]); }
+    } catch { setError('無法載入風險訊號。'); setMentions([]); }
     finally { setLoading(false); }
-  }, [platform, sentiment, riskLevel, keywordId, search, page]);
+  }, [platform, sentiment, riskLevel, priority, keywordId, search, page]);
 
   useEffect(() => { fetchKeywords().then(setKeywords).catch(() => {}); load(); }, [load]);
 
@@ -46,14 +48,14 @@ export default function MentionsPage() {
     finally { setReanalyzeId(null); }
   };
 
-  const exportUrl = getExportMentionsCsvUrl(Object.fromEntries(Object.entries({ platform, sentiment, risk_level: riskLevel, keyword_id: keywordId, search }).filter(([,v]) => v)));
+  const exportUrl = getExportMentionsCsvUrl(Object.fromEntries(Object.entries({ platform, sentiment, risk_level: riskLevel, recommended_priority: priority, keyword_id: keywordId, search }).filter(([,v]) => v)));
 
   const sentColors: Record<string, string> = { Positive: 'bg-emerald-50 text-emerald-600 border-emerald-200', Neutral: 'bg-gray-100 text-gray-500 border-gray-200', Negative: 'bg-red-50 text-red-500 border-red-200' };
   const sel = "bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 outline-none";
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">聲量資料</h2>
+      <h2 className="text-2xl font-bold text-gray-900">風險訊號列表</h2>
 
       {error && <div className="flex items-center gap-2 bg-red-50 text-red-600 text-sm rounded-xl p-3 border border-red-200"><AlertCircle className="h-4 w-4" />{error}<button onClick={()=>setError('')} className="ml-auto text-red-400">×</button></div>}
 
@@ -72,10 +74,13 @@ export default function MentionsPage() {
             <option value="">全部情緒</option><option value="Positive">正面</option><option value="Neutral">中立</option><option value="Negative">負面</option>
           </select>
           <select value={riskLevel} onChange={e=>{setRiskLevel(e.target.value);setPage(0);}} className={sel}>
-            <option value="">全部風險</option><option value="Low">低</option><option value="Medium">中</option><option value="High">高</option>
+            <option value="">全部風險</option><option value="Low">低風險</option><option value="Medium">中風險</option><option value="High">高風險</option>
+          </select>
+          <select value={priority} onChange={e=>{setPriority(e.target.value);setPage(0);}} className={sel}>
+            <option value="">全部處置優先級</option><option value="P0">P0 (立即處理)</option><option value="P1">P1 (2小時內)</option><option value="P2">P2 (當日處理)</option><option value="P3">P3 (觀察即可)</option>
           </select>
           <select value={keywordId} onChange={e=>{setKeywordId(e.target.value);setPage(0);}} className={sel}>
-            <option value="">全部關鍵字</option>
+            <option value="">全部監測品牌</option>
             {keywords.map(k=><option key={k.id} value={k.id}>{k.name}</option>)}
           </select>
           <a href={exportUrl} download className="flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-600 text-sm font-medium px-3 py-2 rounded-xl transition ml-auto">
@@ -98,14 +103,37 @@ export default function MentionsPage() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="bg-brand-50 text-brand-600 px-2 py-0.5 rounded-md text-xs font-semibold">{m.platform}</span>
                   {m.keyword_name && <span className="text-gray-400 text-xs">#{m.keyword_name}</span>}
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${m.risk_level==='High'?'bg-red-50 text-red-500 border-red-200':m.risk_level==='Medium'?'bg-amber-50 text-amber-600 border-amber-200':'bg-gray-100 text-gray-400 border-gray-200'}`}>風險: {m.risk_level}</span>
+                  
+                  {/* Recommended Priority Badge */}
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${m.recommended_priority === 'P0' ? 'bg-red-600 text-white border-red-600' : m.recommended_priority === 'P1' ? 'bg-amber-500 text-white border-amber-500' : m.recommended_priority === 'P2' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                    優先級: {m.recommended_priority}
+                  </span>
+                  
+                  {/* Risk Score Badge */}
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold border bg-rose-50 text-rose-600 border-rose-200">
+                    風險分數: {m.risk_score}
+                  </span>
+                  
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${m.risk_level==='High'?'bg-red-50 text-red-500 border-red-200':m.risk_level==='Medium'?'bg-amber-50 text-amber-600 border-amber-200':'bg-gray-100 text-gray-400 border-gray-200'}`}>
+                    風險: {m.risk_level === 'High' ? '高' : m.risk_level === 'Medium' ? '中' : '低'}
+                  </span>
+                  
                   {m.purchase_intent && <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 text-[10px] px-2 py-0.5 rounded-full font-semibold">購買意圖</span>}
                 </div>
                 <h4 className="text-base font-bold text-gray-800">{m.title || '無標題'}</h4>
               </div>
-              <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border flex-shrink-0 ${sentColors[m.sentiment]||sentColors.Neutral}`}>{m.sentiment} ({(m.sentiment_score??0)>0?'+':''}{m.sentiment_score??0})</span>
+              <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border flex-shrink-0 ${sentColors[m.sentiment]||sentColors.Neutral}`}>{m.sentiment === 'Positive' ? '正面' : m.sentiment === 'Negative' ? '負面' : '中立'} ({(m.sentiment_score??0)>0?'+':''}{m.sentiment_score??0})</span>
             </div>
             <p className="text-gray-600 text-sm mt-3 leading-relaxed line-clamp-3">{m.content}</p>
+            
+            {/* Risk Reason details */}
+            {m.risk_reason && (
+              <div className="mt-2.5 text-xs text-rose-600 font-medium bg-rose-50/50 rounded-lg px-3 py-1.5 border border-rose-100/50 flex items-center gap-1.5">
+                <AlertCircle className="h-3.5 w-3.5" />
+                <span><strong>風險成因：</strong>{m.risk_reason}</span>
+              </div>
+            )}
+
             {m.ai_summary && (
               <div className="mt-3 bg-gray-50 rounded-xl p-3 space-y-1.5 border border-gray-100">
                 <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-brand-600 text-xs font-bold"><Volume2 className="h-3.5 w-3.5" />AI 洞察</span>

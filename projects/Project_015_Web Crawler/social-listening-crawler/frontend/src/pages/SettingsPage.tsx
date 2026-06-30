@@ -8,7 +8,7 @@ const FIELD_META: Record<string, { label: string; hint: string }> = {
   competitors: { label: '主要競品', hint: '以逗號分隔多個競品' },
   high_risk_keywords: { label: '高風險關鍵字', hint: '觸發這些字詞時自動標記高風險' },
   notification_email: { label: '通知 Email', hint: '高風險事件通知信箱（目前為 Mock）' },
-  demo_mode: { label: 'Demo 模式', hint: 'true = Mock 爬取 / false = 正式模式' },
+  demo_mode: { label: 'Demo 模式', hint: 'true = 測試模擬模式 / false = 正式模式' },
 };
 
 export default function SettingsPage() {

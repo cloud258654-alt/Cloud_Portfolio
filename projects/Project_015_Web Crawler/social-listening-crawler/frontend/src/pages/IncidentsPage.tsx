@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { AlertTriangle, User, FileText, CheckCircle2, XCircle, Loader2, Calendar, ExternalLink } from 'lucide-react';
+import { AlertTriangle, User, FileText, CheckCircle2, XCircle, Loader2, Calendar, ExternalLink, AlertCircle } from 'lucide-react';
 import { get, post } from '../api/client';
 import { getExportMentionsCsvUrl } from '../api/imports';
-import { StatusBadge, RiskBadge, SentimentBadge, LoadingState, EmptyState, ErrorState } from '../components/common/StatusBadge';
+import { StatusBadge, SentimentBadge, LoadingState, EmptyState, ErrorState } from '../components/common/StatusBadge';
 
 interface Incident {
   id: number; keyword_id: number; platform: string; title: string; content: string; url: string;
@@ -10,6 +10,8 @@ interface Incident {
   risk_level: string; purchase_intent: boolean; ai_summary: string; ai_suggestion: string;
   status: string; assigned_to: string | null; handled_note: string | null;
   handled_at: string | null; replied_at: string | null; keyword_name?: string;
+  risk_score: number; risk_reason: string | null; crisis_keywords_matched: string | null;
+  recommended_priority: string; resolved_at: string | null;
 }
 
 const ASSIGNEES = ['張經理', '李專員', '王組長', '陳分析師'];
@@ -28,7 +30,14 @@ export default function IncidentsPage() {
     setLoading(true); setError('');
     try {
       const data = await get<Incident[]>('/mentions?risk_level=High&limit=50');
-      setIncidents(data);
+      const priorityOrder: Record<string, number> = { P0: 0, P1: 1, P2: 2, P3: 3 };
+      const sorted = (data || []).sort((a, b) => {
+        const pa = priorityOrder[a.recommended_priority] ?? 99;
+        const pb = priorityOrder[b.recommended_priority] ?? 99;
+        if (pa !== pb) return pa - pb;
+        return (b.risk_score || 0) - (a.risk_score || 0);
+      });
+      setIncidents(sorted);
     } catch { setError('無法載入高風險事件。'); }
     finally { setLoading(false); }
   }, []);
@@ -56,22 +65,22 @@ export default function IncidentsPage() {
 
   const exportUrl = getExportMentionsCsvUrl({ risk_level: 'High' });
 
-  if (loading) return <LoadingState text="載入高風險事件..." />;
+  if (loading) return <LoadingState text="載入高風險商譽事件..." />;
   if (error) return <ErrorState message={error} onRetry={load} />;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">高風險事件處理</h2>
-          <p className="text-gray-500 text-sm mt-0.5">管理與追蹤需立即關注的負面輿情事件</p>
+          <h2 className="text-2xl font-bold text-gray-900">高風險商譽事件</h2>
+          <p className="text-gray-500 text-sm mt-0.5">管理與追蹤需立即處置的品牌商譽危機事件</p>
         </div>
         <a href={exportUrl} download className="flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-600 text-sm font-medium px-3 py-2 rounded-xl transition">
           <FileText className="h-4 w-4" />匯出 CSV
         </a>
       </div>
 
-      {incidents.length === 0 ? <EmptyState icon={<CheckCircle2 className="h-10 w-10 text-emerald-300 mx-auto" />} text="目前沒有高風險事件，狀況良好" /> : (
+      {incidents.length === 0 ? <EmptyState icon={<CheckCircle2 className="h-10 w-10 text-emerald-300 mx-auto" />} text="目前沒有高風險商譽事件，狀況良好" /> : (
         <div className="space-y-4">
           {incidents.map(inc => {
             const isEditing = editingId === inc.id;
@@ -84,16 +93,34 @@ export default function IncidentsPage() {
                       <div className="flex items-center gap-2 flex-wrap mb-1.5">
                         <span className="bg-brand-50 text-brand-600 px-2 py-0.5 rounded-md text-xs font-semibold">{inc.platform}</span>
                         {inc.keyword_name && <span className="text-xs text-gray-400">#{inc.keyword_name}</span>}
-                        <RiskBadge level={inc.risk_level} />
+                        
+                        {/* Recommended Priority Badge */}
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${inc.recommended_priority === 'P0' ? 'bg-red-600 text-white border-red-600' : inc.recommended_priority === 'P1' ? 'bg-amber-500 text-white border-amber-500' : inc.recommended_priority === 'P2' ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                          優先級: {inc.recommended_priority}
+                        </span>
+                        
+                        {/* Risk Score Badge */}
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold border bg-rose-50 text-rose-600 border-rose-200">
+                          風險分數: {inc.risk_score}
+                        </span>
+
                         <SentimentBadge sentiment={inc.sentiment} score={inc.sentiment_score} />
                         <StatusBadge status={inc.status} />
                       </div>
                       <h4 className="font-bold text-gray-800 text-sm">{inc.title || '無標題'}</h4>
                       <p className="text-gray-500 text-xs mt-1 line-clamp-2">{inc.content}</p>
 
+                      {/* Risk Reason details */}
+                      {inc.risk_reason && (
+                        <div className="mt-2 text-xs text-rose-600 font-medium bg-rose-50/50 rounded-lg px-2.5 py-1.5 border border-rose-100 flex items-center gap-1.5">
+                          <AlertCircle className="h-3.5 w-3.5" />
+                          <span><strong>風險成因：</strong>{inc.risk_reason}</span>
+                        </div>
+                      )}
+
                       {inc.ai_suggestion && (
                         <div className="mt-3 bg-red-50/50 rounded-xl p-3 border border-red-100">
-                          <p className="text-xs text-red-600"><strong>⚠ AI 建議：</strong>{inc.ai_suggestion}</p>
+                          <p className="text-xs text-red-600"><strong>⚠ AI 處置對策建議：</strong>{inc.ai_suggestion}</p>
                         </div>
                       )}
 
