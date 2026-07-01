@@ -34,6 +34,15 @@ button:hover {
   transform: translateY(-1px);
 }
 
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 2px solid #f6c85f;
+  outline-offset: 2px;
+}
+
 .app-shell {
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
@@ -358,6 +367,7 @@ h2 {
   height: 42px;
   border-radius: 16px;
   background: linear-gradient(135deg, rgba(88, 141, 202, 0.2), rgba(196, 154, 85, 0.24));
+  pointer-events: none;
 }
 
 .kpi span {
@@ -400,6 +410,10 @@ h2 {
 }
 
 .dashboard-grid,
+.dashboard-grid.refined {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.65fr);
+}
+
 .content-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
@@ -683,6 +697,7 @@ h2 {
   height: 70px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
+  pointer-events: none;
 }
 
 .slot b,
@@ -1186,6 +1201,84 @@ textarea:focus {
   border-radius: inherit;
 }
 
+.customer-center-detail {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.customer-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.customer-summary-cards .detail-card {
+  border: 1px solid rgba(200, 220, 255, 0.18);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 14px;
+}
+
+.customer-summary-cards .detail-card strong {
+  color: #d8c08b;
+  display: block;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.customer-summary-cards .detail-card .list-row {
+  display: grid;
+  grid-template-columns: 64px 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(200, 220, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 10px 12px;
+  margin-bottom: 6px;
+}
+
+.customer-summary-cards .detail-card .summary-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.checkout-sim {
+  margin-top: 12px;
+}
+
+.checkout-sim h3 {
+  color: #c49a55;
+  font-size: 17px;
+  margin: 0 0 14px;
+}
+
+.checkout-sim .contract-preview {
+  margin-top: 8px;
+}
+
+.checklist span {
+  display: block;
+  border: 1px solid rgba(200, 220, 255, 0.14);
+  border-radius: 12px;
+  color: #c3d0e1;
+  padding: 10px 14px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.checklist span em {
+  color: #d8c08b;
+  display: block;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
 @media (max-width: 1080px) {
   .app-shell {
     grid-template-columns: 1fr;
@@ -1205,6 +1298,7 @@ textarea:focus {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .customer-summary-cards,
   .kpi-grid,
   .report-grid,
   .task-grid,

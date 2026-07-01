@@ -1,8 +1,33 @@
-# 福田貨櫃倉儲管理系統
+# 福田貨櫃倉儲管理系統 v0.5.1
 
-福田貨櫃倉儲管理系統是一個以 React 和 Vite 建置的前端管理介面，提供貨櫃管理、客戶管理、預約、收費、電費、維修、續約提醒、通知中心、報表與 AI 助理等展示型功能。
+[![Version](https://img.shields.io/badge/version-v0.5.1-blue)](./PROJECT_STATUS.md)
+[![Build](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com)
+[![React](https://img.shields.io/badge/react-19-61dafb)](https://react.dev)
+[![Vite](https://img.shields.io/badge/vite-7-646cff)](https://vitejs.dev)
+[![PWA](https://img.shields.io/badge/PWA-ready-5a0fc8)](./public/manifest.json)
 
-This project is a React and Vite based frontend management interface for container storage operations. It includes demo modules for container management, customers, reservations, payments, electricity, maintenance, renewal reminders, notifications, reports, and an AI assistant.
+---
+
+## Live Demo
+
+| Platform | URL |
+|----------|-----|
+| **Live Demo** | [https://your-account.github.io/futian-storage](https://your-account.github.io/futian-storage) |
+| **Netlify** | `npm run build` → drag `dist/` to [Netlify Drop](https://app.netlify.com/drop) |
+| **Vercel** | `npx vercel --prod` → select `dist/` |
+
+> Replace `https://your-account.github.io/futian-storage` with your actual GitHub Pages URL after deployment.
+
+---
+
+## 快速啟動 / Quick Start
+
+```bash
+npm install        # 安裝依賴
+npm run build      # 建置（Node 18 可正常 build）
+node scripts/serve-static.mjs   # 本機靜態伺服器
+# 瀏覽器打開 http://127.0.0.1:4173/
+```
 
 ## 專案結構 / Project Structure
 
@@ -216,10 +241,16 @@ If you are using Node 18, the Vite 7 development server may fail to start. Upgra
 
 ## 注意事項 / Notes
 
-- 目前資料為前端展示用種子資料，重新整理頁面後不會保存新增或修改內容。
-- 若需要正式營運，建議加入後端 API、資料庫、登入權限、資料驗證與測試。
-- 根目錄 `index.html` 是為了方便直接開啟而設計；Vite 的原始建置入口為 `app-source.html`。
+- ✅ 資料已透過 LocalStorage 自動保存，重整後不消失。
+- ✅ 支援 JSON / CSV 匯出與匯入，可備份至本機。
+- ⚠️ 多裝置無法同步（純前端，無後端資料庫）。
+- ⚠️ 目前為管理員單一角色，無使用者登入權限。
+- ⚠️ Node 18 可 build 但 dev server 無法啟動（需 Node 20.19+）。
+- 若需要正式營運，建議加入後端 API、資料庫、登入權限與測試。
 
-- The current data is frontend demo seed data. Added or edited content is not persisted after refresh.
-- For production use, add a backend API, database, authentication, validation, and tests.
-- The root `index.html` is designed for direct opening. The Vite source build entry is `app-source.html`.
+- ✅ Data persists via LocalStorage across page refreshes.
+- ✅ JSON / CSV export & import supported for local backup.
+- ⚠️ No cross-device sync (frontend only, no backend database).
+- ⚠️ Single admin role; no user authentication.
+- ⚠️ Node 18 builds fine but dev server requires Node 20.19+.
+- For production, add backend API, database, authentication, validation, and tests.
