@@ -155,7 +155,7 @@ function getStorageTotalRecords() {
   return (data.customers?.length || 0) + (data.containers?.length || 0) + (data.reservations?.length || 0) + (data.contracts?.length || 0) + (data.payments?.length || 0) + (data.electricity?.length || 0) + (data.maintenance?.length || 0);
 }
 
-const tabs = ["Dashboard", "貨櫃管理", "QR掃描", "維修檢查", "客戶管理", "客戶入口", "預約管理", "電子合約", "收費管理", "電費管理", "續約提醒", "退租管理", "通知中心", "報表", "AI助理"];
+const tabs = ["Dashboard", "貨櫃管理", "維修檢查", "客戶管理", "預約管理", "電子合約", "收費管理", "退租管理", "報表", "AI助理"];
 
 function formatMoney(value) {
   return new Intl.NumberFormat("zh-TW", { style: "currency", currency: "TWD", maximumFractionDigits: 0 }).format(value);
@@ -515,17 +515,12 @@ function App() {
 
         {activeTab === "Dashboard" && <Dashboard metrics={metrics} containers={containers} customersById={customersById} payments={payments} reservations={reservations} maintenance={maintenance} contracts={contracts} storageMeta={storageMeta} totalRecords={totalRecords} handleResetData={handleResetData} handleExportJSON={handleExportJSON} handleImportJSON={handleImportJSON} exportCSV={exportCSV} setActiveTab={setActiveTab} />}
         {activeTab === "貨櫃管理" && <ContainerManagement containers={containers} payments={payments} customersById={customersById} addContainer={addContainer} />}
-        {activeTab === "QR掃描" && <QrScanner containers={containers} customersById={customersById} payments={payments} maintenance={maintenance} />}
         {activeTab === "維修檢查" && <MaintenanceManagement maintenance={maintenance} containers={containers} addMaintenance={addMaintenance} completeMaintenance={completeMaintenance} />}
         {activeTab === "客戶管理" && <CustomerManagement customers={customers} containers={containers} payments={payments} reservations={reservations} contracts={contracts} customersById={customersById} addCustomer={addCustomer} />}
-        {activeTab === "客戶入口" && <CustomerPortal customers={customers} containers={containers} payments={payments} customersById={customersById} contracts={contracts} />}
         {activeTab === "預約管理" && <ReservationManagement reservations={reservations} metrics={metrics} customersById={customersById} containers={containers} reserveNextWaiting={reserveNextWaiting} setReservations={setReservations} />}
         {activeTab === "電子合約" && <ContractManagement contracts={contracts} customersById={customersById} payments={payments} containers={containers} reservations={reservations} signContract={signContract} />}
-        {activeTab === "收費管理" && <PaymentManagement payments={payments} customersById={customersById} contracts={contracts} containers={containers} reservations={reservations} markPaymentPaid={markPaymentPaid} generateAnnualBills={generateAnnualBills} sendCollectionNotice={sendCollectionNotice} />}
-        {activeTab === "電費管理" && <ElectricityManagement electricity={electricity} />}
-        {activeTab === "續約提醒" && <RenewalManagement containers={containers} customersById={customersById} />}
+        {activeTab === "收費管理" && <PaymentManagement payments={payments} customersById={customersById} contracts={contracts} containers={containers} electricity={electricity} reservations={reservations} markPaymentPaid={markPaymentPaid} generateAnnualBills={generateAnnualBills} sendCollectionNotice={sendCollectionNotice} />}
         {activeTab === "退租管理" && <CheckoutManagement containers={containers} customersById={customersById} contracts={contracts} payments={payments} setContainers={setContainers} setContracts={setContracts} setCustomers={setCustomers} />}
-        {activeTab === "通知中心" && <NotificationCenter notifications={notifications} />}
         {activeTab === "報表" && <Reports metrics={metrics} containers={containers} payments={payments} />}
         {activeTab === "AI助理" && <AiAssistant metrics={metrics} containers={containers} customersById={customersById} payments={payments} reservations={reservations} maintenance={maintenance} contracts={contracts} />}
         <FloatingAssistant metrics={metrics} containers={containers} customersById={customersById} payments={payments} reservations={reservations} maintenance={maintenance} setActiveTab={setActiveTab} />
@@ -811,46 +806,6 @@ function ContainerDetail({ container, customer, payments }) {
   );
 }
 
-function QrScanner({ containers, customersById, payments, maintenance }) {
-  const [scanId, setScanId] = useState("A01");
-  const container = containers.find((item) => item.id === scanId) || containers[0];
-  const customer = customersById[container.customerId];
-  const unpaid = payments.filter((item) => item.containerId === container.id && item.status !== "paid").reduce((sum, item) => sum + item.amount - getPaidAmount(item), 0);
-  const openTickets = maintenance.filter((item) => item.containerId === container.id && item.status !== "完成");
-
-  return (
-    <section className="content-grid">
-      <Panel title="QR 現場掃描">
-        <div className="scanner-layout">
-          <div className="qr-card">
-            <span>QR</span>
-            <strong>{container.id}</strong>
-            <small>貼於貨櫃門片內側</small>
-          </div>
-          <div className="scan-panel">
-            <label>模擬掃描貨櫃<select value={scanId} onChange={(event) => setScanId(event.target.value)}>{containers.map((item) => <option key={item.id} value={item.id}>{item.id} - {statusMeta[item.status].label}</option>)}</select></label>
-            <div className="quick-actions">
-              <button className="primary">開啟現場檢查</button>
-              <button className="secondary">拍照上傳</button>
-              <button className="secondary">查看合約</button>
-            </div>
-          </div>
-        </div>
-        <ContainerDetail container={container} customer={customer} payments={payments.filter((item) => item.containerId === container.id)} />
-      </Panel>
-      <Panel title="掃描後提醒">
-        <div className="workflow vertical">
-          <span>客戶：{customer?.name || "未出租"}</span>
-          <span>未收金額：{formatMoney(unpaid)}</span>
-          <span>未完成工單：{openTickets.length} 件</span>
-          <span>租約到期：{container.contractEnd || "未出租"}</span>
-          <span>現場狀態：{container.inspection}</span>
-        </div>
-      </Panel>
-    </section>
-  );
-}
-
 function MaintenanceManagement({ maintenance, containers, addMaintenance, completeMaintenance }) {
   const openCount = maintenance.filter((item) => item.status !== "完成").length;
   const highPriority = maintenance.filter((item) => item.priority === "高" && item.status !== "完成").length;
@@ -1060,50 +1015,6 @@ function CustomerManagement({ customers, containers, payments, reservations, con
   );
 }
 
-function CustomerPortal({ customers, containers, payments, customersById, contracts }) {
-  const [customerId, setCustomerId] = useState(customers[0]?.id || "");
-  const activeCustomer = customersById[customerId] || customers[0];
-  const activeContainer = containers.find((item) => item.customerId === activeCustomer.id) || containers.find((item) => item.customerId) || containers[0];
-  const customerPayments = payments.filter((item) => item.customerId === activeCustomer.id);
-  const customerContracts = contracts.filter((item) => item.customerId === activeCustomer.id);
-  const unpaid = customerPayments.filter((item) => item.status !== "paid").reduce((sum, item) => sum + item.amount - getPaidAmount(item), 0);
-  return (
-    <section className="content-grid customer-portal-page">
-      <Panel title="客戶自助入口">
-        <div className="portal-preview">
-          <label>模擬登入客戶<select value={activeCustomer.id} onChange={(event) => setCustomerId(event.target.value)}>{customers.map((item) => <option key={item.id} value={item.id}>{item.name} / {item.phone}</option>)}</select></label>
-          <p className="eyebrow">客戶登入後看到的首頁</p>
-          <h2>{activeCustomer.name}，您的貨櫃 {activeContainer.id}</h2>
-          <div className="portal-grid">
-            <Kpi label="租約到期" value={activeContainer.contractEnd} detail="可線上申請續約" />
-            <Kpi label="待繳金額" value={formatMoney(unpaid)} detail="支援線上付款" tone={unpaid > 0 ? "red" : "green"} />
-            <Kpi label="合約文件" value={`${customerContracts.length || 1} 份`} detail="可下載 PDF" tone="blue" />
-          </div>
-          <div className="quick-actions">
-            <button className="primary">線上付款</button>
-            <button className="secondary">下載合約</button>
-            <button className="secondary">申請續約</button>
-            <button className="secondary">申請退租</button>
-          </div>
-        </div>
-        <Table
-          headers={["帳單", "類型", "金額", "已繳", "餘額", "狀態"]}
-          rows={customerPayments.map((item) => [item.invoice, paymentTypes[item.type], formatMoney(item.amount), formatMoney(getPaidAmount(item)), formatMoney(item.amount - getPaidAmount(item)), item.status === "paid" ? "已繳" : item.status === "partial" ? "部分付款" : "待繳"])}
-        />
-        <Table
-          headers={["合約", "貨櫃", "租期", "狀態", "簽署時間"]}
-          rows={(customerContracts.length ? customerContracts : contracts.slice(0, 1)).map((item) => [item.id, item.containerId, `${item.start} ~ ${item.end}`, item.status === "signed" ? "已簽署" : item.status === "pending" ? "待簽署" : "草稿", item.signedAt || "-"])}
-        />
-      </Panel>
-      <Panel title="入口功能清單">
-        <div className="workflow vertical">
-          {["查看租約與貨櫃資訊", "下載合約 PDF", "線上付款與收據", "申請續約", "申請退租", "更新聯絡資料"].map((item) => <span key={item}>{item}</span>)}
-        </div>
-      </Panel>
-    </section>
-  );
-}
-
 function ReservationManagement({ reservations, metrics, customersById, containers, reserveNextWaiting, setReservations }) {
   const vacantContainers = containers.filter((c) => c.status === "vacant");
   const [assignContainer, setAssignContainer] = useState({});
@@ -1176,7 +1087,7 @@ function ReservationManagement({ reservations, metrics, customersById, container
   );
 }
 
-function PaymentManagement({ payments, customersById, contracts, containers, reservations, markPaymentPaid, generateAnnualBills, sendCollectionNotice }) {
+function PaymentManagement({ payments, customersById, contracts, containers, electricity, reservations, markPaymentPaid, generateAnnualBills, sendCollectionNotice }) {
   const totalReceivable = payments.filter((item) => getPaymentStatus(item) !== "paid").reduce((sum, item) => sum + item.amount - getPaidAmount(item), 0);
   const [payMethodSelections, setPayMethodSelections] = useState({});
 
@@ -1267,6 +1178,18 @@ function PaymentManagement({ payments, customersById, contracts, containers, res
               </div>
             ) : (item.paidDate ? `已繳 ${item.paidDate}` : "收據"),
           ];
+        })}
+      />
+      <div className="pricing" style={{ marginTop: "18px" }}>
+        <span>電費：基本費 {formatMoney(1000)} / 年</span>
+        <span>大量用電：獨立電表，每度 9 元</span>
+      </div>
+      <Table
+        headers={["貨櫃", "上期度數", "本期度數", "用量", "基本費", "用電費", "總金額"]}
+        rows={electricity.map((item) => {
+          const baseFee = RATE.ELECTRICITY_BASE;
+          const usageFee = item.usage * RATE.ELECTRICITY_RATE;
+          return [item.containerId, item.lastMeter, item.currentMeter, `${item.usage} 度`, formatMoney(baseFee), formatMoney(usageFee), formatMoney(item.amount)];
         })}
       />
     </Panel>
@@ -1368,53 +1291,6 @@ function ContractManagement({ contracts, customersById, payments, containers, re
         )}
       </Panel>
     </section>
-  );
-}
-
-function ElectricityManagement({ electricity }) {
-  return (
-    <Panel title="電費管理">
-      <div className="pricing">
-        <span>基本電費 {formatMoney(1000)} / 年</span>
-        <span>大量用電：獨立電表，每度 9 元</span>
-      </div>
-      <Table
-        headers={["貨櫃", "上期度數", "本期度數", "用量", "基本費", "用電費", "總金額"]}
-        rows={electricity.map((item) => {
-          const baseFee = RATE.ELECTRICITY_BASE;
-          const usageFee = item.usage * RATE.ELECTRICITY_RATE;
-          return [item.containerId, item.lastMeter, item.currentMeter, `${item.usage} 度`, formatMoney(baseFee), formatMoney(usageFee), formatMoney(item.amount)];
-        })}
-      />
-    </Panel>
-  );
-}
-
-function RenewalManagement({ containers, customersById }) {
-  const renewalRows = containers.filter((item) => item.status === "occupied" && item.contractEnd).map((item) => ({ ...item, days: daysUntil(item.contractEnd) })).sort((a, b) => a.days - b.days);
-  const kanbanItems = renewalRows.map((item) => ({
-    id: item.id,
-    title: `${item.id} ${customersById[item.customerId]?.name || item.customerId}`,
-    status: item.days <= 60 ? "待通知" : "追蹤中",
-    meta: `${item.days} 天後到期`,
-    detail: `續約價 ${formatMoney(calcAnnualRent(item.type, "renewal"))}`
-  }));
-  return (
-    <Panel title="續約提醒">
-      <KanbanBoard columns={["待通知", "已通知", "客戶確認", "已簽約", "已收款", "完成", "追蹤中"]} items={kanbanItems} />
-      <Table
-        headers={["貨櫃", "客戶", "到期日", "剩餘天數", "提醒狀態", "首年價", "續約價"]}
-        rows={renewalRows.map((item) => [
-          item.id,
-          customersById[item.customerId]?.name || item.customerId,
-          item.contractEnd,
-          `${item.days} 天`,
-          <Badge key={item.id} tone={item.days <= 60 ? "red" : "blue"}>{item.days <= 60 ? "需提醒" : "追蹤中"}</Badge>,
-          formatMoney(calcAnnualRent(item.type, "firstYear")),
-          formatMoney(calcAnnualRent(item.type, "renewal"))
-        ])}
-      />
-    </Panel>
   );
 }
 
@@ -1688,33 +1564,6 @@ function CheckoutManagement({ containers, customersById, contracts, payments, se
         ]] : [["CO001", "範例客戶", "A01", "CT001", "2026-07-31", "2 / 12", formatMoney(6000), formatMoney(0), formatMoney(6000), <Badge key="x" tone="blue">已申請</Badge>]]}
       />
     </Panel>
-  );
-}
-
-function NotificationCenter({ notifications }) {
-  const templates = [
-    ["預約成功", "您好，已收到您的預約。貨櫃類型：20 呎，我們將盡快與您聯絡。"],
-    ["有空櫃通知", "您好，您預約的 20 呎貨櫃已有空位，請於 24 小時內確認。"],
-    ["續約通知", "提醒：您的貨櫃租約將於 2027/04/30 到期，請辦理續約。"],
-    ["繳費通知", "提醒：您的租金尚未繳納，請於期限前完成付款。"]
-  ];
-  return (
-    <section className="content-grid">
-      <Panel title="通知模板">
-        <section className="template-grid compact">
-          {templates.map(([title, body]) => (
-            <div className="template-card" key={title}>
-              <strong>{title}</strong>
-              <p>{body}</p>
-              <button className="secondary">預覽</button>
-            </div>
-          ))}
-        </section>
-      </Panel>
-      <Panel title="發送紀錄">
-        <Table headers={["編號", "類型", "對象", "通道", "狀態", "時間"]} rows={notifications.map((item) => [item.id, item.type, item.target, item.channel, item.status, item.sentAt])} />
-      </Panel>
-    </section>
   );
 }
 

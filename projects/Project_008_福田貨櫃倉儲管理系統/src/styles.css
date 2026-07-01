@@ -367,6 +367,7 @@ h2 {
   height: 42px;
   border-radius: 16px;
   background: linear-gradient(135deg, rgba(88, 141, 202, 0.2), rgba(196, 154, 85, 0.24));
+  opacity: 0.55;
   pointer-events: none;
 }
 
@@ -376,6 +377,8 @@ h2 {
   font-size: 14px;
   font-weight: 700;
   margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
 }
 
 .kpi strong {
@@ -384,6 +387,8 @@ h2 {
   font-size: 29px;
   line-height: 1.1;
   margin-bottom: 7px;
+  position: relative;
+  z-index: 1;
 }
 
 .kpi em {
@@ -391,22 +396,46 @@ h2 {
   display: block;
   font-size: 13px;
   font-style: normal;
+  position: relative;
+  z-index: 1;
 }
 
-.kpi.blue strong {
-  color: #2474c2;
+.kpi.blue span,
+.kpi.blue strong,
+.kpi.blue em,
+.kpi.green span,
+.kpi.green strong,
+.kpi.green em,
+.kpi.red span,
+.kpi.red strong,
+.kpi.red em {
+  color: #f8fbff;
+  text-shadow: 0 1px 2px rgba(0, 8, 24, 0.34);
 }
 
-.kpi.green strong {
-  color: #14865f;
+.kpi.yellow span,
+.kpi.yellow strong,
+.kpi.yellow em {
+  color: #122033;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.22);
 }
 
+.kpi.blue span,
+.kpi.green span,
+.kpi.red span,
+.kpi.yellow span,
+.kpi.blue em,
+.kpi.green em,
+.kpi.red em,
+.kpi.yellow em {
+  font-weight: 800;
+}
+
+.kpi.blue strong,
+.kpi.green strong,
+.kpi.red strong,
 .kpi.yellow strong {
-  color: #c49a55;
-}
-
-.kpi.red strong {
-  color: #c14535;
+  font-weight: 900;
 }
 
 .dashboard-grid,
