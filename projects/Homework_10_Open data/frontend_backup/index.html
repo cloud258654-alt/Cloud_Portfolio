@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CWA Weather Visualization Dashboard</title>
+    
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Controls & Stats -->
+        <aside class="sidebar">
+            <header class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon">⛈️</span>
+                    <h1>CWA Weather</h1>
+                </div>
+                <p class="subtitle">Taiwan Real-time Observation</p>
+            </header>
+
+            <!-- Quick Stats Panel -->
+            <section class="panel stats-panel">
+                <h2>📊 Key Observations</h2>
+                <div class="stats-grid">
+                    <div class="stat-card" id="stat-temp">
+                        <span class="stat-icon">🌡️</span>
+                        <div class="stat-info">
+                            <span class="stat-label">Hottest Station</span>
+                            <span class="stat-value">-- °C</span>
+                            <span class="stat-location">Loading...</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" id="stat-rain">
+                        <span class="stat-icon">💧</span>
+                        <div class="stat-info">
+                            <span class="stat-label">Max Rain</span>
+                            <span class="stat-value">-- mm</span>
+                            <span class="stat-location">Loading...</span>
+                        </div>
+                    </div>
+                    <div class="stat-card" id="stat-gust">
+                        <span class="stat-icon">💨</span>
+                        <div class="stat-info">
+                            <span class="stat-label">Peak Wind Gust</span>
+                            <span class="stat-value">-- m/s</span>
+                            <span class="stat-location">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Chart Panel -->
+            <section class="panel chart-panel">
+                <h2>📈 Top Temperature Stations</h2>
+                <div class="chart-container">
+                    <canvas id="tempChart"></canvas>
+                </div>
+            </section>
+            
+            <section class="panel chart-panel">
+                <h2>🌧️ Precipitation Leaderboard</h2>
+                <div class="chart-container">
+                    <canvas id="rainChart"></canvas>
+                </div>
+            </section>
+
+            <footer class="sidebar-footer">
+                <p>Data Source: Central Weather Administration</p>
+                <div class="status-indicator">
+                    <span class="status-dot online"></span>
+                    <span class="status-text">Connected to API</span>
+                </div>
+            </footer>
+        </aside>
+
+        <!-- Main Map Area -->
+        <main class="main-content">
+            <div id="map"></div>
+            
+            <!-- Map Overlay Legend -->
+            <div class="map-legend">
+                <h3>Temperature Range</h3>
+                <div class="legend-scale">
+                    <div class="legend-item"><span class="legend-color" style="background-color: #3b82f6;"></span>&lt; 20°C</div>
+                    <div class="legend-item"><span class="legend-color" style="background-color: #10b981;"></span>20 - 25°C</div>
+                    <div class="legend-item"><span class="legend-color" style="background-color: #f59e0b;"></span>25 - 30°C</div>
+                    <div class="legend-item"><span class="legend-color" style="background-color: #ef4444;"></span>&gt; 30°C</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Leaflet JS for Map -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- Chart.js for Graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom Application Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
